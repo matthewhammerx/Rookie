@@ -67,13 +67,18 @@
             </div>
 
             <div class="video-showcase__controls">
-              <button type="button" class="video-showcase__ctrl" data-toggle-mute aria-label="Toggle sound">
-                <svg data-icon-muted viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M17 9l4 6M21 9l-4 6"/></svg>
-                <svg data-icon-unmuted viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>
+              <button type="button" class="video-showcase__ctrl is-muted" data-toggle-mute aria-label="Toggle sound">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 9v6h4l5 4V5L8 9H4Z"/>
+                  <g data-mute-x><path d="M17 9l4 6M21 9l-4 6"/></g>
+                  <g data-mute-waves><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></g>
+                </svg>
               </button>
               <button type="button" class="video-showcase__ctrl" data-toggle-play aria-label="Play or pause">
-                <svg data-icon-play viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>
-                <svg data-icon-pause viewBox="0 0 24 24" fill="currentColor" hidden><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <polygon data-icon-play points="6,4 20,12 6,20"/>
+                  <g data-icon-pause><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></g>
+                </svg>
               </button>
             </div>
 
@@ -257,6 +262,23 @@
     height: 16px;
   }
 
+  .video-showcase-{{ section.id }} [data-toggle-mute].is-muted [data-mute-waves],
+  .video-showcase-{{ section.id }} [data-toggle-mute]:not(.is-muted) [data-mute-x] {
+    display: none;
+  }
+
+  .video-showcase-{{ section.id }} [data-toggle-play] [data-icon-pause] {
+    display: none;
+  }
+
+  .video-showcase-{{ section.id }} [data-toggle-play].is-playing [data-icon-play] {
+    display: none;
+  }
+
+  .video-showcase-{{ section.id }} [data-toggle-play].is-playing [data-icon-pause] {
+    display: block;
+  }
+
   .video-showcase-{{ section.id }} .video-showcase__caption {
     position: absolute;
     left: 12px;
@@ -301,17 +323,12 @@
       var frame = slide.querySelector('[data-embed-video]');
       var muteBtn = slide.querySelector('[data-toggle-mute]');
       var playBtn = slide.querySelector('[data-toggle-play]');
-      var iconMuted = slide.querySelector('[data-icon-muted]');
-      var iconUnmuted = slide.querySelector('[data-icon-unmuted]');
-      var iconPlay = slide.querySelector('[data-icon-play]');
-      var iconPause = slide.querySelector('[data-icon-pause]');
 
       var manuallyPaused = false;
 
       function setPlayIcon(isPlaying) {
-        if (!iconPlay || !iconPause) return;
-        iconPlay.hidden = isPlaying;
-        iconPause.hidden = !isPlaying;
+        if (!playBtn) return;
+        playBtn.classList.toggle('is-playing', isPlaying);
       }
 
       function play() {
@@ -350,8 +367,7 @@
         muteBtn.addEventListener('click', function () {
           if (video) video.muted = !video.muted;
           var isMuted = video ? video.muted : true;
-          if (iconMuted) iconMuted.hidden = !isMuted;
-          if (iconUnmuted) iconUnmuted.hidden = isMuted;
+          muteBtn.classList.toggle('is-muted', isMuted);
         });
       }
 
