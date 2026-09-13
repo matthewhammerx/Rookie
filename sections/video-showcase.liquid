@@ -1,0 +1,529 @@
+{% liquid
+  assign accent = section.settings.accent_color
+%}
+
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div
+  class="video-showcase-{{ section.id }} video-showcase section section--full-width color-{{ section.settings.color_scheme }}"
+>
+  <div class="video-showcase__ambient" aria-hidden="true"></div>
+
+  {% if section.settings.heading != blank %}
+    <div class="video-showcase__head">
+      <h2 class="video-showcase__heading">{{ section.settings.heading }}</h2>
+    </div>
+  {% endif %}
+
+  <div class="video-showcase__viewport">
+    <button type="button" class="video-showcase__nav video-showcase__nav--prev" aria-label="Previous">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+
+    <div class="video-showcase__track" tabindex="0">
+      {% for block in section.blocks %}
+        {% liquid
+          assign video_id = block.settings.video.id | default: block.settings.video_url.id
+          assign mp4_source = block.settings.video.sources | where: 'format', 'mp4' | first
+          assign fallback_source = block.settings.video.sources | first
+        %}
+        <div class="video-showcase__slide" {{ block.shopify_attributes }}>
+          <div class="video-showcase__frame">
+            <div class="video-showcase__glow" aria-hidden="true"></div>
+
+            <div class="video-showcase__media" data-video-media>
+              {% if block.settings.video != null %}
+                <video
+                  data-native-video
+                  src="{{ mp4_source.url | default: fallback_source.url }}"
+                  {% if block.settings.video.preview_image %}
+                    poster="{{ block.settings.video.preview_image | image_url: width: 800 }}"
+                  {% endif %}
+                  muted
+                  playsinline
+                  loop
+                  preload="metadata"
+                ></video>
+              {% elsif block.settings.video_url != null %}
+                {% if block.settings.video_url.type == 'youtube' %}
+                  <iframe
+                    data-embed-video
+                    data-play-src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&mute=1&autoplay=1&controls=0&playsinline=1&loop=1&playlist={{ video_id }}"
+                    data-pause-src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&mute=1&autoplay=0&controls=0&playsinline=1&loop=1&playlist={{ video_id }}"
+                    src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&mute=1&autoplay=0&controls=0&playsinline=1&loop=1&playlist={{ video_id }}"
+                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                  ></iframe>
+                {% else %}
+                  <iframe
+                    data-embed-video
+                    data-play-src="https://player.vimeo.com/video/{{ video_id }}?autoplay=1&muted=1&loop=1&background=1"
+                    data-pause-src="https://player.vimeo.com/video/{{ video_id }}?autoplay=0&muted=1&loop=1&background=1"
+                    src="https://player.vimeo.com/video/{{ video_id }}?autoplay=0&muted=1&loop=1&background=1"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowfullscreen
+                  ></iframe>
+                {% endif %}
+              {% endif %}
+            </div>
+
+            <div class="video-showcase__controls">
+              <button type="button" class="video-showcase__ctrl" data-toggle-mute aria-label="Toggle sound">
+                <svg data-icon-muted viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M17 9l4 6M21 9l-4 6"/></svg>
+                <svg data-icon-unmuted viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>
+              </button>
+              <button type="button" class="video-showcase__ctrl" data-toggle-play aria-label="Play or pause">
+                <svg data-icon-play viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>
+                <svg data-icon-pause viewBox="0 0 24 24" fill="currentColor" hidden><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>
+              </button>
+            </div>
+
+            {% if block.settings.caption != blank %}
+              <div class="video-showcase__caption video-showcase__caption--{{ block.settings.caption_position }}">
+                {{ block.settings.caption }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <button type="button" class="video-showcase__nav video-showcase__nav--next" aria-label="Next">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+  </div>
+</div>
+
+<style>
+  .video-showcase-{{ section.id }} {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__ambient {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(55% 90% at 50% 30%, {{ accent }}22, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__head {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding-inline: 20px;
+    margin-bottom: 24px;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__heading {
+    font-family: var(--font-heading--family, inherit);
+    font-weight: 800;
+    font-size: clamp(1.4rem, 1.1rem + 1.2vw, 2rem);
+    margin: 0;
+    background: linear-gradient(160deg, #ffffff 10%, {{ accent }} 120%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__viewport {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-inline: 8px;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__nav {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__nav svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__nav:hover {
+    border-color: {{ accent }}88;
+    transform: scale(1.06);
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__track {
+    display: flex;
+    gap: {{ section.settings.gap }}px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding-block: 6px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__slide {
+    flex: none;
+    scroll-snap-align: center;
+    width: min(78vw, 280px);
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__frame {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 9 / 14;
+    border-radius: {{ section.settings.card_radius }}px;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 24px 40px -28px rgba(0, 0, 0, 0.7);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__frame:hover {
+    transform: translateY(-4px);
+    border-color: {{ accent }}55;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(60% 40% at 50% 0%, {{ accent }}30, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__frame:hover .video-showcase__glow {
+    opacity: 1;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__media,
+  .video-showcase-{{ section.id }} .video-showcase__media video,
+  .video-showcase-{{ section.id }} .video-showcase__media iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 0;
+    background: #050505;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    z-index: 3;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__ctrl {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    cursor: pointer;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__ctrl svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__caption {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    z-index: 3;
+    font-family: var(--font-heading--family, inherit);
+    font-weight: 800;
+    font-size: 1.15rem;
+    line-height: 1.2;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+    background: linear-gradient(160deg, #ffffff 10%, {{ accent }} 130%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    pointer-events: none;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__caption--bottom {
+    bottom: 14px;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__caption--top {
+    top: 48px;
+  }
+
+  @media (min-width: 750px) {
+    .video-showcase-{{ section.id }} .video-showcase__slide {
+      width: 230px;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var rootSelector = '.video-showcase-{{ section.id }}';
+
+    function setupSlide(slide) {
+      if (slide.dataset.vsBound) return;
+      slide.dataset.vsBound = 'true';
+
+      var video = slide.querySelector('[data-native-video]');
+      var frame = slide.querySelector('[data-embed-video]');
+      var muteBtn = slide.querySelector('[data-toggle-mute]');
+      var playBtn = slide.querySelector('[data-toggle-play]');
+      var iconMuted = slide.querySelector('[data-icon-muted]');
+      var iconUnmuted = slide.querySelector('[data-icon-unmuted]');
+      var iconPlay = slide.querySelector('[data-icon-play]');
+      var iconPause = slide.querySelector('[data-icon-pause]');
+
+      var manuallyPaused = false;
+
+      function setPlayIcon(isPlaying) {
+        if (!iconPlay || !iconPause) return;
+        iconPlay.hidden = isPlaying;
+        iconPause.hidden = !isPlaying;
+      }
+
+      function play() {
+        if (video) {
+          var p = video.play();
+          if (p && p.catch) p.catch(function () {});
+        }
+        if (frame) {
+          var src = frame.getAttribute('data-play-src');
+          if (src && frame.src !== src) frame.src = src;
+        }
+        setPlayIcon(true);
+      }
+
+      function pause() {
+        if (video) video.pause();
+        if (frame) {
+          var src = frame.getAttribute('data-pause-src');
+          if (src && frame.src !== src) frame.src = src;
+        }
+        setPlayIcon(false);
+      }
+
+      if (playBtn) {
+        playBtn.addEventListener('click', function () {
+          manuallyPaused = !manuallyPaused;
+          if (manuallyPaused) {
+            pause();
+          } else {
+            play();
+          }
+        });
+      }
+
+      if (muteBtn) {
+        muteBtn.addEventListener('click', function () {
+          if (video) video.muted = !video.muted;
+          var isMuted = video ? video.muted : true;
+          if (iconMuted) iconMuted.hidden = !isMuted;
+          if (iconUnmuted) iconUnmuted.hidden = isMuted;
+        });
+      }
+
+      slide._vsPlay = play;
+      slide._vsPause = pause;
+      slide._vsIsManuallyPaused = function () {
+        return manuallyPaused;
+      };
+    }
+
+    function init() {
+      var root = document.querySelector(rootSelector);
+      if (!root) return;
+
+      var track = root.querySelector('.video-showcase__track');
+      var prevBtn = root.querySelector('.video-showcase__nav--prev');
+      var nextBtn = root.querySelector('.video-showcase__nav--next');
+      var slides = root.querySelectorAll('.video-showcase__slide');
+
+      slides.forEach(setupSlide);
+
+      if (track && prevBtn && nextBtn && !track.dataset.vsNavBound) {
+        track.dataset.vsNavBound = 'true';
+        function step() {
+          var slide = track.querySelector('.video-showcase__slide');
+          return slide ? slide.getBoundingClientRect().width + 14 : 260;
+        }
+        prevBtn.addEventListener('click', function () {
+          track.scrollBy({ left: -step(), behavior: 'smooth' });
+        });
+        nextBtn.addEventListener('click', function () {
+          track.scrollBy({ left: step(), behavior: 'smooth' });
+        });
+      }
+
+      if ('IntersectionObserver' in window && !root.dataset.vsObserverBound) {
+        root.dataset.vsObserverBound = 'true';
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              var slide = entry.target;
+              if (!slide._vsIsManuallyPaused || slide._vsIsManuallyPaused()) return;
+              if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+                slide._vsPlay && slide._vsPlay();
+              } else {
+                slide._vsPause && slide._vsPause();
+              }
+            });
+          },
+          { root: track, threshold: [0, 0.6, 1] }
+        );
+        slides.forEach(function (slide) {
+          observer.observe(slide);
+        });
+      }
+    }
+
+    init();
+    document.addEventListener('shopify:section:load', init);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Video Showcase",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-5"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#eb00ca"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Optional."
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "label": "Card corner radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap between videos",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Video",
+      "settings": [
+        {
+          "type": "video",
+          "id": "video",
+          "label": "Video (Shopify-hosted)"
+        },
+        {
+          "type": "video_url",
+          "id": "video_url",
+          "label": "Or video URL",
+          "accept": ["youtube", "vimeo"],
+          "info": "Used only if no Shopify-hosted video is set above."
+        },
+        {
+          "type": "text",
+          "id": "caption",
+          "label": "Caption text",
+          "info": "Optional overlay text, e.g. \"4000+ items available\"."
+        },
+        {
+          "type": "select",
+          "id": "caption_position",
+          "label": "Caption position",
+          "options": [
+            { "value": "bottom", "label": "Bottom" },
+            { "value": "top", "label": "Top" }
+          ],
+          "default": "bottom"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Video Showcase",
+      "blocks": [
+        { "type": "slide", "settings": { "caption": "4000+ items available" } },
+        { "type": "slide" },
+        { "type": "slide", "settings": { "caption": "2-5 days express shipping worldwide" } },
+        { "type": "slide" }
+      ]
+    }
+  ]
+}
+{% endschema %}
