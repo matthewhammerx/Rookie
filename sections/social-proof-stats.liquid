@@ -2,6 +2,8 @@
 <div
   class="social-proof-stats-{{ section.id }} social-proof-stats section section--full-width color-{{ section.settings.color_scheme }}"
 >
+  <div class="social-proof-stats__ambient" aria-hidden="true"></div>
+
   <div class="social-proof-stats__row">
     {% for block in section.blocks %}
       {% liquid
@@ -21,19 +23,22 @@
       {% capture item_tag %}{% if block.settings.link != blank %}a{% else %}div{% endif %}{% endcapture %}
       <{{ item_tag }}
         {% if block.settings.link != blank %}href="{{ block.settings.link }}"{% endif %}
-        class="social-proof-stats__item"
+        class="social-proof-stats__card"
         {{ block.shopify_attributes }}
       >
+        <span class="social-proof-stats__glow" aria-hidden="true"></span>
+
         {% case icon_svg %}
           {% when 'star' %}
-            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>
+            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>
           {% when 'thumb' %}
-            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3Zm0 0l4.5-7.5a1.8 1.8 0 0 1 3.3 1.3L13.8 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H10a3 3 0 0 1-3-3v-6Z"/></svg>
+            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3Zm0 0l4.5-7.5a1.8 1.8 0 0 1 3.3 1.3L13.8 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H10a3 3 0 0 1-3-3v-6Z"/></svg>
           {% when 'camera' %}
-            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="4"/><path d="M8 6.5l1.3-2h5.4l1.3 2"/></svg>
+            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="4"/><path d="M8 6.5l1.3-2h5.4l1.3 2"/></svg>
           {% when 'people' %}
-            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M2.5 20c0-3.3 2.7-5.7 6-5.7s6 2.4 6 5.7M15 20c0-2.4 1.7-4.4 4-4.9"/></svg>
+            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M2.5 20c0-3.3 2.7-5.7 6-5.7s6 2.4 6 5.7M15 20c0-2.4 1.7-4.4 4-4.9"/></svg>
         {% endcase %}
+
         <span class="social-proof-stats__value">{{ block.settings.value }}</span>
         <span class="social-proof-stats__label">{{ block.settings.label }}</span>
       </{{ item_tag }}>
@@ -46,76 +51,108 @@
     position: relative;
     z-index: 1;
     padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
+    overflow: hidden;
+  }
+
+  .social-proof-stats-{{ section.id }} .social-proof-stats__ambient {
+    position: absolute;
+    inset: -20% -10%;
+    background:
+      radial-gradient(38% 60% at 18% 20%, {{ section.settings.accent_color }}26, transparent 65%),
+      radial-gradient(32% 55% at 85% 80%, {{ section.settings.accent_color }}1f, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
   }
 
   .social-proof-stats-{{ section.id }} .social-proof-stats__row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .social-proof-stats-{{ section.id }} .social-proof-stats__item {
-    flex: 1 1 160px;
-    max-width: 220px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 16px 20px;
-    text-align: center;
-    text-decoration: none;
-    color: inherit;
     position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    max-width: 1100px;
+    margin-inline: auto;
+    padding-inline: 16px;
   }
 
-  .social-proof-stats-{{ section.id }} .social-proof-stats__item:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: 12%;
-    bottom: 12%;
-    right: 0;
-    width: 1px;
-    background: linear-gradient(to bottom, transparent, {{ section.settings.divider_color }}, transparent);
-  }
-
-  @media (max-width: 599px) {
-    .social-proof-stats-{{ section.id }} .social-proof-stats__item:nth-child(odd)::after {
-      display: none;
+  @media (min-width: 750px) {
+    .social-proof-stats-{{ section.id }} .social-proof-stats__row {
+      grid-template-columns: repeat({{ section.blocks.size }}, 1fr);
+      gap: 18px;
+      padding-inline: 28px;
     }
   }
 
+  .social-proof-stats-{{ section.id }} .social-proof-stats__card {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 30px 18px 26px;
+    border-radius: 20px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 24px 40px -28px rgba(0, 0, 0, 0.7);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .social-proof-stats-{{ section.id }} .social-proof-stats__glow {
+    position: absolute;
+    top: -30%;
+    right: -20%;
+    width: 65%;
+    aspect-ratio: 1;
+    background: radial-gradient(circle, {{ section.settings.accent_color }}40, transparent 70%);
+    filter: blur(18px);
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .social-proof-stats-{{ section.id }} .social-proof-stats__card:hover {
+    transform: translateY(-6px);
+    border-color: {{ section.settings.accent_color }}66;
+    box-shadow: 0 30px 50px -24px rgba(0, 0, 0, 0.75), 0 0 40px -12px {{ section.settings.accent_color }}4d;
+  }
+
+  .social-proof-stats-{{ section.id }} .social-proof-stats__card:hover .social-proof-stats__glow {
+    opacity: 1;
+  }
+
   .social-proof-stats-{{ section.id }} .social-proof-stats__icon {
-    width: 24px;
-    height: 24px;
+    position: relative;
+    width: 22px;
+    height: 22px;
     color: {{ section.settings.accent_color }};
   }
 
   .social-proof-stats-{{ section.id }} .social-proof-stats__value {
+    position: relative;
     font-family: var(--font-heading--family, inherit);
     font-weight: 800;
-    font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+    font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.3rem);
     font-variant-numeric: tabular-nums;
-    line-height: 1.1;
+    line-height: 1.05;
     letter-spacing: -0.01em;
+    background: linear-gradient(160deg, #ffffff 10%, {{ section.settings.accent_color }} 110%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   .social-proof-stats-{{ section.id }} .social-proof-stats__label {
-    font-size: 0.78rem;
+    position: relative;
+    font-size: 0.8rem;
     font-weight: 500;
-    letter-spacing: 0.02em;
-    opacity: 0.7;
-  }
-
-  .social-proof-stats-{{ section.id }} a.social-proof-stats__item {
-    transition: transform 0.2s ease;
-  }
-
-  .social-proof-stats-{{ section.id }} a.social-proof-stats__item:hover {
-    transform: translateY(-3px);
-  }
-
-  .social-proof-stats-{{ section.id }} a.social-proof-stats__item:hover .social-proof-stats__value {
-    color: {{ section.settings.accent_color }};
+    letter-spacing: 0.01em;
+    color: rgba(255, 255, 255, 0.72);
   }
 </style>
 
@@ -133,34 +170,28 @@
     {
       "type": "color",
       "id": "accent_color",
-      "label": "Icon / hover accent color",
+      "label": "Accent color (glow, icons, numbers)",
       "default": "#eb00ca"
-    },
-    {
-      "type": "color",
-      "id": "divider_color",
-      "label": "Divider color",
-      "default": "#3a3a3a"
     },
     {
       "type": "range",
       "id": "padding_top",
       "label": "Top padding",
       "min": 0,
-      "max": 60,
+      "max": 80,
       "step": 5,
       "unit": "px",
-      "default": 20
+      "default": 40
     },
     {
       "type": "range",
       "id": "padding_bottom",
       "label": "Bottom padding",
       "min": 0,
-      "max": 60,
+      "max": 80,
       "step": 5,
       "unit": "px",
-      "default": 20
+      "default": 40
     }
   ],
   "blocks": [
