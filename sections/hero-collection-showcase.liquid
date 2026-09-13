@@ -16,13 +16,9 @@
 
   assign top_button_count = 0
   assign bottom_button_count = 0
-  assign heading_row_layout = false
   for block in section.blocks
     if block.type == 'button' and block.settings.position == 'top'
       assign top_button_count = top_button_count | plus: 1
-    elsif block.type == 'button' and block.settings.position == 'top_inline'
-      assign top_button_count = top_button_count | plus: 1
-      assign heading_row_layout = true
     elsif block.type == 'button' and block.settings.position == 'bottom'
       assign bottom_button_count = bottom_button_count | plus: 1
     endif
@@ -96,49 +92,50 @@
   <div class="hcs__fade" aria-hidden="true"></div>
 
   <div class="hcs__content">
-  <div
-    class="hcs__top-content{% if heading_row_layout %} hcs__top-content--row{% endif %}"
-    data-testid="hcs-top-content"
-  >
-    <div class="hcs__heading-row">
+  <div class="hcs__top-content" data-testid="hcs-top-content">
+    <div class="hcs__top-text">
       {%- if section.settings.heading_text != blank -%}
         <h2 class="hcs__heading{% if section.settings.heading_glow %} hcs__heading--glow{% endif %}">
           {{ section.settings.heading_text }}
         </h2>
       {%- endif -%}
 
-    {%- for block in section.blocks -%}
-      {%- if block.type == 'button' and block.settings.position == 'top' or block.type == 'button' and block.settings.position == 'top_inline' -%}
-        <a
-          {% if block.settings.link != blank %}href="{{ block.settings.link }}"{% else %}href="javascript:void(0);"{% endif %}
-          {% if block.settings.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}
-          class="hcs-button hcs-button--{{ block.settings.style }}"
-          style="
-            border-radius: {{ block.settings.corner_radius }}px;
-            {% if block.settings.style == 'outline' %}
-              color: {{ block.settings.bg_color }};
-              border-color: {{ block.settings.bg_color }};
-            {% else %}
-              background-color: {{ block.settings.bg_color }};
-              color: {{ block.settings.text_color }};
-            {% endif %}
-            {% if block.settings.style == 'glow' %}
-              box-shadow:
-                0 0 {{ block.settings.glow_size | times: 0.5 | round }}px color-mix(in srgb, {{ block.settings.glow_color }} 55%, transparent),
-                0 0 {{ block.settings.glow_size }}px color-mix(in srgb, {{ block.settings.glow_color }} 35%, transparent),
-                0 0 {{ block.settings.glow_size | times: 2.25 | round }}px color-mix(in srgb, {{ block.settings.glow_color }} 15%, transparent);
-            {% endif %}
-          "
-          {{ block.shopify_attributes }}
-        >
-          {{ block.settings.label }}
-        </a>
+      {%- if section.settings.subheading_text != blank -%}
+        <p class="hcs__subheading">{{ section.settings.subheading_text }}</p>
       {%- endif -%}
-    {%- endfor -%}
     </div>
 
-    {%- if section.settings.subheading_text != blank -%}
-      <p class="hcs__subheading">{{ section.settings.subheading_text }}</p>
+    {%- if top_button_count > 0 -%}
+      <div class="hcs__top-actions">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'button' and block.settings.position == 'top' -%}
+            <a
+              {% if block.settings.link != blank %}href="{{ block.settings.link }}"{% else %}href="javascript:void(0);"{% endif %}
+              {% if block.settings.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}
+              class="hcs-button hcs-button--{{ block.settings.style }}"
+              style="
+                border-radius: {{ block.settings.corner_radius }}px;
+                {% if block.settings.style == 'outline' %}
+                  color: {{ block.settings.bg_color }};
+                  border-color: {{ block.settings.bg_color }};
+                {% else %}
+                  background-color: {{ block.settings.bg_color }};
+                  color: {{ block.settings.text_color }};
+                {% endif %}
+                {% if block.settings.style == 'glow' %}
+                  box-shadow:
+                    0 0 {{ block.settings.glow_size | times: 0.5 | round }}px color-mix(in srgb, {{ block.settings.glow_color }} 55%, transparent),
+                    0 0 {{ block.settings.glow_size }}px color-mix(in srgb, {{ block.settings.glow_color }} 35%, transparent),
+                    0 0 {{ block.settings.glow_size | times: 2.25 | round }}px color-mix(in srgb, {{ block.settings.glow_color }} 15%, transparent);
+                {% endif %}
+              "
+              {{ block.shopify_attributes }}
+            >
+              {{ block.settings.label }}
+            </a>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
     {%- endif -%}
   </div>
 
@@ -405,44 +402,32 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    gap: 20px;
+    gap: 16px;
     text-align: center;
     padding: 40px 20px 0;
   }
 
-  .hcs__heading-row {
-    display: contents;
-  }
-
   @media screen and (min-width: 750px) {
     .hcs__top-content {
-      padding-top: 64px;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      text-align: left;
+      padding: 64px 48px 0;
+      gap: 24px;
     }
   }
 
-  .hcs__top-content--row {
-    align-items: stretch;
-    text-align: left;
-  }
-
-  .hcs__top-content--row .hcs__heading-row {
+  .hcs__top-text {
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .hcs__top-actions {
+    display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    width: 100%;
-  }
-
-  .hcs__top-content--row .hcs__heading {
-    margin: 0;
-  }
-
-  .hcs__top-content--row .hcs-button {
-    flex: none;
-    padding: 10px 22px;
-    font-size: 0.85rem;
+    justify-content: center;
   }
 
   .hcs__heading {
@@ -856,6 +841,7 @@
     font-weight: 700;
     letter-spacing: 0.02em;
     padding: 14px 32px;
+    white-space: nowrap;
     transition: box-shadow 0.25s ease, transform 0.25s ease, background-color 0.25s ease, color 0.25s ease;
   }
 
@@ -1242,8 +1228,7 @@
           "id": "position",
           "label": "Position",
           "options": [
-            { "value": "top", "label": "Above grid (over media)" },
-            { "value": "top_inline", "label": "Above grid, next to heading" },
+            { "value": "top", "label": "Beside heading (top)" },
             { "value": "bottom", "label": "Below grid" }
           ],
           "default": "bottom"
