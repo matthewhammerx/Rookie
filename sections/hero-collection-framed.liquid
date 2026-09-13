@@ -41,6 +41,7 @@
     --hcf-card-width-mobile: {{ section.settings.card_width_mobile }}px;
     --hcf-card-gap: {{ section.settings.card_gap }}px;
     --hcf-heading-color: {{ section.settings.heading_color }};
+    --hcf-accent-color: {{ section.settings.accent_color }};
     --hcf-heading-size: {{ section.settings.heading_size }}px;
     --hcf-heading-size-mobile: {{ section.settings.heading_size_mobile }}px;
     --hcf-heading-glow-color: {{ section.settings.heading_glow_color }};
@@ -426,7 +427,10 @@
 
   .hcf__heading {
     margin: 0;
-    color: var(--hcf-heading-color);
+    background: linear-gradient(160deg, var(--hcf-heading-color) 10%, var(--hcf-accent-color) 120%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
     font-size: var(--hcf-heading-size-mobile);
     line-height: 1;
     letter-spacing: 0.02em;
@@ -960,6 +964,12 @@
       "id": "heading_color",
       "label": "Heading & text color",
       "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Heading gradient accent color",
+      "default": "#eb00ca"
     },
     {
       "type": "checkbox",
