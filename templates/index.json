@@ -2453,7 +2453,9 @@
         "accent_color": "#eb00ca",
         "heading": "FAQ",
         "padding_top": 50,
-        "padding_bottom": 50
+        "padding_bottom": 50,
+        "fade_size": 12,
+        "fade_opacity": 90
       }
     },
     "collection_tile_grid_glow": {
