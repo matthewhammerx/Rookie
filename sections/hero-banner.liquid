@@ -11,7 +11,38 @@
 {%- liquid
   assign accent = section.settings.accent_color
   assign overlay_alpha = section.settings.overlay_opacity | times: 1.0 | divided_by: 100
-  assign top_fade_alpha = section.settings.top_fade_size | times: 1.0 | divided_by: 100
+
+  # Bottom fade: eased multi-stop gradient (fast drop near the top of the
+  # fade zone, gentler near the section edge) instead of a single flat
+  # linear ramp, so it reads as a smooth fade rather than a hard band.
+  assign bf_peak = section.settings.bottom_fade_opacity | times: 1.0 | divided_by: 100
+  assign bf_alpha1 = bf_peak | times: 0.85
+  assign bf_alpha2 = bf_peak | times: 0.55
+  assign bf_alpha3 = bf_peak | times: 0.22
+  assign bf_color0 = section.settings.bottom_fade_color | color_modify: 'alpha', bf_peak
+  assign bf_color1 = section.settings.bottom_fade_color | color_modify: 'alpha', bf_alpha1
+  assign bf_color2 = section.settings.bottom_fade_color | color_modify: 'alpha', bf_alpha2
+  assign bf_color3 = section.settings.bottom_fade_color | color_modify: 'alpha', bf_alpha3
+  assign bf_size = section.settings.bottom_fade_size
+  assign bf_pos1 = bf_size | times: 0.3 | round
+  assign bf_pos2 = bf_size | times: 0.55 | round
+  assign bf_pos3 = bf_size | times: 0.8 | round
+  assign bottom_fade_gradient = 'linear-gradient(to top, ' | append: bf_color0 | append: ' 0%, ' | append: bf_color1 | append: ' ' | append: bf_pos1 | append: '%, ' | append: bf_color2 | append: ' ' | append: bf_pos2 | append: '%, ' | append: bf_color3 | append: ' ' | append: bf_pos3 | append: '%, transparent ' | append: bf_size | append: '%)'
+
+  # Same eased curve for the top fade, mirrored (to bottom).
+  assign tf_peak = section.settings.top_fade_opacity | times: 1.0 | divided_by: 100
+  assign tf_alpha1 = tf_peak | times: 0.85
+  assign tf_alpha2 = tf_peak | times: 0.55
+  assign tf_alpha3 = tf_peak | times: 0.22
+  assign tf_color0 = section.settings.top_fade_color | color_modify: 'alpha', tf_peak
+  assign tf_color1 = section.settings.top_fade_color | color_modify: 'alpha', tf_alpha1
+  assign tf_color2 = section.settings.top_fade_color | color_modify: 'alpha', tf_alpha2
+  assign tf_color3 = section.settings.top_fade_color | color_modify: 'alpha', tf_alpha3
+  assign tf_size = section.settings.top_fade_size
+  assign tf_pos1 = tf_size | times: 0.3 | round
+  assign tf_pos2 = tf_size | times: 0.55 | round
+  assign tf_pos3 = tf_size | times: 0.8 | round
+  assign top_fade_gradient = 'linear-gradient(to bottom, ' | append: tf_color0 | append: ' 0%, ' | append: tf_color1 | append: ' ' | append: tf_pos1 | append: '%, ' | append: tf_color2 | append: ' ' | append: tf_pos2 | append: '%, ' | append: tf_color3 | append: ' ' | append: tf_pos3 | append: '%, transparent ' | append: tf_size | append: '%)'
 
   assign heading_glow_alpha = section.settings.heading_glow_strength | times: 1.0 | divided_by: 100
   assign heading_glow_rgba = section.settings.heading_glow_color | color_modify: 'alpha', heading_glow_alpha
@@ -87,10 +118,8 @@
     --hb-text-align: {{ section.settings.content_align }};
     --hb-text-align-mobile: {{ section.settings.content_align_mobile }};
     --hb-overlay-alpha: {{ overlay_alpha }};
-    --hb-bottom-fade-size: {{ section.settings.bottom_fade_size }}%;
-    --hb-bottom-fade-color: {{ section.settings.bottom_fade_color }};
-    --hb-top-fade-size: {{ section.settings.top_fade_size }}%;
-    --hb-top-fade-alpha: {{ top_fade_alpha }};
+    --hb-bottom-fade-gradient: {{ bottom_fade_gradient }};
+    --hb-top-fade-gradient: {{ top_fade_gradient }};
     --hb-ambient-color: {{ ambient_glow_rgba }};
     --hb-heading-glow-color: {{ heading_glow_rgba }};
     --hb-heading-glow-radius-1: {{ section.settings.heading_glow_size }}px;
@@ -332,7 +361,7 @@
     position: absolute;
     inset: 0;
     z-index: 1;
-    background-image: linear-gradient(to bottom, rgba(0, 0, 0, var(--hb-top-fade-alpha)) 0%, transparent var(--hb-top-fade-size));
+    background-image: var(--hb-top-fade-gradient);
     pointer-events: none;
   }
 
@@ -340,7 +369,7 @@
     position: absolute;
     inset: 0;
     z-index: 1;
-    background-image: linear-gradient(to top, var(--hb-bottom-fade-color) 0%, transparent var(--hb-bottom-fade-size));
+    background-image: var(--hb-bottom-fade-gradient);
     pointer-events: none;
   }
 
@@ -953,12 +982,30 @@
     {
       "type": "range",
       "id": "top_fade_size",
-      "label": "Top fade size",
-      "min": 0,
-      "max": 60,
-      "step": 2,
+      "label": "Top fade height",
+      "min": 5,
+      "max": 80,
+      "step": 5,
       "unit": "%",
       "default": 20,
+      "visible_if": "{{ section.settings.enable_top_fade }}"
+    },
+    {
+      "type": "range",
+      "id": "top_fade_opacity",
+      "label": "Top fade strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 60,
+      "visible_if": "{{ section.settings.enable_top_fade }}"
+    },
+    {
+      "type": "color",
+      "id": "top_fade_color",
+      "label": "Top fade color",
+      "default": "#000000",
       "visible_if": "{{ section.settings.enable_top_fade }}"
     },
     {
@@ -971,12 +1018,23 @@
     {
       "type": "range",
       "id": "bottom_fade_size",
-      "label": "Bottom fade size",
+      "label": "Bottom fade height",
       "min": 5,
       "max": 80,
       "step": 5,
       "unit": "%",
       "default": 35,
+      "visible_if": "{{ section.settings.enable_bottom_fade }}"
+    },
+    {
+      "type": "range",
+      "id": "bottom_fade_opacity",
+      "label": "Bottom fade strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100,
       "visible_if": "{{ section.settings.enable_bottom_fade }}"
     },
     {
