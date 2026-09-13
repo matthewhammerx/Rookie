@@ -1,5 +1,6 @@
 {% liquid
   assign accent = section.settings.accent_color
+  assign fade_opacity_decimal = section.settings.fade_opacity | times: 1.0 | divided_by: 100
 %}
 
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
@@ -118,7 +119,13 @@
   .video-showcase-{{ section.id }} .video-showcase__ambient {
     position: absolute;
     inset: 0;
-    background: radial-gradient(55% 90% at 50% 30%, {{ accent }}22, transparent 70%);
+    background-image:
+      linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, {{ fade_opacity_decimal }}) 0%,
+        transparent {{ section.settings.fade_size }}%
+      ),
+      radial-gradient(55% 90% at 50% 30%, {{ accent }}22, transparent 70%);
     pointer-events: none;
     z-index: 0;
   }
@@ -518,6 +525,30 @@
       "id": "accent_color",
       "label": "Accent color",
       "default": "#eb00ca"
+    },
+    {
+      "type": "header",
+      "content": "Top dimming fade"
+    },
+    {
+      "type": "range",
+      "id": "fade_size",
+      "label": "Fade size",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "%",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "fade_opacity",
+      "label": "Fade opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 90
     },
     {
       "type": "text",

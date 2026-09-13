@@ -2104,7 +2104,9 @@
         "card_radius": 20,
         "gap": 14,
         "padding_top": 40,
-        "padding_bottom": 40
+        "padding_bottom": 40,
+        "fade_size": 12,
+        "fade_opacity": 90
       }
     },
     "1776966047fe1b684b": {
