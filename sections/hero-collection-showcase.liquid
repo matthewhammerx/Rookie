@@ -456,9 +456,9 @@
   }
 
   .hcs__heading--glow {
-    text-shadow:
-      0 0 var(--hcs-heading-glow-radius-1) var(--hcs-heading-glow-color),
-      0 0 var(--hcs-heading-glow-radius-2) var(--hcs-heading-glow-color);
+    filter:
+      drop-shadow(0 0 var(--hcs-heading-glow-radius-1) var(--hcs-heading-glow-color))
+      drop-shadow(0 0 var(--hcs-heading-glow-radius-2) var(--hcs-heading-glow-color));
   }
 
   .hcs__subheading {
