@@ -79,15 +79,41 @@
   }
 
   .faq-accordion-{{ section.id }} .faq-accordion__item {
+    --spot-x: 50%;
+    --spot-y: 50%;
+    position: relative;
     border-radius: 16px;
     overflow: hidden;
-    background: linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: border-color 0.25s ease;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 16px 30px -22px rgba(0, 0, 0, 0.8);
+    transition: border-color 0.25s ease, box-shadow 0.3s ease;
+  }
+
+  .faq-accordion-{{ section.id }} .faq-accordion__item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(240px circle at var(--spot-x) var(--spot-y), {{ accent }}22, transparent 65%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .faq-accordion-{{ section.id }} .faq-accordion__item:hover::before {
+    opacity: 1;
   }
 
   .faq-accordion-{{ section.id }} .faq-accordion__item:has(.faq-accordion__trigger[aria-expanded="true"]) {
-    border-color: {{ accent }}55;
+    border-color: {{ accent }}66;
+    box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.85), 0 0 32px -8px {{ accent }}4d;
+  }
+
+  .faq-accordion-{{ section.id }} .faq-accordion__trigger,
+  .faq-accordion-{{ section.id }} .faq-accordion__panel {
+    position: relative;
+    z-index: 1;
   }
 
   .faq-accordion-{{ section.id }} .faq-accordion__trigger {
@@ -138,7 +164,11 @@
   }
 
   .faq-accordion-{{ section.id }} .faq-accordion__answer {
-    padding: 0 20px 20px;
+    margin: 0 14px 14px;
+    padding: 16px 16px 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 0 0 10px 10px;
     color: rgba(255, 255, 255, 0.75);
     font-size: 0.92rem;
     line-height: 1.6;
@@ -178,6 +208,14 @@
       }
     }
 
+    function setSpot(item, clientX, clientY) {
+      var rect = item.getBoundingClientRect();
+      var x = ((clientX - rect.left) / rect.width) * 100;
+      var y = ((clientY - rect.top) / rect.height) * 100;
+      item.style.setProperty('--spot-x', x + '%');
+      item.style.setProperty('--spot-y', y + '%');
+    }
+
     function init() {
       var root = document.querySelector(rootSelector);
       if (!root) return;
@@ -187,6 +225,14 @@
         trigger.dataset.faqBound = 'true';
         trigger.addEventListener('click', function () {
           toggle(trigger);
+        });
+      });
+
+      root.querySelectorAll('.faq-accordion__item').forEach(function (item) {
+        if (item.dataset.faqGlowBound) return;
+        item.dataset.faqGlowBound = 'true';
+        item.addEventListener('pointermove', function (e) {
+          setSpot(item, e.clientX, e.clientY);
         });
       });
     }
