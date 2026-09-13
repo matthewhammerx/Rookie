@@ -2403,64 +2403,57 @@
       }
     },
     "ss_simple_faq_gH4bHi": {
-      "type": "ss-simple-faq",
+      "type": "faq-accordion",
       "blocks": {
-        "text_GRVz4N": {
-          "type": "text",
+        "q_1": {
+          "type": "question",
           "settings": {
             "question": "Is international shipping available?",
             "answer": "<p>Absolutely! We offer worldwide shipping. Rates and delivery times vary by region, and full details are shown during checkout.</p>"
           }
         },
-        "text_RCMh9a": {
-          "type": "text",
+        "q_2": {
+          "type": "question",
           "settings": {
             "question": "Will I have to pay customs fees for international orders?",
             "answer": "<p>Shipping costs are shown at checkout, but depending on where you live, your country may charge customs duties, VAT, or other fees. </p><p>These aren\u2019t included in our prices, so we recommend checking with your local customs office before ordering.</p>"
           }
         },
-        "text_FYVEEg": {
-          "type": "text",
+        "q_3": {
+          "type": "question",
           "settings": {
             "question": "How long does shipping usually take?",
             "answer": "<p>Canada & USA orders typically arrive in 1\u20135 business days.</p><p>International shipping can take 2\u20135 business days depending on your location. </p><p>A tracking number will be provided once your order ships.</p>"
           }
         },
-        "text_XRKTDx": {
-          "type": "text",
+        "q_4": {
+          "type": "question",
           "settings": {
             "question": "Do you offer Free Shipping?",
             "answer": "<p>Canada & USA orders over <strong>$350</strong> ship free!</p>"
           }
         },
-        "text_gK7gj3": {
-          "type": "text",
+        "q_5": {
+          "type": "question",
           "settings": {
             "question": "Can I sell my collection to Rookie Legends?",
-            "answer": "<p>Yes. Please contact us using the form on our Contact Us page or email us at <a><strong>info@rookielegends.com</strong></a> with the details of your cards.</p>"
+            "answer": "<p>Yes. Please contact us using the form on our Contact Us page or email us at <a href=\"mailto:info@rookielegends.com\"><strong>info@rookielegends.com</strong></a> with the details of your cards.</p>"
           }
         }
       },
       "block_order": [
-        "text_GRVz4N",
-        "text_RCMh9a",
-        "text_FYVEEg",
-        "text_XRKTDx",
-        "text_gK7gj3"
+        "q_1",
+        "q_2",
+        "q_3",
+        "q_4",
+        "q_5"
       ],
-      "name": "SS - FAQ #1",
       "settings": {
+        "color_scheme": "scheme-5",
+        "accent_color": "#eb00ca",
         "heading": "FAQ",
-        "heading_font_size": 2.5,
-        "question_font_size": 1,
-        "answer_font_size": 0.9,
-        "heading_bottom_spacing": 20,
-        "icon_color": "#ffffff",
-        "hover_color": "#eb00ca",
-        "question_color": "#ffffff",
-        "background_color": "#8c019f",
-        "answer_color": "#000000",
-        "answer_bg_color": "#ffffff"
+        "padding_top": 50,
+        "padding_bottom": 50
       }
     },
     "collection_tile_grid_glow": {
