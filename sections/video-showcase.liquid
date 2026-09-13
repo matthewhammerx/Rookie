@@ -19,76 +19,85 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
 
-    <div class="video-showcase__track" tabindex="0">
-      {% for block in section.blocks %}
-        {% liquid
-          assign video_id = block.settings.video.id | default: block.settings.video_url.id
-          assign mp4_source = block.settings.video.sources | where: 'format', 'mp4' | first
-          assign fallback_source = block.settings.video.sources | first
-        %}
-        <div class="video-showcase__slide" {{ block.shopify_attributes }}>
-          <div class="video-showcase__frame">
-            <div class="video-showcase__glow" aria-hidden="true"></div>
+    <div class="video-showcase__track" tabindex="0" data-loop-track>
+      {% for copy in (1..3) %}
+        {% for block in section.blocks %}
+          {% liquid
+            assign video_id = block.settings.video.id | default: block.settings.video_url.id
+            assign mp4_source = block.settings.video.sources | where: 'format', 'mp4' | first
+            assign fallback_source = block.settings.video.sources | first
+          %}
+          <div
+            class="video-showcase__slide"
+            {% if copy == 1 %}
+              {{ block.shopify_attributes }}
+            {% else %}
+              aria-hidden="true"
+            {% endif %}
+          >
+            <div class="video-showcase__frame">
+              <div class="video-showcase__glow" aria-hidden="true"></div>
 
-            <div class="video-showcase__media" data-video-media>
-              {% if block.settings.video != null %}
-                <video
-                  data-native-video
-                  src="{{ mp4_source.url | default: fallback_source.url }}"
-                  {% if block.settings.video.preview_image %}
-                    poster="{{ block.settings.video.preview_image | image_url: width: 800 }}"
+              <div class="video-showcase__media" data-video-media>
+                {% if block.settings.video != null %}
+                  <video
+                    data-native-video
+                    src="{{ mp4_source.url | default: fallback_source.url }}"
+                    {% if block.settings.video.preview_image %}
+                      poster="{{ block.settings.video.preview_image | image_url: width: 800 }}"
+                    {% endif %}
+                    muted
+                    playsinline
+                    loop
+                    preload="metadata"
+                  ></video>
+                {% elsif block.settings.video_url != null %}
+                  {% if block.settings.video_url.type == 'youtube' %}
+                    <iframe
+                      data-embed-video
+                      data-play-src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&mute=1&autoplay=1&controls=0&playsinline=1&loop=1&playlist={{ video_id }}"
+                      data-pause-src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&mute=1&autoplay=0&controls=0&playsinline=1&loop=1&playlist={{ video_id }}"
+                      src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&mute=1&autoplay=0&controls=0&playsinline=1&loop=1&playlist={{ video_id }}"
+                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                      allowfullscreen
+                    ></iframe>
+                  {% else %}
+                    <iframe
+                      data-embed-video
+                      data-play-src="https://player.vimeo.com/video/{{ video_id }}?autoplay=1&muted=1&loop=1&background=1"
+                      data-pause-src="https://player.vimeo.com/video/{{ video_id }}?autoplay=0&muted=1&loop=1&background=1"
+                      src="https://player.vimeo.com/video/{{ video_id }}?autoplay=0&muted=1&loop=1&background=1"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowfullscreen
+                    ></iframe>
                   {% endif %}
-                  muted
-                  playsinline
-                  loop
-                  preload="metadata"
-                ></video>
-              {% elsif block.settings.video_url != null %}
-                {% if block.settings.video_url.type == 'youtube' %}
-                  <iframe
-                    data-embed-video
-                    data-play-src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&mute=1&autoplay=1&controls=0&playsinline=1&loop=1&playlist={{ video_id }}"
-                    data-pause-src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&mute=1&autoplay=0&controls=0&playsinline=1&loop=1&playlist={{ video_id }}"
-                    src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&mute=1&autoplay=0&controls=0&playsinline=1&loop=1&playlist={{ video_id }}"
-                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen
-                  ></iframe>
-                {% else %}
-                  <iframe
-                    data-embed-video
-                    data-play-src="https://player.vimeo.com/video/{{ video_id }}?autoplay=1&muted=1&loop=1&background=1"
-                    data-pause-src="https://player.vimeo.com/video/{{ video_id }}?autoplay=0&muted=1&loop=1&background=1"
-                    src="https://player.vimeo.com/video/{{ video_id }}?autoplay=0&muted=1&loop=1&background=1"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowfullscreen
-                  ></iframe>
                 {% endif %}
+              </div>
+
+              <div class="video-showcase__controls">
+                <button type="button" class="video-showcase__ctrl is-muted" data-toggle-mute aria-label="Toggle sound">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 9v6h4l5 4V5L8 9H4Z"/>
+                    <g data-mute-x><path d="M17 9l4 6M21 9l-4 6"/></g>
+                    <g data-mute-waves><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></g>
+                  </svg>
+                </button>
+                <button type="button" class="video-showcase__ctrl" data-toggle-play aria-label="Play or pause">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <polygon data-icon-play points="6,4 20,12 6,20"/>
+                    <g data-icon-pause><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></g>
+                  </svg>
+                </button>
+              </div>
+
+              {% if block.settings.caption != blank %}
+                <div class="video-showcase__caption video-showcase__caption--{{ block.settings.caption_position }}">
+                  {{ block.settings.caption }}
+                </div>
               {% endif %}
             </div>
-
-            <div class="video-showcase__controls">
-              <button type="button" class="video-showcase__ctrl is-muted" data-toggle-mute aria-label="Toggle sound">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 9v6h4l5 4V5L8 9H4Z"/>
-                  <g data-mute-x><path d="M17 9l4 6M21 9l-4 6"/></g>
-                  <g data-mute-waves><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></g>
-                </svg>
-              </button>
-              <button type="button" class="video-showcase__ctrl" data-toggle-play aria-label="Play or pause">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <polygon data-icon-play points="6,4 20,12 6,20"/>
-                  <g data-icon-pause><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></g>
-                </svg>
-              </button>
-            </div>
-
-            {% if block.settings.caption != blank %}
-              <div class="video-showcase__caption video-showcase__caption--{{ block.settings.caption_position }}">
-                {{ block.settings.caption }}
-              </div>
-            {% endif %}
           </div>
-        </div>
+        {% endfor %}
       {% endfor %}
     </div>
 
@@ -169,6 +178,12 @@
     transform: scale(1.06);
   }
 
+  @media (max-width: 749px) {
+    .video-showcase-{{ section.id }} .video-showcase__nav {
+      display: none;
+    }
+  }
+
   .video-showcase-{{ section.id }} .video-showcase__track {
     display: flex;
     gap: {{ section.settings.gap }}px;
@@ -176,8 +191,15 @@
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
     padding-block: 6px;
+    padding-inline: 22vw;
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  @media (min-width: 750px) {
+    .video-showcase-{{ section.id }} .video-showcase__track {
+      padding-inline: 8px;
+    }
   }
 
   .video-showcase-{{ section.id }} .video-showcase__track::-webkit-scrollbar {
@@ -187,7 +209,7 @@
   .video-showcase-{{ section.id }} .video-showcase__slide {
     flex: none;
     scroll-snap-align: center;
-    width: min(78vw, 280px);
+    width: 56vw;
   }
 
   .video-showcase-{{ section.id }} .video-showcase__frame {
@@ -198,7 +220,12 @@
     background: linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 24px 40px -28px rgba(0, 0, 0, 0.7);
-    transition: transform 0.3s ease, border-color 0.3s ease;
+    filter: grayscale(85%) brightness(0.45);
+    transition: transform 0.3s ease, border-color 0.3s ease, filter 0.35s ease;
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__slide.is-focused .video-showcase__frame {
+    filter: none;
   }
 
   .video-showcase-{{ section.id }} .video-showcase__frame:hover {
@@ -378,6 +405,46 @@
       };
     }
 
+    function setupInfiniteLoop(track) {
+      if (track.dataset.vsLoopBound) return;
+      track.dataset.vsLoopBound = 'true';
+
+      function jumpTo(left) {
+        var prev = track.style.scrollBehavior;
+        track.style.scrollBehavior = 'auto';
+        track.scrollLeft = left;
+        track.style.scrollBehavior = prev;
+      }
+
+      function recenter() {
+        var setWidth = track.scrollWidth / 3;
+        if (setWidth <= 0) return;
+        jumpTo(setWidth);
+      }
+
+      // Start centered in the middle copy so scrolling either direction
+      // reveals more slides instead of hitting a hard edge.
+      requestAnimationFrame(recenter);
+
+      track.addEventListener(
+        'scroll',
+        function () {
+          var setWidth = track.scrollWidth / 3;
+          if (setWidth <= 0) return;
+          if (track.scrollLeft >= setWidth * 2) {
+            jumpTo(track.scrollLeft - setWidth);
+          } else if (track.scrollLeft < setWidth) {
+            jumpTo(track.scrollLeft + setWidth);
+          }
+        },
+        { passive: true }
+      );
+
+      window.addEventListener('resize', function () {
+        requestAnimationFrame(recenter);
+      });
+    }
+
     function init() {
       var root = document.querySelector(rootSelector);
       if (!root) return;
@@ -389,11 +456,13 @@
 
       slides.forEach(setupSlide);
 
+      if (track) setupInfiniteLoop(track);
+
       if (track && prevBtn && nextBtn && !track.dataset.vsNavBound) {
         track.dataset.vsNavBound = 'true';
         function step() {
           var slide = track.querySelector('.video-showcase__slide');
-          return slide ? slide.getBoundingClientRect().width + 14 : 260;
+          return slide ? slide.getBoundingClientRect().width + {{ section.settings.gap }} : 260;
         }
         prevBtn.addEventListener('click', function () {
           track.scrollBy({ left: -step(), behavior: 'smooth' });
@@ -409,8 +478,11 @@
           function (entries) {
             entries.forEach(function (entry) {
               var slide = entry.target;
+              var isFocused = entry.isIntersecting && entry.intersectionRatio > 0.6;
+              slide.classList.toggle('is-focused', isFocused);
+
               if (!slide._vsIsManuallyPaused || slide._vsIsManuallyPaused()) return;
-              if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+              if (isFocused) {
                 slide._vsPlay && slide._vsPlay();
               } else {
                 slide._vsPause && slide._vsPause();
