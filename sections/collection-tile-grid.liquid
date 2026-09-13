@@ -142,6 +142,8 @@
   (function () {
     var rootSelector = '.collection-tile-grid-{{ section.id }}';
 
+    var smoothing = 0.18;
+
     function pointerPercent(el, clientX, clientY) {
       var rect = el.getBoundingClientRect();
       var x = ((clientX - rect.left) / rect.width) * 100;
@@ -152,37 +154,65 @@
       };
     }
 
-    function setSpot(el, clientX, clientY) {
-      var pos = pointerPercent(el, clientX, clientY);
-      el.style.setProperty('--spot-x', pos.x + '%');
-      el.style.setProperty('--spot-y', pos.y + '%');
+    function attachTile(tile) {
+      if (tile.dataset.glowBound) return;
+      tile.dataset.glowBound = 'true';
+
+      var target = { x: 50, y: 50 };
+      var current = { x: 50, y: 50 };
+      var rafId = null;
+
+      function paint() {
+        current.x += (target.x - current.x) * smoothing;
+        current.y += (target.y - current.y) * smoothing;
+        tile.style.setProperty('--spot-x', current.x + '%');
+        tile.style.setProperty('--spot-y', current.y + '%');
+
+        if (Math.abs(target.x - current.x) > 0.05 || Math.abs(target.y - current.y) > 0.05) {
+          rafId = requestAnimationFrame(paint);
+        } else {
+          rafId = null;
+        }
+      }
+
+      function moveTo(clientX, clientY, snap) {
+        var pos = pointerPercent(tile, clientX, clientY);
+        target.x = pos.x;
+        target.y = pos.y;
+        if (snap) {
+          current.x = pos.x;
+          current.y = pos.y;
+          tile.style.setProperty('--spot-x', current.x + '%');
+          tile.style.setProperty('--spot-y', current.y + '%');
+        }
+        if (rafId === null) rafId = requestAnimationFrame(paint);
+      }
+
+      tile.addEventListener('pointerenter', function (e) {
+        moveTo(e.clientX, e.clientY, true);
+      });
+      tile.addEventListener('pointermove', function (e) {
+        moveTo(e.clientX, e.clientY, false);
+      });
+      tile.addEventListener('pointerdown', function (e) {
+        moveTo(e.clientX, e.clientY, true);
+        tile.classList.add('is-active');
+      });
+      tile.addEventListener('pointerup', function () {
+        tile.classList.remove('is-active');
+      });
+      tile.addEventListener('pointerleave', function () {
+        tile.classList.remove('is-active');
+      });
+      tile.addEventListener('pointercancel', function () {
+        tile.classList.remove('is-active');
+      });
     }
 
     function init() {
       var root = document.querySelector(rootSelector);
       if (!root) return;
-      var tiles = root.querySelectorAll('.collection-item');
-      tiles.forEach(function (tile) {
-        if (tile.dataset.glowBound) return;
-        tile.dataset.glowBound = 'true';
-
-        tile.addEventListener('pointermove', function (e) {
-          setSpot(tile, e.clientX, e.clientY);
-        });
-        tile.addEventListener('pointerdown', function (e) {
-          setSpot(tile, e.clientX, e.clientY);
-          tile.classList.add('is-active');
-        });
-        tile.addEventListener('pointerup', function () {
-          tile.classList.remove('is-active');
-        });
-        tile.addEventListener('pointerleave', function () {
-          tile.classList.remove('is-active');
-        });
-        tile.addEventListener('pointercancel', function () {
-          tile.classList.remove('is-active');
-        });
-      });
+      root.querySelectorAll('.collection-item').forEach(attachTile);
     }
 
     init();
