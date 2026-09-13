@@ -2,19 +2,41 @@
 <div
   class="social-proof-stats-{{ section.id }} social-proof-stats section section--full-width color-{{ section.settings.color_scheme }}"
 >
-  <div class="social-proof-stats__grid">
+  <div class="social-proof-stats__row">
     {% for block in section.blocks %}
-      {% if block.settings.link != blank %}
-        <a href="{{ block.settings.link }}" class="social-proof-stats__item" {{ block.shopify_attributes }}>
-          <span class="social-proof-stats__value">{{ block.settings.value }}</span>
-          <span class="social-proof-stats__label">{{ block.settings.label }}</span>
-        </a>
-      {% else %}
-        <div class="social-proof-stats__item" {{ block.shopify_attributes }}>
-          <span class="social-proof-stats__value">{{ block.settings.value }}</span>
-          <span class="social-proof-stats__label">{{ block.settings.label }}</span>
-        </div>
-      {% endif %}
+      {% liquid
+        case block.settings.icon
+          when 'star'
+            assign icon_svg = 'star'
+          when 'thumb'
+            assign icon_svg = 'thumb'
+          when 'camera'
+            assign icon_svg = 'camera'
+          when 'people'
+            assign icon_svg = 'people'
+          else
+            assign icon_svg = 'none'
+        endcase
+      %}
+      {% capture item_tag %}{% if block.settings.link != blank %}a{% else %}div{% endif %}{% endcapture %}
+      <{{ item_tag }}
+        {% if block.settings.link != blank %}href="{{ block.settings.link }}"{% endif %}
+        class="social-proof-stats__item"
+        {{ block.shopify_attributes }}
+      >
+        {% case icon_svg %}
+          {% when 'star' %}
+            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>
+          {% when 'thumb' %}
+            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3Zm0 0l4.5-7.5a1.8 1.8 0 0 1 3.3 1.3L13.8 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H10a3 3 0 0 1-3-3v-6Z"/></svg>
+          {% when 'camera' %}
+            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="4"/><path d="M8 6.5l1.3-2h5.4l1.3 2"/></svg>
+          {% when 'people' %}
+            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M2.5 20c0-3.3 2.7-5.7 6-5.7s6 2.4 6 5.7M15 20c0-2.4 1.7-4.4 4-4.9"/></svg>
+        {% endcase %}
+        <span class="social-proof-stats__value">{{ block.settings.value }}</span>
+        <span class="social-proof-stats__label">{{ block.settings.label }}</span>
+      </{{ item_tag }}>
     {% endfor %}
   </div>
 </div>
@@ -26,44 +48,74 @@
     padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
   }
 
-  .social-proof-stats-{{ section.id }} .social-proof-stats__grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    border-top: 1px solid {{ section.settings.divider_color }};
-    border-bottom: 1px solid {{ section.settings.divider_color }};
-  }
-
-  @media (min-width: 750px) {
-    .social-proof-stats-{{ section.id }} .social-proof-stats__grid {
-      grid-template-columns: repeat({{ section.blocks.size }}, 1fr);
-    }
+  .social-proof-stats-{{ section.id }} .social-proof-stats__row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .social-proof-stats-{{ section.id }} .social-proof-stats__item {
+    flex: 1 1 160px;
+    max-width: 220px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 22px 12px;
+    gap: 8px;
+    padding: 16px 20px;
     text-align: center;
     text-decoration: none;
     color: inherit;
-    border: 1px solid {{ section.settings.divider_color }};
-    margin: -1px;
+    position: relative;
+  }
+
+  .social-proof-stats-{{ section.id }} .social-proof-stats__item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 12%;
+    bottom: 12%;
+    right: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, {{ section.settings.divider_color }}, transparent);
+  }
+
+  @media (max-width: 599px) {
+    .social-proof-stats-{{ section.id }} .social-proof-stats__item:nth-child(odd)::after {
+      display: none;
+    }
+  }
+
+  .social-proof-stats-{{ section.id }} .social-proof-stats__icon {
+    width: 24px;
+    height: 24px;
+    color: {{ section.settings.accent_color }};
   }
 
   .social-proof-stats-{{ section.id }} .social-proof-stats__value {
     font-family: var(--font-heading--family, inherit);
-    font-weight: 700;
-    font-size: clamp(1.35rem, 1.1rem + 1vw, 1.75rem);
+    font-weight: 800;
+    font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
     font-variant-numeric: tabular-nums;
     line-height: 1.1;
+    letter-spacing: -0.01em;
   }
 
   .social-proof-stats-{{ section.id }} .social-proof-stats__label {
     font-size: 0.78rem;
-    opacity: 0.75;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    opacity: 0.7;
+  }
+
+  .social-proof-stats-{{ section.id }} a.social-proof-stats__item {
+    transition: transform 0.2s ease;
+  }
+
+  .social-proof-stats-{{ section.id }} a.social-proof-stats__item:hover {
+    transform: translateY(-3px);
+  }
+
+  .social-proof-stats-{{ section.id }} a.social-proof-stats__item:hover .social-proof-stats__value {
+    color: {{ section.settings.accent_color }};
   }
 </style>
 
@@ -80,9 +132,15 @@
     },
     {
       "type": "color",
+      "id": "accent_color",
+      "label": "Icon / hover accent color",
+      "default": "#eb00ca"
+    },
+    {
+      "type": "color",
       "id": "divider_color",
       "label": "Divider color",
-      "default": "#2a2a2a"
+      "default": "#3a3a3a"
     },
     {
       "type": "range",
@@ -92,7 +150,7 @@
       "max": 60,
       "step": 5,
       "unit": "px",
-      "default": 0
+      "default": 20
     },
     {
       "type": "range",
@@ -102,7 +160,7 @@
       "max": 60,
       "step": 5,
       "unit": "px",
-      "default": 0
+      "default": 20
     }
   ],
   "blocks": [
@@ -110,6 +168,19 @@
       "type": "stat",
       "name": "Stat",
       "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "star", "label": "Star" },
+            { "value": "thumb", "label": "Thumbs up" },
+            { "value": "camera", "label": "Camera" },
+            { "value": "people", "label": "People" },
+            { "value": "none", "label": "None" }
+          ],
+          "default": "star"
+        },
         {
           "type": "text",
           "id": "value",
@@ -138,6 +209,7 @@
         {
           "type": "stat",
           "settings": {
+            "icon": "star",
             "value": "4.8★",
             "label": "342 Google reviews"
           }
@@ -145,6 +217,7 @@
         {
           "type": "stat",
           "settings": {
+            "icon": "thumb",
             "value": "94%",
             "label": "Recommended (57 reviews)"
           }
@@ -152,6 +225,7 @@
         {
           "type": "stat",
           "settings": {
+            "icon": "camera",
             "value": "17.6K",
             "label": "Instagram followers"
           }
@@ -159,6 +233,7 @@
         {
           "type": "stat",
           "settings": {
+            "icon": "people",
             "value": "8.6K",
             "label": "Community followers"
           }

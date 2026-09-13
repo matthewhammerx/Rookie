@@ -2637,28 +2637,32 @@
           "type": "stat",
           "settings": {
             "value": "4.8\u2605",
-            "label": "342 Google reviews"
+            "label": "342 Google reviews",
+            "icon": "star"
           }
         },
         "stat_recommend": {
           "type": "stat",
           "settings": {
             "value": "94%",
-            "label": "Recommended (57 reviews)"
+            "label": "Recommended (57 reviews)",
+            "icon": "thumb"
           }
         },
         "stat_instagram": {
           "type": "stat",
           "settings": {
             "value": "17.6K",
-            "label": "Instagram followers"
+            "label": "Instagram followers",
+            "icon": "camera"
           }
         },
         "stat_community": {
           "type": "stat",
           "settings": {
             "value": "8.6K",
-            "label": "Community followers"
+            "label": "Community followers",
+            "icon": "people"
           }
         }
       },
@@ -2670,9 +2674,10 @@
       ],
       "settings": {
         "color_scheme": "scheme-5",
-        "divider_color": "#2a2a2a",
-        "padding_top": 0,
-        "padding_bottom": 0
+        "divider_color": "#3a3a3a",
+        "padding_top": 20,
+        "padding_bottom": 20,
+        "accent_color": "#eb00ca"
       }
     }
   },
