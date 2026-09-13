@@ -1,0 +1,170 @@
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div
+  class="social-proof-stats-{{ section.id }} social-proof-stats section section--full-width color-{{ section.settings.color_scheme }}"
+>
+  <div class="social-proof-stats__grid">
+    {% for block in section.blocks %}
+      {% if block.settings.link != blank %}
+        <a href="{{ block.settings.link }}" class="social-proof-stats__item" {{ block.shopify_attributes }}>
+          <span class="social-proof-stats__value">{{ block.settings.value }}</span>
+          <span class="social-proof-stats__label">{{ block.settings.label }}</span>
+        </a>
+      {% else %}
+        <div class="social-proof-stats__item" {{ block.shopify_attributes }}>
+          <span class="social-proof-stats__value">{{ block.settings.value }}</span>
+          <span class="social-proof-stats__label">{{ block.settings.label }}</span>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+  .social-proof-stats-{{ section.id }} {
+    position: relative;
+    z-index: 1;
+    padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
+  }
+
+  .social-proof-stats-{{ section.id }} .social-proof-stats__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    border-top: 1px solid {{ section.settings.divider_color }};
+    border-bottom: 1px solid {{ section.settings.divider_color }};
+  }
+
+  @media (min-width: 750px) {
+    .social-proof-stats-{{ section.id }} .social-proof-stats__grid {
+      grid-template-columns: repeat({{ section.blocks.size }}, 1fr);
+    }
+  }
+
+  .social-proof-stats-{{ section.id }} .social-proof-stats__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 22px 12px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid {{ section.settings.divider_color }};
+    margin: -1px;
+  }
+
+  .social-proof-stats-{{ section.id }} .social-proof-stats__value {
+    font-family: var(--font-heading--family, inherit);
+    font-weight: 700;
+    font-size: clamp(1.35rem, 1.1rem + 1vw, 1.75rem);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+
+  .social-proof-stats-{{ section.id }} .social-proof-stats__label {
+    font-size: 0.78rem;
+    opacity: 0.75;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Social Proof Stats",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-5"
+    },
+    {
+      "type": "color",
+      "id": "divider_color",
+      "label": "Divider color",
+      "default": "#2a2a2a"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "Stat",
+      "settings": [
+        {
+          "type": "text",
+          "id": "value",
+          "label": "Value",
+          "info": "e.g. 4.8★ or 17.6K"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "info": "e.g. 342 Google reviews"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link",
+          "info": "Optional — e.g. link straight to your Google review page or Instagram."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Social Proof Stats",
+      "blocks": [
+        {
+          "type": "stat",
+          "settings": {
+            "value": "4.8★",
+            "label": "342 Google reviews"
+          }
+        },
+        {
+          "type": "stat",
+          "settings": {
+            "value": "94%",
+            "label": "Recommended (57 reviews)"
+          }
+        },
+        {
+          "type": "stat",
+          "settings": {
+            "value": "17.6K",
+            "label": "Instagram followers"
+          }
+        },
+        {
+          "type": "stat",
+          "settings": {
+            "value": "8.6K",
+            "label": "Community followers"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

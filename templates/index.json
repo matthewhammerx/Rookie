@@ -2629,6 +2629,51 @@
         "tile_collection_box"
       ],
       "settings": {}
+    },
+    "social_proof_stats_1": {
+      "type": "social-proof-stats",
+      "blocks": {
+        "stat_google": {
+          "type": "stat",
+          "settings": {
+            "value": "4.8\u2605",
+            "label": "342 Google reviews"
+          }
+        },
+        "stat_recommend": {
+          "type": "stat",
+          "settings": {
+            "value": "94%",
+            "label": "Recommended (57 reviews)"
+          }
+        },
+        "stat_instagram": {
+          "type": "stat",
+          "settings": {
+            "value": "17.6K",
+            "label": "Instagram followers"
+          }
+        },
+        "stat_community": {
+          "type": "stat",
+          "settings": {
+            "value": "8.6K",
+            "label": "Community followers"
+          }
+        }
+      },
+      "block_order": [
+        "stat_google",
+        "stat_recommend",
+        "stat_instagram",
+        "stat_community"
+      ],
+      "settings": {
+        "color_scheme": "scheme-5",
+        "divider_color": "#2a2a2a",
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
     }
   },
   "order": [
@@ -2643,6 +2688,7 @@
     "custom_liquid_ibtitt",
     "collection_tile_grid_glow",
     "marquee_zF7MXm",
+    "social_proof_stats_1",
     "hero_collection_framed_g9dBmy",
     "product_list_jxprh6",
     "hero_collection_showcase_76JyFb",
