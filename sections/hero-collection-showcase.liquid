@@ -92,16 +92,16 @@
   <div class="hcs__fade" aria-hidden="true"></div>
 
   <div class="hcs__content">
-  <div class="hcs__top-content" data-testid="hcs-top-content">
-    {%- if section.settings.heading_text != blank -%}
-      <h2 class="hcs__heading{% if section.settings.heading_glow %} hcs__heading--glow{% endif %}">
-        {{ section.settings.heading_text }}
-      </h2>
-    {%- endif -%}
-
-    {%- if section.settings.subheading_text != blank -%}
-      <p class="hcs__subheading">{{ section.settings.subheading_text }}</p>
-    {%- endif -%}
+  <div
+    class="hcs__top-content{% if section.settings.heading_row_layout %} hcs__top-content--row{% endif %}"
+    data-testid="hcs-top-content"
+  >
+    <div class="hcs__heading-row">
+      {%- if section.settings.heading_text != blank -%}
+        <h2 class="hcs__heading{% if section.settings.heading_glow %} hcs__heading--glow{% endif %}">
+          {{ section.settings.heading_text }}
+        </h2>
+      {%- endif -%}
 
     {%- for block in section.blocks -%}
       {%- if block.type == 'button' and block.settings.position == 'top' -%}
@@ -131,6 +131,11 @@
         </a>
       {%- endif -%}
     {%- endfor -%}
+    </div>
+
+    {%- if section.settings.subheading_text != blank -%}
+      <p class="hcs__subheading">{{ section.settings.subheading_text }}</p>
+    {%- endif -%}
   </div>
 
   <div class="hcs__carousel-wrapper{% if section.settings.show_arrows_mobile %} hcs__carousel-wrapper--mobile-arrows{% endif %}">
@@ -401,10 +406,33 @@
     padding: 40px 20px 0;
   }
 
+  .hcs__heading-row {
+    display: contents;
+  }
+
   @media screen and (min-width: 750px) {
     .hcs__top-content {
       padding-top: 64px;
     }
+  }
+
+  .hcs__top-content--row {
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .hcs__top-content--row .hcs__heading-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .hcs__top-content--row .hcs__heading {
+    margin: 0;
   }
 
   .hcs__heading {
@@ -949,6 +977,13 @@
       "label": "Glow color",
       "default": "#ffffff",
       "visible_if": "{{ section.settings.heading_glow }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "heading_row_layout",
+      "label": "Put the top button next to the heading (same row)",
+      "info": "Only applies to a button set to \"Above grid\". Off by default (heading and button stay stacked).",
+      "default": false
     },
     {
       "type": "header",
