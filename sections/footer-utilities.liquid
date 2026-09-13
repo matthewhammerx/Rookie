@@ -2,7 +2,7 @@
 
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
 <div
-  class="section section--{{ section.settings.section_width }} color-{{ section.settings.color_scheme }}"
+  class="footer-utilities-glow-{{ section.id }} section section--{{ section.settings.section_width }} color-{{ section.settings.color_scheme }}"
   {{ section.shopify_attributes }}
 >
   <div
@@ -13,6 +13,42 @@
     {% content_for 'blocks' %}
   </div>
 </div>
+
+<style>
+  .footer-utilities-glow-{{ section.id }} .utilities {
+    border-top-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .footer-utilities-glow-{{ section.id }} a:hover {
+    color: {{ section.settings.accent_color | default: '#eb00ca' }};
+  }
+
+  .footer-utilities-glow-{{ section.id }} .social-icons__icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .footer-utilities-glow-{{ section.id }} .social-icons__icon-wrapper:hover {
+    border-color: {{ section.settings.accent_color | default: '#eb00ca' }}88;
+    transform: translateY(-2px);
+  }
+
+  .footer-utilities-glow-{{ section.id }} .social-icons__icon-wrapper a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .footer-utilities-glow-{{ section.id }} .social-icons__icon-wrapper:hover .social-icons__icon {
+    color: {{ section.settings.accent_color | default: '#eb00ca' }};
+  }
+</style>
 
 {% stylesheet %}
   .utilities {
@@ -139,6 +175,12 @@
       "id": "color_scheme",
       "label": "t:settings.color_scheme",
       "default": "scheme-1"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#eb00ca"
     },
     {
       "type": "header",

@@ -2,7 +2,7 @@
 
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
 <div
-  class="section section--{{ section.settings.section_width }} color-{{ section.settings.color_scheme }}"
+  class="footer-glow-{{ section.id }} section section--{{ section.settings.section_width }} color-{{ section.settings.color_scheme }}"
 >
   {% liquid
     assign total_blocks = section.blocks.size
@@ -45,6 +45,75 @@
     {% content_for 'blocks' %}
   </div>
 </div>
+
+<style>
+  .footer-glow-{{ section.id }} {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .footer-glow-{{ section.id }}::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(50% 80% at 20% 0%, {{ section.settings.accent_color }}1f, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .footer-glow-{{ section.id }} .footer-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-glow-{{ section.id }} .email-signup__heading {
+    font-family: var(--font-heading--family, inherit);
+    font-weight: 800;
+    background: linear-gradient(160deg, #ffffff 10%, {{ section.settings.accent_color }} 130%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .footer-glow-{{ section.id }} .email-signup__input-group--underline {
+    box-shadow: none;
+    margin-block-end: 0;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 100px;
+    padding-inline-start: 18px;
+    transition: border-color 0.25s ease;
+  }
+
+  .footer-glow-{{ section.id }} .email-signup__input-group--underline:focus-within {
+    border-color: {{ section.settings.accent_color }}88;
+  }
+
+  .footer-glow-{{ section.id }} .email-signup__input--underline {
+    color: #fff;
+  }
+
+  .footer-glow-{{ section.id }} .email-signup__button--integrated.email-signup__button--arrow {
+    background: {{ section.settings.accent_color }};
+    color: #fff;
+    border-radius: 50%;
+    margin: 4px;
+  }
+
+  .footer-glow-{{ section.id }} .email-signup__button--integrated.email-signup__button--arrow:hover {
+    background: {{ section.settings.accent_color }}cc;
+  }
+
+  .footer-glow-{{ section.id }} .menu__item a {
+    position: relative;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .footer-glow-{{ section.id }} .menu__item a:hover {
+    color: {{ section.settings.accent_color }};
+  }
+</style>
 
 {% stylesheet %}
   .footer-content {
@@ -169,6 +238,12 @@
       "id": "color_scheme",
       "label": "t:settings.color_scheme",
       "default": "scheme-1"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#eb00ca"
     },
     {
       "type": "header",
