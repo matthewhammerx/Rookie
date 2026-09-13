@@ -2603,7 +2603,7 @@
         "card_height": 300,
         "card_height_mobile": 220,
         "enable_spotlight": true,
-        "glow_size": 420,
+        "glow_size": 400,
         "glow_strength": 35,
         "padding_top": 32,
         "padding_bottom": 32
