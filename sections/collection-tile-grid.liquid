@@ -58,18 +58,13 @@
     --spot-x: 50%;
     --spot-y: 50%;
     display: block;
-    animation: collectionTileFloat-{{ section.id }} 4.5s ease-in-out infinite;
   }
 
   .collection-tile-grid-{{ section.id }} .collection-item:hover,
   .collection-tile-grid-{{ section.id }} .collection-item.is-active {
-    animation-play-state: paused;
     z-index: 5;
   }
 
-  /* Float animation owns transform on .collection-item itself, so the
-     hover zoom lives on this separate inner element instead of fighting
-     the float animation for the same property. */
   .collection-tile-grid-{{ section.id }} .collection-item__frame {
     position: relative;
     display: block;
@@ -124,21 +119,6 @@
     box-shadow: 0 18px 34px rgba(0, 0, 0, 0.65);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .collection-tile-grid-{{ section.id }} .collection-item {
-      animation: none;
-    }
-  }
-
-  @keyframes collectionTileFloat-{{ section.id }} {
-    0%,
-    100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-9px);
-    }
-  }
 </style>
 
 <script>
