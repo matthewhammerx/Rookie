@@ -109,7 +109,9 @@
         "color_scheme": "scheme-5",
         "padding-block-start": 36,
         "padding-block-end": 36,
-        "accent_color": "#eb00ca"
+        "accent_color": "#eb00ca",
+        "fade_size": 12,
+        "fade_opacity": 90
       }
     },
     "utilities": {
