@@ -1,0 +1,457 @@
+{% comment %}
+  Promo Card
+  A single big rounded clickable card/banner (no video) for driving traffic
+  to one destination -- e.g. a Mystery Bags page. Optional background image;
+  without one it falls back to the site's glass-morphism card treatment.
+{% endcomment %}
+
+{%- liquid
+  assign accent = section.settings.accent_color
+  assign overlay_opacity_decimal = section.settings.image_overlay_opacity | times: 1.0 | divided_by: 100
+  assign glow_alpha = section.settings.glow_strength | times: 1.0 | divided_by: 100
+  assign glow_rgba = accent | color_modify: 'alpha', glow_alpha
+  assign border_rgba = accent | color_modify: 'alpha', 0.55
+-%}
+
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div
+  class="promo-card-{{ section.id }} promo-card section section--{{ section.settings.section_width }} color-{{ section.settings.color_scheme }}"
+  style="
+    --pc-accent: {{ accent }};
+    --pc-accent-border: {{ border_rgba }};
+    --pc-glow-color: {{ glow_rgba }};
+    --pc-glow-size: {{ section.settings.glow_size }}px;
+    --pc-heading-color: {{ section.settings.heading_color }};
+    --pc-radius: {{ section.settings.corner_radius }}px;
+    --pc-height: {{ section.settings.card_height }}px;
+    --pc-height-mobile: {{ section.settings.card_height_mobile }}px;
+    --pc-overlay-opacity: {{ overlay_opacity_decimal }};
+    padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
+  "
+>
+  <a
+    {% if section.settings.link != blank %}href="{{ section.settings.link }}"{% else %}href="javascript:void(0);"{% endif %}
+    {% if section.settings.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}
+    class="promo-card__card{% if section.settings.enable_spotlight %} promo-card__card--spotlight{% endif %}"
+    aria-label="{{ section.settings.heading_text }}"
+  >
+    {%- if section.settings.background_image != blank -%}
+      <div class="promo-card__media" aria-hidden="true">
+        {{
+          section.settings.background_image
+          | image_url: width: 2400
+          | image_tag:
+            widths: '480, 750, 1100, 1600, 2000, 2400',
+            alt: '',
+            class: 'promo-card__image',
+            sizes: '100vw'
+        }}
+      </div>
+      <div class="promo-card__overlay" aria-hidden="true"></div>
+    {%- endif -%}
+
+    <div class="promo-card__glow" aria-hidden="true"></div>
+
+    <div class="promo-card__content">
+      {%- if section.settings.eyebrow_text != blank -%}
+        <span class="promo-card__eyebrow">{{ section.settings.eyebrow_text }}</span>
+      {%- endif -%}
+
+      {%- if section.settings.heading_text != blank -%}
+        <h2 class="promo-card__heading">{{ section.settings.heading_text }}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.subheading_text != blank -%}
+        <p class="promo-card__subheading">{{ section.settings.subheading_text }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.cta_label != blank -%}
+        <span class="promo-card__cta">
+          {{ section.settings.cta_label }}
+          <svg class="promo-card__cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </span>
+      {%- endif -%}
+    </div>
+  </a>
+</div>
+
+<style>
+  .promo-card-{{ section.id }} .promo-card__card {
+    position: relative;
+    display: block;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: var(--pc-height-mobile);
+    border-radius: var(--pc-radius);
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.75);
+    text-decoration: none;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  @media screen and (min-width: 750px) {
+    .promo-card-{{ section.id }} .promo-card__card {
+      min-height: var(--pc-height);
+    }
+  }
+
+  .promo-card-{{ section.id }} .promo-card__card:hover {
+    transform: translateY(-4px) scale(1.015);
+    border-color: var(--pc-accent-border);
+    box-shadow: 0 28px 70px -28px rgba(0, 0, 0, 0.8), 0 0 60px -14px var(--pc-accent-border);
+  }
+
+  .promo-card-{{ section.id }} .promo-card__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      15deg,
+      rgba(0, 0, 0, var(--pc-overlay-opacity)) 20%,
+      rgba(0, 0, 0, calc(var(--pc-overlay-opacity) * 0.35)) 100%
+    );
+    pointer-events: none;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__glow {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(var(--pc-glow-size) circle at var(--pc-spot-x, 25%) var(--pc-spot-y, 50%), var(--pc-glow-color), transparent 68%);
+    opacity: 0.55;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__card--spotlight:hover .promo-card__glow {
+    opacity: 1;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    height: 100%;
+    gap: 10px;
+    padding: 32px 26px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .promo-card-{{ section.id }} .promo-card__content {
+      padding: 48px 56px;
+      max-width: 640px;
+    }
+  }
+
+  .promo-card-{{ section.id }} .promo-card__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--pc-accent-border);
+    background: color-mix(in srgb, var(--pc-accent) 16%, transparent);
+    color: var(--pc-accent);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__heading {
+    margin: 0;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    font-size: clamp(1.7rem, 1.3rem + 2vw, 2.6rem);
+    background: linear-gradient(160deg, var(--pc-heading-color) 10%, var(--pc-accent) 120%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__subheading {
+    margin: 0;
+    max-width: 46ch;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__cta {
+    margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 999px;
+    background: var(--pc-accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__cta-arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.25s ease;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__card:hover .promo-card__cta {
+    box-shadow: 0 0 26px -4px var(--pc-accent-border);
+  }
+
+  .promo-card-{{ section.id }} .promo-card__card:hover .promo-card__cta-arrow {
+    transform: translateX(4px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .promo-card-{{ section.id }} .promo-card__card,
+    .promo-card-{{ section.id }} .promo-card__cta,
+    .promo-card-{{ section.id }} .promo-card__cta-arrow,
+    .promo-card-{{ section.id }} .promo-card__glow {
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var rootSelector = '.promo-card-{{ section.id }}';
+
+    function setSpot(card, clientX, clientY) {
+      var rect = card.getBoundingClientRect();
+      var x = ((clientX - rect.left) / rect.width) * 100;
+      var y = ((clientY - rect.top) / rect.height) * 100;
+      card.style.setProperty('--pc-spot-x', x + '%');
+      card.style.setProperty('--pc-spot-y', y + '%');
+    }
+
+    function init() {
+      var root = document.querySelector(rootSelector);
+      if (!root) return;
+
+      var card = root.querySelector('.promo-card__card--spotlight');
+      if (!card || card.dataset.promoCardBound) return;
+      card.dataset.promoCardBound = 'true';
+
+      card.addEventListener('pointermove', function (e) {
+        setSpot(card, e.clientX, e.clientY);
+      });
+    }
+
+    init();
+    document.addEventListener('shopify:section:load', init);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Promo Card",
+  "tag": "section",
+  "class": "section-wrapper",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-5"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Width",
+      "options": [
+        { "value": "page-width", "label": "Page width" },
+        { "value": "full-width", "label": "Full width" }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow_text",
+      "label": "Eyebrow text (optional)",
+      "default": "LIMITED DROPS"
+    },
+    {
+      "type": "text",
+      "id": "heading_text",
+      "label": "Heading",
+      "default": "MYSTERY BAGS"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading_text",
+      "label": "Subheading",
+      "default": "Every bag is a surprise waiting to happen. Grab yours before they're gone."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "Shop Mystery Bags"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link",
+      "default": "shopify://pages/legends-mystery"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "Open in new tab",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image (optional)"
+    },
+    {
+      "type": "range",
+      "id": "image_overlay_opacity",
+      "label": "Image dimming",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 55
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#eb00ca"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading base color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "Corner radius",
+      "min": 0,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "card_height",
+      "label": "Card height (desktop)",
+      "min": 180,
+      "max": 480,
+      "step": 10,
+      "unit": "px",
+      "default": 300
+    },
+    {
+      "type": "range",
+      "id": "card_height_mobile",
+      "label": "Card height (mobile)",
+      "min": 160,
+      "max": 400,
+      "step": 10,
+      "unit": "px",
+      "default": 220
+    },
+    {
+      "type": "header",
+      "content": "Hover glow"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_spotlight",
+      "label": "Enable cursor glow",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "glow_size",
+      "label": "Glow size",
+      "min": 150,
+      "max": 700,
+      "step": 25,
+      "unit": "px",
+      "default": 420
+    },
+    {
+      "type": "range",
+      "id": "glow_strength",
+      "label": "Glow strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 35
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    }
+  ],
+  "presets": [
+    {
+      "name": "Promo Card"
+    }
+  ]
+}
+{% endschema %}

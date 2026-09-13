@@ -2584,6 +2584,30 @@
         "padding_top": 20,
         "padding_bottom": 20
       }
+    },
+    "promo_card_mystery_bags": {
+      "type": "promo-card",
+      "settings": {
+        "color_scheme": "scheme-5",
+        "section_width": "page-width",
+        "eyebrow_text": "LIMITED DROPS",
+        "heading_text": "MYSTERY BAGS",
+        "subheading_text": "Every bag is a surprise waiting to happen. Grab yours before they're gone.",
+        "cta_label": "Shop Mystery Bags",
+        "link": "shopify://pages/legends-mystery",
+        "open_in_new_tab": false,
+        "image_overlay_opacity": 55,
+        "accent_color": "#eb00ca",
+        "heading_color": "#ffffff",
+        "corner_radius": 28,
+        "card_height": 300,
+        "card_height_mobile": 220,
+        "enable_spotlight": true,
+        "glow_size": 420,
+        "glow_strength": 35,
+        "padding_top": 32,
+        "padding_bottom": 32
+      }
     }
   },
   "order": [
@@ -2610,6 +2634,7 @@
     "ss_video_slider_8kyDmH",
     "1776966047fe1b684b",
     "ss_testimonial_9_YmDgTe",
+    "promo_card_mystery_bags",
     "ss_simple_faq_gH4bHi"
   ]
 }
