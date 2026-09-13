@@ -4,48 +4,53 @@
 >
   <div class="social-proof-stats__ambient" aria-hidden="true"></div>
 
-  <div class="social-proof-stats__row">
-    {% for block in section.blocks %}
-      {% liquid
-        case block.settings.icon
-          when 'star'
-            assign icon_svg = 'star'
-          when 'thumb'
-            assign icon_svg = 'thumb'
-          when 'camera'
-            assign icon_svg = 'camera'
-          when 'people'
-            assign icon_svg = 'people'
-          else
-            assign icon_svg = 'none'
-        endcase
-      %}
-      {% capture item_tag %}{% if block.settings.link != blank %}a{% else %}div{% endif %}{% endcapture %}
-      <{{ item_tag }}
-        {% if block.settings.link != blank %}href="{{ block.settings.link }}"{% endif %}
-        class="social-proof-stats__card"
-        {{ block.shopify_attributes }}
-      >
-        <span class="social-proof-stats__glow" aria-hidden="true"></span>
+  {% capture card_tag %}{% if section.settings.link != blank %}a{% else %}div{% endif %}{% endcapture %}
+  <{{ card_tag }}
+    {% if section.settings.link != blank %}href="{{ section.settings.link }}"{% endif %}
+    class="social-proof-stats__card"
+  >
+    <span class="social-proof-stats__glow" aria-hidden="true"></span>
 
-        {% case icon_svg %}
-          {% when 'star' %}
-            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>
-          {% when 'thumb' %}
-            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3Zm0 0l4.5-7.5a1.8 1.8 0 0 1 3.3 1.3L13.8 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H10a3 3 0 0 1-3-3v-6Z"/></svg>
-          {% when 'camera' %}
-            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="4"/><path d="M8 6.5l1.3-2h5.4l1.3 2"/></svg>
-          {% when 'people' %}
-            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M2.5 20c0-3.3 2.7-5.7 6-5.7s6 2.4 6 5.7M15 20c0-2.4 1.7-4.4 4-4.9"/></svg>
-          {% when 'heart' %}
-            <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-10-9.3C.4 8 1.8 4.5 5.2 3.6c2-.5 4 .3 5.3 2 .4.5.9 1.2 1.5 2 .6-.8 1.1-1.5 1.5-2 1.3-1.7 3.3-2.5 5.3-2 3.4.9 4.8 4.4 3.2 7.6-2.5 4.7-10 9.3-10 9.3Z"/></svg>
-        {% endcase %}
+    <span class="social-proof-stats__line">
+      {% case section.settings.icon_a %}
+        {% when 'star' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>
+        {% when 'thumb' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3Zm0 0l4.5-7.5a1.8 1.8 0 0 1 3.3 1.3L13.8 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H10a3 3 0 0 1-3-3v-6Z"/></svg>
+        {% when 'camera' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="4"/><path d="M8 6.5l1.3-2h5.4l1.3 2"/></svg>
+        {% when 'people' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M2.5 20c0-3.3 2.7-5.7 6-5.7s6 2.4 6 5.7M15 20c0-2.4 1.7-4.4 4-4.9"/></svg>
+        {% when 'heart' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-10-9.3C.4 8 1.8 4.5 5.2 3.6c2-.5 4 .3 5.3 2 .4.5.9 1.2 1.5 2 .6-.8 1.1-1.5 1.5-2 1.3-1.7 3.3-2.5 5.3-2 3.4.9 4.8 4.4 3.2 7.6-2.5 4.7-10 9.3-10 9.3Z"/></svg>
+        {% when 'globe' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18"/></svg>
+      {% endcase %}
+      <span class="social-proof-stats__value" data-count-to="{{ section.settings.value_a | escape }}">{{ section.settings.value_a }}</span>
+      <span class="social-proof-stats__label">{{ section.settings.label_a }}</span>
+    </span>
 
-        <span class="social-proof-stats__value" data-count-to="{{ block.settings.value | escape }}">{{ block.settings.value }}</span>
-        <span class="social-proof-stats__label">{{ block.settings.label }}</span>
-      </{{ item_tag }}>
-    {% endfor %}
-  </div>
+    <span class="social-proof-stats__divider" aria-hidden="true"></span>
+
+    <span class="social-proof-stats__line">
+      {% case section.settings.icon_b %}
+        {% when 'star' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>
+        {% when 'thumb' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3Zm0 0l4.5-7.5a1.8 1.8 0 0 1 3.3 1.3L13.8 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H10a3 3 0 0 1-3-3v-6Z"/></svg>
+        {% when 'camera' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="4"/><path d="M8 6.5l1.3-2h5.4l1.3 2"/></svg>
+        {% when 'people' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M2.5 20c0-3.3 2.7-5.7 6-5.7s6 2.4 6 5.7M15 20c0-2.4 1.7-4.4 4-4.9"/></svg>
+        {% when 'heart' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-10-9.3C.4 8 1.8 4.5 5.2 3.6c2-.5 4 .3 5.3 2 .4.5.9 1.2 1.5 2 .6-.8 1.1-1.5 1.5-2 1.3-1.7 3.3-2.5 5.3-2 3.4.9 4.8 4.4 3.2 7.6-2.5 4.7-10 9.3-10 9.3Z"/></svg>
+        {% when 'globe' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18"/></svg>
+      {% endcase %}
+      <span class="social-proof-stats__value" data-count-to="{{ section.settings.value_b | escape }}">{{ section.settings.value_b }}</span>
+      <span class="social-proof-stats__label">{{ section.settings.label_b }}</span>
+    </span>
+  </{{ card_tag }}>
 </div>
 
 <style>
@@ -54,47 +59,30 @@
     z-index: 1;
     padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
     overflow: hidden;
+    display: flex;
+    justify-content: center;
   }
 
   .social-proof-stats-{{ section.id }} .social-proof-stats__ambient {
     position: absolute;
-    inset: -20% -10%;
-    background:
-      radial-gradient(38% 60% at 18% 20%, {{ section.settings.accent_color }}26, transparent 65%),
-      radial-gradient(32% 55% at 85% 80%, {{ section.settings.accent_color }}1f, transparent 65%);
+    inset: -60% -10%;
+    background: radial-gradient(40% 80% at 50% 50%, {{ section.settings.accent_color }}26, transparent 65%);
     pointer-events: none;
     z-index: 0;
   }
 
-  .social-proof-stats-{{ section.id }} .social-proof-stats__row {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    max-width: 1100px;
-    margin-inline: auto;
-    padding-inline: 16px;
-  }
-
-  @media (min-width: 750px) {
-    .social-proof-stats-{{ section.id }} .social-proof-stats__row {
-      grid-template-columns: repeat({{ section.blocks.size }}, 1fr);
-      gap: 18px;
-      padding-inline: 28px;
-    }
-  }
-
   .social-proof-stats-{{ section.id }} .social-proof-stats__card {
     position: relative;
+    z-index: 1;
     overflow: hidden;
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
-    padding: 30px 18px 26px;
+    justify-content: center;
+    gap: 20px 28px;
+    padding: 24px 32px;
+    margin-inline: 16px;
     border-radius: 20px;
-    text-align: center;
     text-decoration: none;
     color: inherit;
     background: linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
@@ -107,41 +95,54 @@
 
   .social-proof-stats-{{ section.id }} .social-proof-stats__glow {
     position: absolute;
-    top: -30%;
-    right: -20%;
-    width: 65%;
+    top: -40%;
+    left: 30%;
+    width: 45%;
     aspect-ratio: 1;
     background: radial-gradient(circle, {{ section.settings.accent_color }}40, transparent 70%);
-    filter: blur(18px);
+    filter: blur(20px);
     opacity: 0.7;
     transition: opacity 0.3s ease;
     pointer-events: none;
   }
 
-  .social-proof-stats-{{ section.id }} .social-proof-stats__card:hover {
-    transform: translateY(-6px);
+  .social-proof-stats-{{ section.id }} a.social-proof-stats__card:hover {
+    transform: translateY(-4px);
     border-color: {{ section.settings.accent_color }}66;
     box-shadow: 0 30px 50px -24px rgba(0, 0, 0, 0.75), 0 0 40px -12px {{ section.settings.accent_color }}4d;
   }
 
-  .social-proof-stats-{{ section.id }} .social-proof-stats__card:hover .social-proof-stats__glow {
+  .social-proof-stats-{{ section.id }} a.social-proof-stats__card:hover .social-proof-stats__glow {
     opacity: 1;
+  }
+
+  .social-proof-stats-{{ section.id }} .social-proof-stats__line {
+    position: relative;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 10px;
+    white-space: nowrap;
+  }
+
+  .social-proof-stats-{{ section.id }} .social-proof-stats__divider {
+    width: 1px;
+    align-self: stretch;
+    background: rgba(255, 255, 255, 0.14);
   }
 
   .social-proof-stats-{{ section.id }} .social-proof-stats__icon {
     position: relative;
-    width: 22px;
-    height: 22px;
+    align-self: center;
+    width: 20px;
+    height: 20px;
     color: {{ section.settings.accent_color }};
   }
 
   .social-proof-stats-{{ section.id }} .social-proof-stats__value {
-    position: relative;
     font-family: var(--font-heading--family, inherit);
     font-weight: 800;
-    font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.3rem);
+    font-size: clamp(1.4rem, 1.1rem + 1vw, 1.8rem);
     font-variant-numeric: tabular-nums;
-    line-height: 1.05;
     letter-spacing: -0.01em;
     background: linear-gradient(160deg, #ffffff 10%, {{ section.settings.accent_color }} 110%);
     -webkit-background-clip: text;
@@ -150,11 +151,20 @@
   }
 
   .social-proof-stats-{{ section.id }} .social-proof-stats__label {
-    position: relative;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 500;
-    letter-spacing: 0.01em;
     color: rgba(255, 255, 255, 0.72);
+  }
+
+  @media (max-width: 480px) {
+    .social-proof-stats-{{ section.id }} .social-proof-stats__divider {
+      display: none;
+    }
+
+    .social-proof-stats-{{ section.id }} .social-proof-stats__card {
+      flex-direction: column;
+      gap: 14px;
+    }
   }
 </style>
 
@@ -250,6 +260,74 @@
       "default": "#eb00ca"
     },
     {
+      "type": "url",
+      "id": "link",
+      "label": "Card link",
+      "info": "Optional — makes the whole card clickable."
+    },
+    {
+      "type": "header",
+      "content": "Stat 1"
+    },
+    {
+      "type": "select",
+      "id": "icon_a",
+      "label": "Icon",
+      "options": [
+        { "value": "heart", "label": "Heart" },
+        { "value": "star", "label": "Star" },
+        { "value": "thumb", "label": "Thumbs up" },
+        { "value": "camera", "label": "Camera" },
+        { "value": "people", "label": "People" },
+        { "value": "globe", "label": "Globe" },
+        { "value": "none", "label": "None" }
+      ],
+      "default": "heart"
+    },
+    {
+      "type": "text",
+      "id": "value_a",
+      "label": "Value",
+      "default": "17K+"
+    },
+    {
+      "type": "text",
+      "id": "label_a",
+      "label": "Label",
+      "default": "Loved by collectors"
+    },
+    {
+      "type": "header",
+      "content": "Stat 2"
+    },
+    {
+      "type": "select",
+      "id": "icon_b",
+      "label": "Icon",
+      "options": [
+        { "value": "globe", "label": "Globe" },
+        { "value": "star", "label": "Star" },
+        { "value": "heart", "label": "Heart" },
+        { "value": "thumb", "label": "Thumbs up" },
+        { "value": "camera", "label": "Camera" },
+        { "value": "people", "label": "People" },
+        { "value": "none", "label": "None" }
+      ],
+      "default": "globe"
+    },
+    {
+      "type": "text",
+      "id": "value_b",
+      "label": "Value",
+      "default": "XX+"
+    },
+    {
+      "type": "text",
+      "id": "label_b",
+      "label": "Label",
+      "default": "Shipped to countries"
+    },
+    {
       "type": "range",
       "id": "padding_top",
       "label": "Top padding",
@@ -270,67 +348,9 @@
       "default": 40
     }
   ],
-  "blocks": [
-    {
-      "type": "stat",
-      "name": "Stat",
-      "settings": [
-        {
-          "type": "select",
-          "id": "icon",
-          "label": "Icon",
-          "options": [
-            { "value": "star", "label": "Star" },
-            { "value": "heart", "label": "Heart" },
-            { "value": "thumb", "label": "Thumbs up" },
-            { "value": "camera", "label": "Camera" },
-            { "value": "people", "label": "People" },
-            { "value": "none", "label": "None" }
-          ],
-          "default": "star"
-        },
-        {
-          "type": "text",
-          "id": "value",
-          "label": "Value",
-          "info": "e.g. 4.8★ or 17.6K"
-        },
-        {
-          "type": "text",
-          "id": "label",
-          "label": "Label",
-          "info": "e.g. 342 Google reviews"
-        },
-        {
-          "type": "url",
-          "id": "link",
-          "label": "Link",
-          "info": "Optional — e.g. link straight to your Google review page or Instagram."
-        }
-      ]
-    }
-  ],
   "presets": [
     {
-      "name": "Social Proof Stats",
-      "blocks": [
-        {
-          "type": "stat",
-          "settings": {
-            "icon": "heart",
-            "value": "26.2K",
-            "label": "Loved by collectors on social media"
-          }
-        },
-        {
-          "type": "stat",
-          "settings": {
-            "icon": "star",
-            "value": "4.8★",
-            "label": "Rated by 399+ reviews"
-          }
-        }
-      ]
+      "name": "Social Proof Stats"
     }
   ]
 }

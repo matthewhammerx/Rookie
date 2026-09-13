@@ -2632,33 +2632,17 @@
     },
     "social_proof_stats_1": {
       "type": "social-proof-stats",
-      "blocks": {
-        "stat_loved": {
-          "type": "stat",
-          "settings": {
-            "icon": "heart",
-            "value": "26.2K",
-            "label": "Loved by collectors on social media"
-          }
-        },
-        "stat_rated": {
-          "type": "stat",
-          "settings": {
-            "icon": "star",
-            "value": "4.8\u2605",
-            "label": "Rated by 399+ reviews"
-          }
-        }
-      },
-      "block_order": [
-        "stat_loved",
-        "stat_rated"
-      ],
       "settings": {
         "color_scheme": "scheme-5",
-        "padding_top": 20,
-        "padding_bottom": 20,
-        "accent_color": "#eb00ca"
+        "accent_color": "#eb00ca",
+        "icon_a": "heart",
+        "value_a": "17K+",
+        "label_a": "Loved by collectors",
+        "icon_b": "globe",
+        "value_b": "XX+",
+        "label_b": "Shipped to countries",
+        "padding_top": 40,
+        "padding_bottom": 40
       }
     },
     "glow_marquee_1": {
