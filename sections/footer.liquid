@@ -1,6 +1,6 @@
 
 
-<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div class="section-background footer-glow-bg-{{ section.id }} color-{{ section.settings.color_scheme }}"></div>
 <div
   class="footer-glow-{{ section.id }} section section--{{ section.settings.section_width }} color-{{ section.settings.color_scheme }}"
 >
@@ -47,18 +47,8 @@
 </div>
 
 <style>
-  .footer-glow-{{ section.id }} {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .footer-glow-{{ section.id }}::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(60% 70% at 25% 20%, {{ section.settings.accent_color }}1f, transparent 75%);
-    pointer-events: none;
-    z-index: 0;
+  .footer-glow-bg-{{ section.id }} {
+    background-image: radial-gradient(60% 70% at 25% 20%, {{ section.settings.accent_color }}1f, transparent 75%);
   }
 
   .footer-glow-{{ section.id }} .footer-content {
