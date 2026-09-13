@@ -69,11 +69,25 @@
   }
 
   {% if section.settings.spotlight_enabled %}
-    .collection-tile-grid-{{ section.id }} .collection-tile-grid__inner:has(.collection-item:hover)
-      .collection-item:not(:hover),
-    .collection-tile-grid-{{ section.id }} .collection-tile-grid__inner:has(.collection-item.is-active)
-      .collection-item:not(.is-active) {
-      filter: grayscale({{ section.settings.spotlight_grayscale }}%) blur({{ section.settings.spotlight_blur }}px);
+    @media (min-width: 768px) {
+      .collection-tile-grid-{{ section.id }} .collection-tile-grid__inner:has(.collection-item:hover)
+        .collection-item:not(:hover),
+      .collection-tile-grid-{{ section.id }} .collection-tile-grid__inner:has(.collection-item.is-active)
+        .collection-item:not(.is-active) {
+        filter: grayscale({{ section.settings.spotlight_grayscale }}%) blur({{ section.settings.spotlight_blur }}px);
+      }
+    }
+  {% endif %}
+
+  {% if section.settings.spotlight_enabled_mobile %}
+    @media (max-width: 767px) {
+      .collection-tile-grid-{{ section.id }} .collection-tile-grid__inner:has(.collection-item:hover)
+        .collection-item:not(:hover),
+      .collection-tile-grid-{{ section.id }} .collection-tile-grid__inner:has(.collection-item.is-active)
+        .collection-item:not(.is-active) {
+        filter: grayscale({{ section.settings.spotlight_grayscale_mobile }}%)
+          blur({{ section.settings.spotlight_blur_mobile }}px);
+      }
     }
   {% endif %}
 
@@ -279,7 +293,7 @@
     },
     {
       "type": "header",
-      "content": "Hover spotlight"
+      "content": "Hover spotlight — desktop"
     },
     {
       "type": "checkbox",
@@ -306,6 +320,36 @@
       "step": 10,
       "unit": "%",
       "default": 100
+    },
+    {
+      "type": "header",
+      "content": "Hover spotlight — mobile"
+    },
+    {
+      "type": "checkbox",
+      "id": "spotlight_enabled_mobile",
+      "label": "Dim other tiles when one is tapped",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "spotlight_blur_mobile",
+      "label": "Other tiles blur (mobile)",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "spotlight_grayscale_mobile",
+      "label": "Other tiles grayscale (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "unit": "%",
+      "default": 60
     }
   ],
   "blocks": [
