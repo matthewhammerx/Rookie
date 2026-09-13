@@ -1,0 +1,724 @@
+{% liquid
+  assign popup_collection = section.settings.collection
+  assign popup_title = section.settings.heading
+  assign trigger_text = section.settings.trigger_text
+  assign display_count = section.settings.products_to_show
+
+  if popup_collection != blank
+    assign actual_count = popup_collection.products_count
+  else
+    assign actual_count = 0
+  endif
+%}
+
+<div id="PopupCollection-{{ section.id }}" class="pcoll-root">
+  {% if section.settings.show_trigger %}
+    <button
+      class="pcoll-trigger pcoll-trigger--{{ section.settings.trigger_side }}"
+      type="button"
+      data-open
+      aria-controls="pcoll-modal-{{ section.id }}"
+      aria-expanded="false"
+    >
+      {{ trigger_text }}
+    </button>
+  {% endif %}
+
+  <div id="pcoll-modal-{{ section.id }}" class="pcoll-modal" data-modal aria-hidden="true">
+    <div class="pcoll-overlay" data-close></div>
+
+    <div class="pcoll-dialog{% if actual_count <= 2 %} is-two-products{% endif %}" role="dialog" aria-modal="true" aria-label="{{ popup_title | escape }}">
+      <button class="pcoll-close" type="button" data-close aria-label="Close popup">✕</button>
+
+      <h2 class="pcoll-title">{{ popup_title }}</h2>
+
+      <div class="pcoll-slider-wrap">
+        {% if actual_count > 2 %}
+          <button class="pcoll-arrow pcoll-arrow--prev" type="button" data-prev aria-label="Previous">
+            ‹
+          </button>
+        {% endif %}
+
+        <div class="pcoll-slider{% if actual_count <= 2 %} is-two-products{% endif %}" data-slider>
+          {% if popup_collection != blank %}
+            {% for product in popup_collection.products limit: display_count %}
+              {% assign first_variant = product.selected_or_first_available_variant %}
+              <div class="pcoll-card">
+                {% if first_variant.compare_at_price > first_variant.price %}
+                  <div class="pcoll-badge">{{ section.settings.sale_badge_text }}</div>
+                {% endif %}
+
+                <div class="pcoll-image">
+                  <a href="{{ product.url }}">
+                    {% if product.featured_image %}
+                      <img
+                        src="{{ product.featured_image | image_url: width: 700 }}"
+                        alt="{{ product.featured_image.alt | escape }}"
+                        loading="lazy"
+                        width="{{ product.featured_image.width }}"
+                        height="{{ product.featured_image.height }}"
+                      >
+                    {% endif %}
+                  </a>
+                </div>
+
+                <p class="pcoll-name">
+                  <a href="{{ product.url }}">{{ product.title }}</a>
+                </p>
+
+                <p class="pcoll-price">
+                  {% if section.settings.show_from_text and product.price_varies %}From {% endif %}
+                  {{ first_variant.price | money }}
+                </p>
+
+                <a
+                  href="{{ product.url }}"
+                  class="pcoll-btn"
+                  data-variant-id="{{ first_variant.id }}"
+                  data-has-only-default-variant="{{ product.has_only_default_variant }}"
+                >
+                  {{ section.settings.button_text }}
+                </a>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="pcoll-empty">
+              Choose a collection in the section settings.
+            </div>
+          {% endif %}
+        </div>
+
+        {% if actual_count > 2 %}
+          <button class="pcoll-arrow pcoll-arrow--next" type="button" data-next aria-label="Next">
+            ›
+          </button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  #PopupCollection-{{ section.id }} {
+    --pcoll-bg: {{ section.settings.modal_bg }};
+    --pcoll-text: {{ section.settings.text_color }};
+    --pcoll-overlay: rgba(0, 0, 0, {{ section.settings.overlay_opacity | divided_by: 100.0 }});
+    --pcoll-btn-bg: {{ section.settings.button_bg }};
+    --pcoll-btn-text: {{ section.settings.button_text_color }};
+    --pcoll-trigger-bg: {{ section.settings.trigger_bg }};
+    --pcoll-trigger-text: {{ section.settings.trigger_text_color }};
+    --pcoll-badge-bg: {{ section.settings.badge_bg }};
+    --pcoll-badge-text: {{ section.settings.badge_text_color }};
+    --pcoll-radius: {{ section.settings.modal_radius }}px;
+    --pcoll-card-radius: {{ section.settings.card_radius }}px;
+    --pcoll-card-bg: #f3f3f3;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-trigger {
+    position: fixed;
+    top: 50%;
+    z-index: 999;
+    border: none;
+    cursor: pointer;
+    background: var(--pcoll-trigger-bg);
+    color: var(--pcoll-trigger-text);
+    padding: 22px 12px;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    transition: transform .2s ease;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-trigger--left {
+    left: 0;
+    transform: translateY(-50%) rotate(180deg);
+    border-radius: 18px 0 0 18px;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-trigger--right {
+    right: 0;
+    transform: translateY(-50%);
+    border-radius: 0 18px 18px 0;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-trigger--left:hover {
+    transform: translateY(-50%) rotate(180deg) scale(1.03);
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-trigger--right:hover {
+    transform: translateY(-50%) scale(1.03);
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .16s ease, visibility .16s ease;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-modal.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+ #PopupCollection-{{ section.id }} .pcoll-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity .16s ease;
+}
+  #PopupCollection-{{ section.id }} .pcoll-modal.active .pcoll-overlay {
+    opacity: 1;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-dialog {
+    position: relative;
+    z-index: 2;
+    background: var(--pcoll-bg);
+    color: var(--pcoll-text);
+    width: min(1180px, 100%);
+    max-width: 1180px;
+    max-height: 86vh;
+    overflow: hidden;
+    border-radius: var(--pcoll-radius);
+    padding: 28px 22px 24px;
+    box-shadow: 0 22px 70px rgba(0,0,0,0.22);
+    transform: translateY(8px) scale(.985);
+    opacity: 0;
+    transition: transform .16s ease, opacity .16s ease;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-modal.active .pcoll-dialog {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-dialog.is-two-products {
+    max-width: 760px;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    border: none;
+    background: transparent;
+    color: var(--pcoll-text);
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-title {
+    margin: 0 0 18px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.1;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-slider-wrap {
+    position: relative;
+    padding: 0 34px;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-slider {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    justify-content: flex-start;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #bfbfbf transparent;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-slider::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-slider::-webkit-scrollbar-thumb {
+    background: #bfbfbf;
+    border-radius: 999px;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-slider::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-slider.is-two-products {
+    justify-content: center;
+    overflow-x: hidden;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-arrow {
+    position: absolute;
+    top: 42%;
+    transform: translateY(-50%);
+    z-index: 3;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.95);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    color: #777;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-arrow--prev {
+    left: 0;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-arrow--next {
+    right: 0;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-card {
+    min-width: 220px;
+    max-width: 220px;
+    width: 220px;
+    background: var(--pcoll-card-bg);
+    border-radius: var(--pcoll-card-radius);
+    padding: 14px;
+    position: relative;
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-slider.is-two-products .pcoll-card {
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    background: var(--pcoll-badge-bg);
+    color: var(--pcoll-badge-text);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-image {
+    border-radius: calc(var(--pcoll-card-radius) - 4px);
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    background: transparent;
+    margin-bottom: 10px;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    background: transparent;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-name {
+    font-size: 14px;
+    line-height: 1.35;
+    margin: 0 0 10px;
+    font-weight: 600;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-name a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-price {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 14px;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-btn {
+    display: block;
+    width: 100%;
+    background: var(--pcoll-btn-bg);
+    color: var(--pcoll-btn-text);
+    text-align: center;
+    padding: 11px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: auto;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-empty {
+    width: 100%;
+    text-align: center;
+    padding: 40px 20px;
+    background: #fafafa;
+    border-radius: 16px;
+  }
+
+  body.pcoll-lock {
+    overflow: hidden;
+  }
+
+  @media screen and (max-width: 767px) {
+    #PopupCollection-{{ section.id }} .pcoll-modal {
+      padding: 12px;
+    }
+
+    #PopupCollection-{{ section.id }} .pcoll-dialog,
+    #PopupCollection-{{ section.id }} .pcoll-dialog.is-two-products {
+      width: min(92vw, 360px);
+      max-width: 360px;
+      max-height: 88vh;
+      padding: 18px 12px 16px;
+      border-radius: 22px;
+    }
+
+    #PopupCollection-{{ section.id }} .pcoll-title {
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+
+    #PopupCollection-{{ section.id }} .pcoll-slider-wrap {
+      padding: 0;
+    }
+
+    #PopupCollection-{{ section.id }} .pcoll-slider,
+    #PopupCollection-{{ section.id }} .pcoll-slider.is-two-products {
+      gap: 12px;
+      overflow-x: auto;
+      justify-content: flex-start;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 6px;
+    }
+
+    #PopupCollection-{{ section.id }} .pcoll-card,
+    #PopupCollection-{{ section.id }} .pcoll-slider.is-two-products .pcoll-card {
+      width: 145px;
+      min-width: 145px;
+      max-width: 145px;
+      padding: 10px;
+      scroll-snap-align: start;
+    }
+
+    #PopupCollection-{{ section.id }} .pcoll-image {
+      margin-bottom: 8px;
+    }
+
+    #PopupCollection-{{ section.id }} .pcoll-name {
+      font-size: 12px;
+      line-height: 1.3;
+      margin: 0 0 8px;
+    }
+
+    #PopupCollection-{{ section.id }} .pcoll-price {
+      font-size: 12px;
+      margin: 0 0 10px;
+    }
+
+    #PopupCollection-{{ section.id }} .pcoll-btn {
+      font-size: 12px;
+      padding: 10px 8px;
+    }
+
+    #PopupCollection-{{ section.id }} .pcoll-arrow {
+      display: none;
+    }
+
+    #PopupCollection-{{ section.id }} .pcoll-trigger {
+      font-size: 12px;
+      padding: 16px 8px;
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    const root = document.getElementById('PopupCollection-{{ section.id }}');
+    if (!root) return;
+
+    const modal = root.querySelector('[data-modal]');
+    const openBtn = root.querySelector('[data-open]');
+    const closeBtns = root.querySelectorAll('[data-close]');
+    const slider = root.querySelector('[data-slider]');
+    const prevBtn = root.querySelector('[data-prev]');
+    const nextBtn = root.querySelector('[data-next]');
+
+    function openModal() {
+      if (!modal) return;
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('pcoll-lock');
+      if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeModal() {
+      if (!modal) return;
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('pcoll-lock');
+      if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    if (openBtn) {
+      openBtn.addEventListener('click', openModal);
+    }
+
+    closeBtns.forEach(function(btn) {
+      btn.addEventListener('click', closeModal);
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && modal && modal.classList.contains('active')) {
+        closeModal();
+      }
+    });
+
+    function cardScrollAmount() {
+      const card = root.querySelector('.pcoll-card');
+      if (!card || !slider) return 240;
+      const gap = parseInt(window.getComputedStyle(slider).gap || 18, 10);
+      return card.offsetWidth + gap;
+    }
+
+    if (prevBtn && slider) {
+      prevBtn.addEventListener('click', function() {
+        slider.scrollBy({ left: -(cardScrollAmount() * 2), behavior: 'smooth' });
+      });
+    }
+
+    if (nextBtn && slider) {
+      nextBtn.addEventListener('click', function() {
+        slider.scrollBy({ left: cardScrollAmount() * 2, behavior: 'smooth' });
+      });
+    }
+
+    root.querySelectorAll('.pcoll-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        const hasOnlyDefaultVariant = this.dataset.hasOnlyDefaultVariant === 'true';
+        const variantId = this.dataset.variantId;
+
+        if (!hasOnlyDefaultVariant || !variantId) {
+          return;
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const currentBtn = this;
+        const originalText = currentBtn.textContent;
+
+        fetch('/cart/add.js', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            id: variantId,
+            quantity: 1
+          })
+        })
+        .then(function(res) {
+          if (!res.ok) throw new Error('Add to cart failed');
+          return res.json();
+        })
+        .then(function() {
+          currentBtn.textContent = 'Added ✓';
+
+          if (modal) {
+            modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('pcoll-lock');
+          }
+
+          setTimeout(function() {
+            currentBtn.textContent = originalText;
+          }, 300);
+        })
+        .catch(function(err) {
+          console.error(err);
+          window.location.href = currentBtn.getAttribute('href');
+        });
+      });
+    });
+
+    if (document.documentElement.classList.contains('shopify-design-mode')) {
+      closeModal();
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Popup Collection",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Popup heading",
+      "default": "Today's Deals"
+    },
+    {
+      "type": "text",
+      "id": "trigger_text",
+      "label": "Trigger text",
+      "default": "Today's Deals"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 2,
+      "max": 35,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "checkbox",
+      "id": "show_trigger",
+      "label": "Show trigger button",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "trigger_side",
+      "label": "Trigger side",
+      "default": "left",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Add to cart"
+    },
+    {
+      "type": "text",
+      "id": "sale_badge_text",
+      "label": "Sale badge text",
+      "default": "Sale"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_from_text",
+      "label": "Show “From” when price varies",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "modal_bg",
+      "label": "Modal background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "button_bg",
+      "label": "Button background",
+      "default": "#ff00cc"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "trigger_bg",
+      "label": "Trigger background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "trigger_text_color",
+      "label": "Trigger text color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "badge_bg",
+      "label": "Badge background",
+      "default": "#ff2a2a"
+    },
+    {
+      "type": "color",
+      "id": "badge_text_color",
+      "label": "Badge text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 10,
+      "max": 90,
+      "step": 5,
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "modal_radius",
+      "label": "Modal corner radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "label": "Card corner radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "default": 18
+    }
+  ],
+  "presets": [
+    {
+      "name": "Popup Collection"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,909 @@
+{%- doc -%}
+  Displays product images in a carousel.
+  Settings allow for a full slideshow, showing only the first image, or showing the second image when hovering.
+  Note: When the product card itself is in a carousel layout, the card-gallery's carousel is disabled with JavaScript.
+
+  @param [children] - Additional content rendered below the card gallery
+  @param [section] - The section object the snippet is rendered in
+  @param [block] - The block object the snippet is rendered in
+{%- enddoc -%}
+
+{% liquid
+  assign product = closest.product
+  assign block_settings = block.settings
+  assign image_sizes = '(min-width: 750px) 50vw, 100vw'
+
+  # Check if product has badges and determine position
+  assign has_badges = false
+  assign badge_position = null
+  if product != blank
+    if product.available == false or product.compare_at_price > product.price
+      assign has_badges = true
+      assign badge_position = settings.badge_position
+    endif
+  endif
+
+  # if the card-gallery has a section.settings.product_card_size:
+  # assume grid-template autofill(card-size, 1fr) and calculate the sizes attribute based on the minimum card size
+  #
+  # if section has section.settings.columns:
+  # assume grid-template repeat(column-count, 1fr) and calculate the sizes attribute based on the number of columns
+  if section.settings.product_card_size
+    capture card_size
+      render 'util-product-grid-card-size', section: section
+    endcapture
+    assign card_size = card_size | strip | replace: 'px', '' | plus: 0
+    capture sizes_attribute
+      render 'util-autofill-img-size-attr', card_size: card_size, card_gap: section.settings.columns_gap_horizontal
+    endcapture
+    assign image_sizes = sizes_attribute | strip
+  elsif section.settings.columns and section.settings.layout_type != 'editorial'
+    assign viewport_width = 100.0 | divided_by: section.settings.columns
+    assign sizes_attribute = '(min-width: 750px) [viewport_width]vw, 100vw' | replace: '[viewport_width]', viewport_width
+    assign image_sizes = sizes_attribute | strip
+  endif
+
+  assign ratio = '1'
+  case block_settings.image_ratio
+    when 'landscape'
+      assign ratio = '16 / 9'
+    when 'portrait'
+      assign ratio = '4 / 5'
+    when 'square'
+      assign ratio = '1'
+    when 'adapt'
+      assign ratio = product.featured_media.preview_image.aspect_ratio | default: '1'
+  endcase
+
+  if block_settings.image_ratio == 'adapt' and block_settings.constrain_to_viewport
+    if block_settings.constrain_to_viewport != ''
+      assign constrain_to_viewport = true
+      assign media_fit = block_settings.constrain_to_viewport
+    endif
+  endif
+%}
+
+<div
+  ref="cardGallery"
+  class="card-gallery card-gallery-{{ block.id }} spacing-style border-style{% if has_badges %} card-gallery--badge-{{ badge_position }}{% endif %}"
+  style="
+    {% render 'border-override', settings: block_settings %}
+    {% render 'spacing-style', settings: block_settings %}
+    --gallery-aspect-ratio: {{ ratio }};
+  "
+  data-product-id="{{ product.id }}"
+  {% if settings.show_second_image_on_hover %}
+    on:pointerenter="/previewImage"
+    on:pointerleave="/resetImage"
+  {% endif %}
+  {% if settings.transition_to_main_product %}
+    data-view-transition-to-main-product
+  {% endif %}
+  data-image-ratio="{{ block_settings.image_ratio }}"
+  {{ block.shopify_attributes }}
+>
+  {%- if product.media.size > 0 -%}
+    {% liquid
+      # Check if there are generic media that are not variant images
+      assign variant_images = product.images | where: 'attached_to_variant?', true | map: 'src'
+      assign generic_media_size = product.media.size | minus: variant_images.size
+
+      # Sort media so product.featured_media.preview_image comes first as that is the most relevant image to display
+      # product.featured_media updates based on search context and filters applied
+
+      assign other_media = product.media | reject: 'src', product.featured_media
+      assign media_list_to_show = product.featured_media | concat: other_media
+
+      if product.media.size > 2 and generic_media_size > 0
+        assign show_arrows = true
+      endif
+
+      # Don't overfetch media if we don't need to
+      assign max_visible_slide_count = 1
+      if settings.product_card_carousel
+        assign max_visible_slide_count = 5
+      elsif settings.show_second_image_on_hover
+        assign max_visible_slide_count = 2
+      endif
+
+      capture slides
+        for media in media_list_to_show
+          assign loading = 'lazy'
+          assign sizes = 'auto, ' | append: image_sizes
+
+          assign hidden = false
+          assign attributes = ''
+          if variant_images contains media.src
+            assign attributes = 'variant-image'
+
+            if forloop.first == false
+              # hide all variant images that aren't the first one
+              assign hidden = true
+            endif
+          endif
+
+          # Performance improvement: don't render more than 5 visible images into the slideshow
+          # We'll keep the images that we need for the variant images and hover next.
+          if forloop.first
+            assign visible_slide_count = 0
+          endif
+          unless hidden
+            assign visible_slide_count = visible_slide_count | plus: 1
+          endunless
+          if hidden == false and visible_slide_count > max_visible_slide_count
+            continue
+          endif
+
+          if forloop.first and section.index == null or section.index < 5
+            assign loading = 'eager'
+            assign sizes = image_sizes
+          endif
+
+          assign class = 'product-media-container media-fit product-media-container--[media_type]' | replace: '[media_type]', media.media_type
+          if constrain_to_viewport
+            assign class = class | append: ' constrain-height'
+          endif
+
+          capture slideshow_children
+            render 'product-media', media: media, sizes: sizes, loading: loading, preview_image_only: true
+          endcapture
+
+          render 'slideshow-slide', slide_id: media.id, index: forloop.index0, hidden: hidden, class: class, attributes: attributes, children: slideshow_children, media_fit: media_fit
+        endfor
+      endcapture
+
+      assign slideshow_attributes = 'data-generic-media-size="[generic_media_size]"' | replace: '[generic_media_size]', generic_media_size
+      if settings.product_card_carousel == false
+        assign slideshow_attributes = slideshow_attributes | append: ' disabled="true"'
+      endif
+    %}
+    <a
+      class="contents"
+      ref="cardGalleryLink"
+      href="{{ product.selected_or_first_available_variant.url }}"
+      aria-label="{{- product.title -}}"
+    >
+      {% render 'slideshow',
+        ref: 'slideshow',
+        initial_slide: 0,
+        slides: slides,
+        slide_count: media_list_to_show.size,
+        show_arrows: show_arrows,
+        attributes: slideshow_attributes
+      %}
+    </a>
+  {% elsif product != blank and product.media.size == 0 %}
+    <product-title class="product-card-gallery__title-placeholder">
+      <a
+        class="contents"
+        ref="productTitleLink"
+        href="{{ product.selected_or_first_available_variant.url }}"
+        aria-hidden="true"
+      >
+        <span class="title-text">{{- product.title -}}</span>
+      </a>
+    </product-title>
+  {% elsif product == blank %}
+    {% liquid
+      capture placeholder_image
+        # Extract index from block ID (e.g., "product-card-3" -> "3")
+        assign block_parts = block.id | split: '-'
+        assign placeholder_index = block_parts.last | default: 0
+        assign variant = placeholder_index | modulo: 3 | plus: 1
+        assign placeholder_name = 'product-apparel-' | append: variant
+        echo placeholder_name | placeholder_svg_tag
+      endcapture
+      capture placeholder_slide
+        render 'slideshow-slide', index: 1, children: placeholder_image, class: 'product-media-container card-gallery__placeholder'
+      endcapture
+      render 'slideshow', ref: 'slideshow', slides: placeholder_slide, slide_count: 1, attributes: 'disabled="true"'
+    %}
+  {%- endif -%}
+  {{ children }}
+</div>
+
+<script>
+  (function () {
+    if (window.__hcSortOutsideClose) return;
+    window.__hcSortOutsideClose = true;
+
+    document.addEventListener(
+      'click',
+      function (e) {
+        var openPanel = document.querySelector('.facets__panel[open]');
+        if (!openPanel) return;
+        var optionsBox = openPanel.querySelector('.sorting-filter__options');
+        var summary = openPanel.querySelector('.facets__summary');
+        if ((optionsBox && optionsBox.contains(e.target)) || (summary && summary.contains(e.target))) return;
+        openPanel.removeAttribute('open');
+      },
+      true
+    );
+
+    // Friendlier sort labels than the native "Date, new to old" etc.
+    // Reapplied on every panel open and on any DOM change the native
+    // component makes, since it re-renders this text on its own.
+    var sortLabelRename = {
+      'title-ascending': 'A to Z',
+      'title-descending': 'Z to A',
+      'price-ascending': 'Price: Low to High',
+      'price-descending': 'Price: High to Low',
+      'created-descending': 'Newest First',
+      'created-ascending': 'Oldest First',
+    };
+    var sortStatusRename = {
+      'Alphabetically, A-Z': 'A to Z',
+      'Alphabetically, Z-A': 'Z to A',
+      'Price, low to high': 'Price: Low to High',
+      'Price, high to low': 'Price: High to Low',
+      'Date, new to old': 'Newest First',
+      'Date, old to new': 'Oldest First',
+    };
+
+    function applySortRenames() {
+      document.querySelectorAll('.sorting-filter__option').forEach(function (opt) {
+        var input = opt.querySelector('.sorting-filter__input');
+        var label = opt.querySelector('.sorting-filter__label');
+        if (!input || !label) return;
+        var friendly = sortLabelRename[input.value];
+        if (friendly && label.textContent.trim() !== friendly) {
+          label.textContent = friendly;
+        }
+      });
+      document.querySelectorAll('.facets__status').forEach(function (status) {
+        var current = status.textContent.trim();
+        var friendly = sortStatusRename[current];
+        if (friendly) status.textContent = friendly;
+      });
+    }
+
+    applySortRenames();
+    document.querySelectorAll('.facets__panel').forEach(function (panel) {
+      panel.addEventListener('toggle', applySortRenames);
+    });
+    var sortRenameObserver = new MutationObserver(applySortRenames);
+    document.querySelectorAll('.sorting-filter__options-inner, .facets__status').forEach(function (el) {
+      sortRenameObserver.observe(el, { childList: true, subtree: true, characterData: true });
+    });
+
+    // Standalone circular close button below the sort modal (mobile
+    // only, via CSS) — added to every options panel so it's there
+    // whichever one the native component decides to show.
+    function addSortCloseButtons() {
+      document.querySelectorAll('.sorting-filter__options').forEach(function (panel) {
+        if (panel.querySelector('.hc-sort-close-btn')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'hc-sort-close-btn';
+        btn.setAttribute('aria-label', 'Close sort menu');
+        btn.textContent = '✕';
+        btn.addEventListener('click', function () {
+          var openPanel = document.querySelector('.facets__panel[open]');
+          if (openPanel) openPanel.removeAttribute('open');
+        });
+        panel.appendChild(btn);
+      });
+    }
+
+    addSortCloseButtons();
+    document.querySelectorAll('.facets__panel').forEach(function (panel) {
+      panel.addEventListener('toggle', addSortCloseButtons);
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .card-gallery {
+    overflow: hidden;
+    container-type: inline-size; /* Make card-gallery a container */
+    container-name: card-gallery-container; /* Optional: name the container */
+  }
+
+  .card-gallery__placeholder svg {
+    height: 100%;
+    width: 100%;
+  }
+
+  .card-gallery svg {
+    aspect-ratio: var(--gallery-aspect-ratio, var(--ratio));
+  }
+
+  .card-gallery[data-image-ratio='square'] :is(img, video, .deferred-media__poster-image) {
+    object-fit: contain;
+  }
+
+  .product-card-gallery__title-placeholder {
+    padding: var(--padding-md);
+    font-size: var(--font-size--2xl);
+    line-height: var(--line-height--display-loose);
+    word-break: break-word;
+    color: var(--color-foreground);
+    background-color: rgb(var(--color-foreground-rgb) / var(--opacity-5));
+    aspect-ratio: var(--gallery-aspect-ratio);
+    border-radius: var(--product-corner-radius);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .product-card-gallery__title-placeholder a {
+    color: var(--color-foreground);
+  }
+
+  @media screen and (min-width: 750px) {
+    .product-grid[data-product-card-size='extra-large'] .product-card-gallery__title-placeholder {
+      padding: var(--padding-3xl);
+      font-size: var(--font-size--3xl);
+    }
+
+    .product-grid[data-product-card-size='large'] .product-card-gallery__title-placeholder {
+      padding: var(--padding-2xl);
+      font-size: var(--font-size--2xl);
+    }
+
+    .product-grid[data-product-card-size='medium'] .product-card-gallery__title-placeholder {
+      padding: var(--padding-xl);
+      font-size: var(--font-size--xl);
+    }
+
+    .product-grid[data-product-card-size='small'] .product-card-gallery__title-placeholder {
+      padding: var(--padding-sm);
+      font-size: var(--font-size--lg);
+    }
+
+    .product-grid[data-product-card-size='extra-large']
+      .card-gallery.card-gallery--badge-top-right
+      .product-card-gallery__title-placeholder {
+      padding-right: calc(var(--padding-3xl) + 50px);
+    }
+
+    .product-grid[data-product-card-size='large']
+      .card-gallery.card-gallery--badge-top-right
+      .product-card-gallery__title-placeholder {
+      padding-right: calc(var(--padding-2xl) + 50px);
+    }
+
+    .product-grid[data-product-card-size='medium']
+      .card-gallery.card-gallery--badge-top-right
+      .product-card-gallery__title-placeholder {
+      padding-right: calc(var(--padding-xl) + 50px);
+    }
+
+    .product-grid[data-product-card-size='small']
+      .card-gallery.card-gallery--badge-top-right
+      .product-card-gallery__title-placeholder {
+      padding-right: calc(var(--padding-sm) + 50px);
+    }
+
+    .product-grid[data-product-card-size='extra-large']
+      .card-gallery.card-gallery--badge-top-left
+      .product-card-gallery__title-placeholder {
+      padding-top: calc(var(--padding-3xl) + 40px);
+    }
+
+    .product-grid[data-product-card-size='large']
+      .card-gallery.card-gallery--badge-top-left
+      .product-card-gallery__title-placeholder {
+      padding-top: calc(var(--padding-2xl) + 40px);
+    }
+
+    .product-grid[data-product-card-size='medium']
+      .card-gallery.card-gallery--badge-top-left
+      .product-card-gallery__title-placeholder {
+      padding-top: calc(var(--padding-xl) + 40px);
+    }
+
+    .product-grid[data-product-card-size='small']
+      .card-gallery.card-gallery--badge-top-left
+      .product-card-gallery__title-placeholder {
+      padding-top: calc(var(--padding-sm) + 40px);
+    }
+
+    .product-grid[data-product-card-size='extra-large']
+      .card-gallery.card-gallery--badge-bottom-left
+      .product-card-gallery__title-placeholder {
+      padding-bottom: calc(var(--padding-3xl) + 40px);
+    }
+
+    .product-grid[data-product-card-size='large']
+      .card-gallery.card-gallery--badge-bottom-left
+      .product-card-gallery__title-placeholder {
+      padding-bottom: calc(var(--padding-2xl) + 40px);
+    }
+
+    .product-grid[data-product-card-size='medium']
+      .card-gallery.card-gallery--badge-bottom-left
+      .product-card-gallery__title-placeholder {
+      padding-bottom: calc(var(--padding-xl) + 40px);
+    }
+
+    .product-grid[data-product-card-size='small']
+      .card-gallery.card-gallery--badge-bottom-left
+      .product-card-gallery__title-placeholder {
+      padding-bottom: calc(var(--padding-sm) + 40px);
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .product-card-gallery__title-placeholder {
+      font-size: var(--font-size--xl);
+      padding: var(--padding-md);
+    }
+
+    .product-grid[data-product-card-size]
+      .card-gallery.card-gallery--badge-top-right
+      .product-card-gallery__title-placeholder {
+      padding-right: calc(var(--padding-sm) + 50px);
+    }
+
+    .product-grid[data-product-card-size]
+      .card-gallery.card-gallery--badge-top-left
+      .product-card-gallery__title-placeholder {
+      padding-top: calc(var(--padding-sm) + 40px);
+    }
+
+    .product-grid[data-product-card-size]
+      .card-gallery.card-gallery--badge-bottom-left
+      .product-card-gallery__title-placeholder {
+      padding-bottom: calc(var(--padding-sm) + 40px);
+    }
+  }
+
+  [product-grid-view='zoom-out'] .card-gallery .product-card-gallery__title-placeholder {
+    /* stylelint-disable-next-line declaration-no-important */
+    padding: var(--padding-xs) !important;
+    font-size: var(--font-size--xs);
+  }
+
+  [product-grid-view='zoom-out'] .card-gallery .slideshow-control {
+    min-width: auto;
+  }
+
+  /*
+    Title above, price below, both centered — instead of a side-by-side
+    row (which could push long titles/prices past the card's edge).
+  */
+  product-card .layout-panel-flex--row {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  product-card .layout-panel-flex--row .text-block,
+  product-card product-price {
+    text-align: center !important;
+  }
+
+  /*
+    The title renders as a plain, unstyled <p> nested inside
+    .text-block, and that inner <p> has its own explicit
+    text-align: left, which overrides the centering above (text-align
+    doesn't cascade past an explicit value). This is why short/single
+    line titles looked fine (nothing to visibly misalign) while long
+    titles that wrap to 2 lines stayed left-aligned relative to each
+    other. Target the inner <p> directly.
+  */
+  product-card .text-block p {
+    text-align: center !important;
+  }
+
+  /*
+    Collection page sort control: centered pink glass pill instead of
+    a plain left-aligned text link/bar, matching the header's
+    "Sell my collection" pill treatment. The bar behind it used to be
+    solid purple (from the section's color scheme) — remove that so
+    only the pill itself is visible.
+  */
+  .facets-block-wrapper--horizontal {
+    background: transparent !important;
+  }
+
+  .facets__form {
+    justify-content: center;
+  }
+
+  /* On mobile the sort control lives in a different wrapper
+     (.facets-mobile-wrapper) than desktop's .facets__form, and it
+     defaults to flex-end — pushing the pill off to the right instead
+     of centered. */
+  @media screen and (max-width: 749px) {
+    .facets-mobile-wrapper {
+      justify-content: center !important;
+    }
+  }
+
+  .facets__summary {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    /* Deliberately asymmetric this time — more clearance on the right
+       so the chevron circle has visible breathing room before the
+       pill's edge, and the text sits slightly left of center,
+       matching the reference look. Same on mobile and desktop, no
+       breakpoint-specific override. */
+    padding: 8px 44px 8px 24px !important;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(255, 47, 177, 0.16), rgba(15, 10, 16, 0.94));
+    border: 1px solid rgba(255, 47, 177, 0.45);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    /* The real bug behind the overlapping circle/text on desktop: the
+       native theme sets a fixed height: 44px on this element (sized
+       for its original single-line "Sort" text), with overflow:
+       visible. Two stacked lines plus padding need ~55px, so the
+       extra content was spilling out past the pill's rounded top and
+       bottom edges instead of the pill actually growing to fit it. */
+    height: auto !important;
+    min-height: 44px !important;
+    /* Requested: shift the whole pill down a bit, everything else
+       about it stays exactly as-is. */
+    margin-top: 24px !important;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .facets__summary:hover {
+    background: linear-gradient(135deg, rgba(255, 47, 177, 0.26), rgba(15, 10, 16, 0.96));
+    border-color: #ff2fb1;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 28px rgba(255, 47, 177, 0.25);
+  }
+
+  .facets__summary .facets__label {
+    /* Mobile has its own native rule
+       (.facets-mobile-wrapper .sorting-filter .facets__label) with
+       higher specificity that was overriding this with a muted gray
+       — that's why "SORT" was pink on desktop but gray on mobile. */
+    color: #ff2fb1 !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    /* Same leftover-row-margin issue as .facets__status below —
+       native CSS gives this a right margin for when it sat beside
+       something in a row, which skews it off-center in this column. */
+    margin: 0 !important;
+  }
+
+  /* Native theme hides this on desktop (desktop:hidden) — show it so
+     the pill reads "SORT" on top / current value below, like a
+     competitor's filter button. */
+  .facets__summary .facets__status {
+    display: block !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    /* Native CSS gives this a left margin meant to space it away from
+       the label when they sat side-by-side in a row — now that this
+       is a centered column, that margin just pushes the text off
+       center. */
+    margin: 0 !important;
+  }
+
+  .facets__summary .icon-caret {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 47, 177, 0.2);
+    color: #ff2fb1;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .facets__summary:hover .icon-caret {
+    background: #ff2fb1;
+    color: #fff;
+  }
+
+  /*
+    Sort dropdown as a centered modal instead of a small panel pinned
+    to the button — a dimmed backdrop plus a grid of pill buttons for
+    each sort option (no plain left-aligned list, no checkmark icon).
+  */
+  .facets__panel[open]::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 40;
+  }
+
+  .sorting-filter__options {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: min(90vw, 420px) !important;
+    max-width: 420px !important;
+    background: rgba(10, 10, 13, 0.97) !important;
+    border: 1px solid rgba(255, 47, 177, 0.3) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6) !important;
+    padding: 20px !important;
+    z-index: 41 !important;
+  }
+
+  /* Standalone circular close button below the modal, mobile only —
+     desktop already has plenty of room and click-outside-to-close. */
+  .hc-sort-close-btn {
+    display: none;
+  }
+
+  @media screen and (max-width: 749px) {
+    .hc-sort-close-btn {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      bottom: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 47, 177, 0.15);
+      border: 1px solid rgba(255, 47, 177, 0.5);
+      color: #ff2fb1;
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      z-index: 42;
+    }
+  }
+
+  .sorting-filter__options-inner {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* Longer labels like "Price: High to Low" get clipped in a 2-column
+     grid on narrow screens — stack them full-width instead. Each
+     pill also has a native max-width (~218px) meant for the 2-column
+     layout, which left visible empty space on the right in a single
+     full-width column — override it so pills actually fill the row. */
+  @media screen and (max-width: 749px) {
+    .sorting-filter__options-inner {
+      grid-template-columns: 1fr !important;
+    }
+
+    .sorting-filter__option {
+      width: 100% !important;
+      max-width: none !important;
+    }
+  }
+
+  .sorting-filter__option {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 14px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.03);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-align: center;
+    cursor: pointer;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .sorting-filter__option:hover {
+    background: rgba(255, 47, 177, 0.14);
+    border-color: rgba(255, 47, 177, 0.5);
+  }
+
+  .sorting-filter__option[aria-selected='true'] {
+    background: rgba(255, 47, 177, 0.15) !important;
+    border-color: #ff2fb1 !important;
+    color: #ff2fb1 !important;
+  }
+
+  .sorting-filter__option[aria-selected='true']::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff2fb1;
+  }
+
+  .sorting-filter__checkmark {
+    display: none !important;
+  }
+
+  /*
+    "Most relevant" only makes sense for a search results page, not a
+    plain collection listing — it's the one option that's genuinely
+    redundant here, so it's the only one dropped. Note: this only
+    hides the pill; it doesn't change which sort is actually applied
+    by default on page load — that's the collection's own "Sort by"
+    setting in the theme customizer, not something a stylesheet can
+    control. Set that to "Date, new to old" there if you want
+    newest-first to be the real default.
+  */
+  .sorting-filter__options-inner > label:has(input[data-option-name='Most relevant']) {
+    display: none !important;
+  }
+
+  /*
+    Clean 4x2 grid (8 pills): general options first, then each
+    opposite-direction pair grouped together in its own row instead of
+    the native order (which splits pairs like A-Z/Z-A apart) — easier
+    to scan and compare at a glance.
+  */
+  .sorting-filter__options-inner > label:has(input[data-option-name='Featured']) {
+    order: 1;
+  }
+  .sorting-filter__options-inner > label:has(input[value='best-selling']) {
+    order: 2;
+  }
+  .sorting-filter__options-inner > label:has(input[value='title-ascending']) {
+    order: 3;
+  }
+  .sorting-filter__options-inner > label:has(input[value='title-descending']) {
+    order: 4;
+  }
+  .sorting-filter__options-inner > label:has(input[value='price-ascending']) {
+    order: 5;
+  }
+  .sorting-filter__options-inner > label:has(input[value='price-descending']) {
+    order: 6;
+  }
+  .sorting-filter__options-inner > label:has(input[value='created-descending']) {
+    order: 7;
+  }
+  .sorting-filter__options-inner > label:has(input[value='created-ascending']) {
+    order: 8;
+  }
+
+  /*
+    Pokeball quick-add icon (same treatment as the homepage carousel
+    sections), applied to the native product-card quick-add button so
+    it shows up on every collection grid too — including mobile, where
+    it stays always-visible instead of only appearing on hover.
+  */
+  product-card .quick-add__button {
+    top: 10px !important;
+    right: 10px !important;
+    bottom: auto !important;
+    left: auto !important;
+    opacity: 1;
+  }
+
+  product-card .quick-add__button--choose {
+    display: none !important;
+  }
+
+  product-card .quick-add__button--add {
+    display: flex !important;
+  }
+
+  @media screen and (min-width: 750px) {
+    product-card .quick-add__button {
+      opacity: 0;
+      transition-duration: 0.12s;
+      transition-delay: 0s;
+    }
+
+    product-card:is(:hover, :focus-within) .quick-add__button {
+      opacity: 1;
+    }
+
+    product-card .quick-add__button .add-to-cart-text__content,
+    product-card .quick-add__button .add-to-cart-text__content span span {
+      transition-duration: 0.12s;
+      transition-delay: 0s;
+    }
+  }
+
+  /*
+    Idle Pokeball icon is desktop-only — mobile gets the plain native
+    cart icon before you tap it, matching the homepage carousel
+    sections.
+  */
+  @media screen and (min-width: 750px) {
+    product-card .add-to-cart-icon svg {
+      display: none;
+    }
+
+    product-card .add-to-cart-icon {
+      position: relative;
+    }
+
+    product-card .add-to-cart-icon::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='%23ffffff' stroke='%23111111' stroke-width='1.3'/%3E%3Cpath d='M3 12h5.2M15.8 12H21' stroke='%23111111' stroke-width='1.3'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='%23ffffff' stroke='%23111111' stroke-width='1.3'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+  }
+
+  /*
+    Success (added-to-cart) Pokeball animation stays on every device,
+    including mobile — this is the fun "catch" moment, not something
+    to hide behind a breakpoint like the idle icon above.
+  */
+  product-card .checkmark-burst {
+    display: none;
+  }
+
+  product-card .add-to-cart__added-icon {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    display: none;
+  }
+
+  product-card .quick-add__button[data-added='true'] .add-to-cart__added-icon {
+    display: inline-flex;
+  }
+
+  product-card .add-to-cart__added-icon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 12a9 9 0 0 1 18 0Z' fill='%23ee1515'/%3E%3Cpath d='M3 12a9 9 0 0 0 18 0Z' fill='%23ffffff'/%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%23111111' stroke-width='1.1'/%3E%3Cpath d='M3 12h5.2M15.8 12H21' stroke='%23111111' stroke-width='1.3'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='%23ffffff' stroke='%23111111' stroke-width='1.3'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: card-gallery-catch-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  product-card .quick-add__button[data-added='true']::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 999px;
+    border: 2px solid #ff2fb1;
+    animation: card-gallery-catch-ring 0.6s ease-out;
+    pointer-events: none;
+  }
+
+  @keyframes card-gallery-catch-pop {
+    0% {
+      transform: scale(0.3);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes card-gallery-catch-ring {
+    0% {
+      opacity: 1;
+      transform: scale(0.8);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.3);
+    }
+  }
+{% endstylesheet %}

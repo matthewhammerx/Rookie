@@ -1,0 +1,1310 @@
+{% comment %}
+  Hero Collection Framed
+  One continuous video/image spans the entire section (heading row and
+  product carousel together), fading to the background color only at
+  the very top and bottom edges. Heading and a button sit side by side
+  at the top, followed by a draggable product carousel pulling live
+  products from a selected collection.
+{% endcomment %}
+
+{%- liquid
+  assign media_type = section.settings.media_type
+  assign fetch_priority = 'auto'
+  if section.index == 1
+    assign fetch_priority = 'high'
+  endif
+
+  assign top_button_count = 0
+  assign bottom_button_count = 0
+  for block in section.blocks
+    if block.type == 'button' and block.settings.position == 'top'
+      assign top_button_count = top_button_count | plus: 1
+    elsif block.type == 'button' and block.settings.position == 'bottom'
+      assign bottom_button_count = bottom_button_count | plus: 1
+    endif
+  endfor
+
+  assign max_products = section.settings.max_products
+  assign has_real_products = false
+  if section.settings.collection != blank and section.settings.collection.products.size > 0
+    assign has_real_products = true
+  endif
+-%}
+
+<div
+  id="HCF-{{ section.id }}"
+  class="hcf color-{{ section.settings.color_scheme }}{% if section.settings.show_full_product_name %} hcf--full-title{% endif %}{% if section.settings.enable_pokeball_icon %} hcf--pokeball{% endif %}"
+  style="
+    --hcf-bg: {{ section.settings.background_color }};
+    --hcf-fade-size: {{ section.settings.fade_size }}%;
+    --hcf-card-width: {{ section.settings.card_width }}px;
+    --hcf-card-width-mobile: {{ section.settings.card_width_mobile }}px;
+    --hcf-card-gap: {{ section.settings.card_gap }}px;
+    --hcf-heading-color: {{ section.settings.heading_color }};
+    --hcf-heading-size: {{ section.settings.heading_size }}px;
+    --hcf-heading-size-mobile: {{ section.settings.heading_size_mobile }}px;
+    --hcf-heading-glow-color: {{ section.settings.heading_glow_color }};
+    --hcf-card-title-size: {{ section.settings.card_title_size }}px;
+    --hcf-card-title-size-mobile: {{ section.settings.card_title_size_mobile }}px;
+    --hcf-card-price-size: {{ section.settings.card_price_size }}px;
+    --hcf-card-price-size-mobile: {{ section.settings.card_price_size_mobile }}px;
+    --hcf-card-bg: {% if section.settings.enable_card_background %}{{ section.settings.card_background_color }}{% else %}transparent{% endif %};
+    --hcf-card-blur-amount: {{ section.settings.card_blur_amount }}px;
+    --hcf-card-blur-fade: {{ section.settings.card_blur_fade_size }}%;
+    --hcf-image-fit: {% if section.settings.image_fit_contain %}contain{% else %}cover{% endif %};
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  "
+  {% if request.visual_preview_mode %}
+    data-shopify-visual-preview
+  {% endif %}
+>
+  <div class="hcf__media-wrapper" data-testid="hcf-media-wrapper">
+    {%- if media_type == 'video' and section.settings.background_video != blank -%}
+      {{
+        section.settings.background_video
+        | video_tag:
+          poster: nil,
+          autoplay: true,
+          loop: true,
+          controls: false,
+          muted: true,
+          class: 'hcf__media',
+          data-testid: 'hcf-video'
+      }}
+    {%- elsif media_type == 'image' and section.settings.background_image != blank -%}
+      {{
+        section.settings.background_image
+        | image_url: width: 3840
+        | image_tag:
+          widths: '750, 1100, 1500, 2000, 3000, 3840',
+          alt: section.settings.background_image.alt,
+          class: 'hcf__media',
+          sizes: '100vw',
+          fetchpriority: fetch_priority,
+          data-testid: 'hcf-image'
+      }}
+    {%- else -%}
+      {{ 'hero-apparel-1' | placeholder_svg_tag: 'hcf__media' }}
+    {%- endif -%}
+  </div>
+
+  <div class="hcf__fade" aria-hidden="true"></div>
+
+  <div class="hcf__content">
+  <div class="hcf__top-content" data-testid="hcf-top-content">
+    <div class="hcf__top-text">
+      {%- if section.settings.heading_text != blank -%}
+        <h2 class="hcf__heading{% if section.settings.heading_glow %} hcf__heading--glow{% endif %}">
+          {{ section.settings.heading_text }}
+        </h2>
+      {%- endif -%}
+
+      {%- if section.settings.subheading_text != blank -%}
+        <p class="hcf__subheading">{{ section.settings.subheading_text }}</p>
+      {%- endif -%}
+    </div>
+
+    {%- if top_button_count > 0 -%}
+      <div class="hcf__top-actions">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'button' and block.settings.position == 'top' -%}
+            <a
+              {% if block.settings.link != blank %}href="{{ block.settings.link }}"{% else %}href="javascript:void(0);"{% endif %}
+              {% if block.settings.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}
+              class="hcf-button hcf-button--{{ block.settings.style }}"
+              style="
+                border-radius: {{ block.settings.corner_radius }}px;
+                {% if block.settings.style == 'outline' %}
+                  color: {{ block.settings.bg_color }};
+                  border-color: {{ block.settings.bg_color }};
+                {% else %}
+                  background-color: {{ block.settings.bg_color }};
+                  color: {{ block.settings.text_color }};
+                {% endif %}
+                {% if block.settings.style == 'glow' %}
+                  box-shadow:
+                    0 0 {{ block.settings.glow_size | times: 0.5 | round }}px color-mix(in srgb, {{ block.settings.glow_color }} 55%, transparent),
+                    0 0 {{ block.settings.glow_size }}px color-mix(in srgb, {{ block.settings.glow_color }} 35%, transparent),
+                    0 0 {{ block.settings.glow_size | times: 2.25 | round }}px color-mix(in srgb, {{ block.settings.glow_color }} 15%, transparent);
+                {% endif %}
+              "
+              {{ block.shopify_attributes }}
+            >
+              {{ block.settings.label }}
+            </a>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  <div class="hcf__carousel-wrapper{% if section.settings.show_arrows_mobile %} hcf__carousel-wrapper--mobile-arrows{% endif %}">
+    <div class="hcf__grid" id="HCF-Grid-{{ section.id }}" data-testid="hcf-grid">
+    {%- if has_real_products -%}
+      {%- for product in section.settings.collection.products limit: max_products -%}
+        {%- liquid
+          assign on_sale = false
+          if product.compare_at_price > product.price
+            assign on_sale = true
+          endif
+
+          assign card_image_alt = product.featured_image.alt | default: product.title
+        -%}
+        <a
+          href="{{ product.url }}"
+          class="hcf__card"
+        >
+          {%- if section.settings.enable_card_blur -%}
+            <div class="hcf__card-blur" aria-hidden="true"></div>
+          {%- endif -%}
+
+          {%- if on_sale and section.settings.show_sale_badge -%}
+            <span class="hcf__card-badge">{{ section.settings.sale_badge_text }}</span>
+          {%- endif -%}
+
+          {%- if section.settings.enable_quick_add -%}
+            <div class="hcf__quick-add" onclick="event.stopPropagation()">
+              {% render 'quick-add', product: product, section_id: section.id %}
+            </div>
+          {%- endif -%}
+
+          <div class="hcf__card-image-wrapper hcf__card-image-wrapper--{{ section.settings.image_ratio }}">
+            {%- if product.featured_image != blank -%}
+              {{
+                product.featured_image
+                | image_url: width: 1200
+                | image_tag:
+                  widths: '400, 600, 900, 1200',
+                  alt: card_image_alt,
+                  class: 'hcf__card-image',
+                  sizes: '(min-width: 750px) 25vw, 50vw',
+                  loading: 'lazy'
+              }}
+            {%- else -%}
+              {{ 'product-1' | placeholder_svg_tag: 'hcf__card-image' }}
+            {%- endif -%}
+          </div>
+
+          <div class="hcf__card-content">
+            <p class="hcf__card-title">{{ product.title }}</p>
+            <p class="hcf__card-price">
+              {{ product.price | money }}
+              {%- if on_sale -%}
+                <span class="hcf__card-price-compare">{{ product.compare_at_price | money }}</span>
+              {%- endif -%}
+            </p>
+          </div>
+        </a>
+      {%- endfor -%}
+    {%- else -%}
+      {%- for i in (1..max_products) -%}
+        <div class="hcf__card hcf__card--placeholder">
+          {%- if section.settings.enable_card_blur -%}
+            <div class="hcf__card-blur" aria-hidden="true"></div>
+          {%- endif -%}
+          <div class="hcf__card-image-wrapper hcf__card-image-wrapper--{{ section.settings.image_ratio }}">
+            {{ 'product-1' | placeholder_svg_tag: 'hcf__card-image' }}
+          </div>
+          <div class="hcf__card-content">
+            <p class="hcf__card-title">Product title</p>
+            <p class="hcf__card-price">$0.00</p>
+          </div>
+        </div>
+      {%- endfor -%}
+    {%- endif -%}
+    </div>
+
+    {%- if section.settings.show_carousel_arrows -%}
+      <button
+        type="button"
+        class="hcf__arrow hcf__arrow--prev"
+        data-hcf-arrow="prev"
+        aria-label="Previous products"
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <path d="M15 5L8 12L15 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="hcf__arrow hcf__arrow--next"
+        data-hcf-arrow="next"
+        aria-label="Next products"
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <path d="M9 5L16 12L9 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    {%- endif -%}
+  </div>
+
+  {%- if bottom_button_count > 0 -%}
+    <div class="hcf__bottom-content" data-testid="hcf-bottom-content">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'button' and block.settings.position == 'bottom' -%}
+          <a
+            {% if block.settings.link != blank %}href="{{ block.settings.link }}"{% else %}href="javascript:void(0);"{% endif %}
+            {% if block.settings.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}
+            class="hcf-button hcf-button--{{ block.settings.style }}"
+            style="
+              border-radius: {{ block.settings.corner_radius }}px;
+              {% if block.settings.style == 'outline' %}
+                color: {{ block.settings.bg_color }};
+                border-color: {{ block.settings.bg_color }};
+              {% else %}
+                background-color: {{ block.settings.bg_color }};
+                color: {{ block.settings.text_color }};
+              {% endif %}
+              {% if block.settings.style == 'glow' %}
+                box-shadow:
+                  0 0 {{ block.settings.glow_size | times: 0.5 | round }}px color-mix(in srgb, {{ block.settings.glow_color }} 55%, transparent),
+                  0 0 {{ block.settings.glow_size }}px color-mix(in srgb, {{ block.settings.glow_color }} 35%, transparent),
+                  0 0 {{ block.settings.glow_size | times: 2.25 | round }}px color-mix(in srgb, {{ block.settings.glow_color }} 15%, transparent);
+              {% endif %}
+            "
+            {{ block.shopify_attributes }}
+          >
+            {{ block.settings.label }}
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+  </div>
+</div>
+
+<script>
+  (function () {
+    var track = document.getElementById('HCF-Grid-{{ section.id }}');
+    if (!track) return;
+    var root = track.closest('#HCF-{{ section.id }}');
+
+    var prevButton = root ? root.querySelector('[data-hcf-arrow="prev"]') : null;
+    var nextButton = root ? root.querySelector('[data-hcf-arrow="next"]') : null;
+
+    function scrollByCard(direction) {
+      var card = track.querySelector('.hcf__card');
+      var gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap || 0);
+      var amount = card ? card.getBoundingClientRect().width + gap : 300;
+      track.scrollBy({ left: amount * direction, behavior: 'smooth' });
+    }
+
+    if (prevButton) {
+      prevButton.addEventListener('click', function () {
+        scrollByCard(-1);
+      });
+    }
+    if (nextButton) {
+      nextButton.addEventListener('click', function () {
+        scrollByCard(1);
+      });
+    }
+
+    var isDragging = false;
+    var hasDragged = false;
+    var startX = 0;
+    var startScrollLeft = 0;
+
+    track.addEventListener('mousedown', function (e) {
+      if (e.button !== 0) return;
+      if (e.target.closest('.hcf__quick-add')) return;
+      isDragging = true;
+      hasDragged = false;
+      startX = e.pageX;
+      startScrollLeft = track.scrollLeft;
+      track.classList.add('hcf__grid--dragging');
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', function (e) {
+      if (!isDragging) return;
+      var delta = e.pageX - startX;
+      if (Math.abs(delta) > 5) hasDragged = true;
+      track.scrollLeft = startScrollLeft - delta;
+    });
+
+    function stopDragging() {
+      isDragging = false;
+      track.classList.remove('hcf__grid--dragging');
+    }
+
+    window.addEventListener('mouseup', stopDragging);
+
+    track.addEventListener(
+      'click',
+      function (e) {
+        if (hasDragged) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      },
+      true
+    );
+
+    document.addEventListener(
+      'submit',
+      function (e) {
+        if (e.target && e.target.closest && e.target.closest('.hcf__quick-add')) {
+          e.preventDefault();
+        }
+      },
+      true
+    );
+  })();
+</script>
+
+{% stylesheet %}
+  .hcf {
+    position: relative;
+    background: var(--hcf-bg);
+    overflow: hidden;
+  }
+
+  .hcf__media-wrapper {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .hcf__media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+  }
+
+  .hcf__fade {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      var(--hcf-bg) 0%,
+      transparent var(--hcf-fade-size),
+      transparent calc(100% - var(--hcf-fade-size)),
+      var(--hcf-bg) 100%
+    );
+  }
+
+  .hcf__content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hcf__top-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    text-align: center;
+    padding: 40px 20px 0;
+  }
+
+  @media screen and (min-width: 750px) {
+    .hcf__top-content {
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      text-align: left;
+      padding: 56px 48px 0;
+      gap: 24px;
+    }
+  }
+
+  .hcf__top-text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .hcf__heading {
+    margin: 0;
+    color: var(--hcf-heading-color);
+    font-size: var(--hcf-heading-size-mobile);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  @media screen and (min-width: 750px) {
+    .hcf__heading {
+      font-size: var(--hcf-heading-size);
+    }
+  }
+
+  .hcf__heading--glow {
+    text-shadow:
+      0 0 20px var(--hcf-heading-glow-color),
+      0 0 45px var(--hcf-heading-glow-color);
+  }
+
+  .hcf__subheading {
+    margin: 0;
+    color: var(--hcf-heading-color);
+    opacity: 0.85;
+  }
+
+  .hcf__top-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hcf__carousel-wrapper {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hcf__grid {
+    display: flex;
+    gap: var(--hcf-card-gap);
+    padding: 24px 20px 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 20px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .hcf__grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .hcf__grid {
+      cursor: grab;
+    }
+  }
+
+  .hcf__grid--dragging {
+    cursor: grabbing !important;
+    scroll-snap-type: none;
+    user-select: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .hcf__grid {
+      padding: 32px 40px 0;
+      scroll-padding-left: 40px;
+    }
+  }
+
+  .hcf__card {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 var(--hcf-card-width-mobile);
+    scroll-snap-align: start;
+    text-decoration: none;
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(to top, var(--hcf-card-bg) 0%, transparent 45%);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  @media screen and (min-width: 750px) {
+    .hcf__card {
+      flex-basis: var(--hcf-card-width);
+    }
+  }
+
+  .hcf__card-blur {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(var(--hcf-card-blur-amount));
+    backdrop-filter: blur(var(--hcf-card-blur-amount));
+    -webkit-mask-image: linear-gradient(to top, black 0%, transparent var(--hcf-card-blur-fade));
+    mask-image: linear-gradient(to top, black 0%, transparent var(--hcf-card-blur-fade));
+  }
+
+  .hcf__card:hover {
+    transform: translateY(-4px);
+  }
+
+  .hcf__arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 40%;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    cursor: pointer;
+    z-index: 3;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, background-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .hcf__carousel-wrapper:hover .hcf__arrow,
+  .hcf__carousel-wrapper:active .hcf__arrow,
+  .hcf__carousel-wrapper:focus-within .hcf__arrow {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .hcf__arrow:hover {
+    background: #ff2fb1;
+    transform: translateY(-50%) scale(1.05);
+  }
+
+  .hcf__arrow--prev {
+    left: 8px;
+    transform: translateY(-50%);
+  }
+
+  .hcf__arrow--next {
+    right: 8px;
+    transform: translateY(-50%);
+  }
+
+  @media screen and (min-width: 750px) {
+    .hcf__arrow {
+      width: 48px;
+      height: 48px;
+    }
+
+    .hcf__arrow--prev {
+      left: 16px;
+    }
+
+    .hcf__arrow--next {
+      right: 16px;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .hcf__carousel-wrapper:not(.hcf__carousel-wrapper--mobile-arrows) .hcf__arrow {
+      display: none !important;
+    }
+  }
+
+  .hcf__card-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 3;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #ff2fb1;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .hcf__quick-add {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .hcf__quick-add .quick-add__button {
+    top: 10px;
+    right: 10px;
+    bottom: auto;
+    left: auto;
+    opacity: 1;
+  }
+
+  .hcf__quick-add .quick-add__button--choose {
+    display: none !important;
+  }
+
+  .hcf__quick-add .quick-add__button--add {
+    display: flex !important;
+  }
+
+  @media screen and (min-width: 750px) {
+    .hcf__quick-add .quick-add__button {
+      opacity: 0;
+      transition-duration: 0.12s;
+      transition-delay: 0s;
+    }
+
+    .hcf__card:is(:hover, :focus-within) .hcf__quick-add .quick-add__button {
+      opacity: 1;
+    }
+
+    .hcf__quick-add .quick-add__button .add-to-cart-text__content,
+    .hcf__quick-add .quick-add__button .add-to-cart-text__content span span {
+      transition-duration: 0.12s;
+      transition-delay: 0s;
+    }
+
+    .hcf__quick-add .quick-add__button:is(:hover, :focus-visible) .add-to-cart-text__content,
+    .hcf__quick-add .quick-add__button:is(:hover, :focus-visible) .add-to-cart-text__content span span {
+      transition-delay: 0s;
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    .hcf--pokeball .hcf__quick-add .add-to-cart-icon svg {
+      display: none;
+    }
+
+    .hcf--pokeball .hcf__quick-add .add-to-cart-icon {
+      position: relative;
+    }
+
+    .hcf--pokeball .hcf__quick-add .add-to-cart-icon::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='%23ffffff' stroke='%23111111' stroke-width='1.3'/%3E%3Cpath d='M3 12h5.2M15.8 12H21' stroke='%23111111' stroke-width='1.3'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='%23ffffff' stroke='%23111111' stroke-width='1.3'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+  }
+
+  .hcf--pokeball .hcf__quick-add .checkmark-burst {
+    display: none;
+  }
+
+  .hcf--pokeball .hcf__quick-add .add-to-cart__added-icon {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    display: none;
+  }
+
+  .hcf--pokeball .hcf__quick-add .quick-add__button[data-added='true'] .add-to-cart__added-icon {
+    display: inline-flex;
+  }
+
+  .hcf--pokeball .hcf__quick-add .add-to-cart__added-icon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 12a9 9 0 0 1 18 0Z' fill='%23ee1515'/%3E%3Cpath d='M3 12a9 9 0 0 0 18 0Z' fill='%23ffffff'/%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%23111111' stroke-width='1.1'/%3E%3Cpath d='M3 12h5.2M15.8 12H21' stroke='%23111111' stroke-width='1.3'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='%23ffffff' stroke='%23111111' stroke-width='1.3'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: hcf-catch-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .hcf--pokeball .hcf__quick-add .quick-add__button[data-added='true']::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 999px;
+    border: 2px solid #ff2fb1;
+    animation: hcf-catch-ring 0.6s ease-out;
+    pointer-events: none;
+  }
+
+  @keyframes hcf-catch-pop {
+    0% {
+      transform: scale(0.3);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes hcf-catch-ring {
+    0% {
+      transform: scale(0.6);
+      opacity: 0.9;
+    }
+    100% {
+      transform: scale(1.8);
+      opacity: 0;
+    }
+  }
+
+  .hcf__card-image-wrapper {
+    width: 100%;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  .hcf__card-image-wrapper--square {
+    aspect-ratio: 1 / 1;
+  }
+
+  .hcf__card-image-wrapper--portrait {
+    aspect-ratio: 3 / 4;
+  }
+
+  .hcf__card-image-wrapper--landscape {
+    aspect-ratio: 4 / 3;
+  }
+
+  .hcf__card-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: var(--hcf-image-fit);
+    transform: scale(1);
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0, 1);
+  }
+
+  .hcf__card-image-wrapper--adapt .hcf__card-image {
+    height: auto;
+    object-fit: contain;
+  }
+
+  .hcf__card:hover .hcf__card-image {
+    transform: scale(1.08);
+  }
+
+  .hcf__card-content {
+    padding: 14px 16px 18px;
+    text-align: center;
+  }
+
+  .hcf__card-title {
+    margin: 0 0 6px;
+    color: var(--hcf-heading-color);
+    font-size: var(--hcf-card-title-size-mobile);
+    font-weight: 600;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  @media screen and (min-width: 750px) {
+    .hcf__card-title {
+      font-size: var(--hcf-card-title-size);
+    }
+  }
+
+  .hcf--full-title .hcf__card-title {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+  .hcf__card-price {
+    margin: 0;
+    color: #ff2fb1;
+    font-size: var(--hcf-card-price-size-mobile);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .hcf__card-price {
+      font-size: var(--hcf-card-price-size);
+    }
+  }
+
+  .hcf__card-price-compare {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+    font-size: 0.8em;
+    text-decoration: line-through;
+  }
+
+  .hcf__bottom-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    padding: 32px 20px 8px;
+  }
+
+  .hcf-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 14px 32px;
+    white-space: nowrap;
+    transition: box-shadow 0.25s ease, transform 0.25s ease, background-color 0.25s ease, color 0.25s ease;
+  }
+
+  .hcf-button--solid {
+    border: none;
+  }
+
+  .hcf-button--outline {
+    background: transparent !important;
+    border-width: 2px;
+    border-style: solid;
+  }
+
+  .hcf-button--glow:hover,
+  .hcf-button--solid:hover {
+    transform: translateY(-2px);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Hero Collection Framed",
+  "tag": "section",
+  "class": "hcf-wrapper section-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Background media"
+    },
+    {
+      "type": "select",
+      "id": "media_type",
+      "label": "Media type",
+      "options": [
+        { "value": "video", "label": "Video" },
+        { "value": "image", "label": "Image" }
+      ],
+      "default": "video"
+    },
+    {
+      "type": "video",
+      "id": "background_video",
+      "label": "Background video",
+      "visible_if": "{{ section.settings.media_type == 'video' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image",
+      "visible_if": "{{ section.settings.media_type == 'image' }}"
+    },
+    {
+      "type": "header",
+      "content": "Fade & background"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Section background color",
+      "default": "#0b0b0f"
+    },
+    {
+      "type": "range",
+      "id": "fade_size",
+      "label": "Fade size",
+      "info": "The video fills the whole section and fades to the background color at the very top and bottom edges. Larger values fade in sooner from each edge.",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 20
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading_text",
+      "label": "Heading",
+      "default": "NEW ARRIVALS"
+    },
+    {
+      "type": "text",
+      "id": "subheading_text",
+      "label": "Subheading"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size (desktop)",
+      "min": 24,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 44
+    },
+    {
+      "type": "range",
+      "id": "heading_size_mobile",
+      "label": "Heading size (mobile)",
+      "min": 20,
+      "max": 70,
+      "step": 2,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading & text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "checkbox",
+      "id": "heading_glow",
+      "label": "Enable heading glow",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "heading_glow_color",
+      "label": "Glow color",
+      "default": "#ffffff",
+      "visible_if": "{{ section.settings.heading_glow }}"
+    },
+    {
+      "type": "header",
+      "content": "Grid"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "label": "Number of products",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 6
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Product image ratio",
+      "options": [
+        { "value": "square", "label": "Square" },
+        { "value": "portrait", "label": "Portrait" },
+        { "value": "landscape", "label": "Landscape" },
+        { "value": "adapt", "label": "Original" }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "checkbox",
+      "id": "image_fit_contain",
+      "label": "Fit images without cropping",
+      "info": "Keeps every card the same size but shows the whole image (no cropping), leaving transparent space around images that don't match the chosen ratio. Useful when pulling products with very different photo shapes.",
+      "default": true,
+      "visible_if": "{{ section.settings.image_ratio != 'adapt' }}"
+    },
+    {
+      "type": "range",
+      "id": "card_width",
+      "label": "Card width (desktop)",
+      "min": 180,
+      "max": 480,
+      "step": 10,
+      "unit": "px",
+      "default": 220
+    },
+    {
+      "type": "range",
+      "id": "card_width_mobile",
+      "label": "Card width (mobile)",
+      "min": 140,
+      "max": 360,
+      "step": 10,
+      "unit": "px",
+      "default": 180
+    },
+    {
+      "type": "range",
+      "id": "card_gap",
+      "label": "Card gap",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_card_background",
+      "label": "Show card background",
+      "info": "Fades from this color at the bottom of the card up to fully transparent behind the image. Turn off for fully transparent cards.",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "card_background_color",
+      "label": "Card background color",
+      "alpha": true,
+      "default": "#ffffff0a",
+      "visible_if": "{{ section.settings.enable_card_background }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_card_blur",
+      "label": "Blur background behind card",
+      "info": "Frosted-glass blur of whatever's behind the card, fading out toward the image.",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "card_blur_amount",
+      "label": "Blur amount",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 8,
+      "visible_if": "{{ section.settings.enable_card_blur }}"
+    },
+    {
+      "type": "range",
+      "id": "card_blur_fade_size",
+      "label": "Blur fade size",
+      "info": "How far up from the bottom of the card the blur extends before fading out.",
+      "min": 10,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 45,
+      "visible_if": "{{ section.settings.enable_card_blur }}"
+    },
+    {
+      "type": "range",
+      "id": "card_title_size",
+      "label": "Product title size (desktop)",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "card_title_size_mobile",
+      "label": "Product title size (mobile)",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "card_price_size",
+      "label": "Price size (desktop)",
+      "min": 10,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "card_price_size_mobile",
+      "label": "Price size (mobile)",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "checkbox",
+      "id": "show_full_product_name",
+      "label": "Show full product name",
+      "info": "When off, names are capped at 2 lines so every card lines up evenly.",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_carousel_arrows",
+      "label": "Show carousel arrows",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows_mobile",
+      "label": "Show arrows on tap (mobile)",
+      "info": "Mobile has no real hover, so arrows appear briefly while you're touching the carousel instead.",
+      "default": true,
+      "visible_if": "{{ section.settings.show_carousel_arrows }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sale_badge",
+      "label": "Show badge on sale items",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_quick_add",
+      "label": "Show quick add-to-cart button",
+      "info": "Appears in the top-right corner of each card. Shows always on mobile, fades in on hover on desktop.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_pokeball_icon",
+      "label": "Use Pokéball icon for quick add",
+      "info": "Replaces the default cart icon with a Pokéball, and shows a pink 'catch' flash instead of a checkmark when added.",
+      "default": true,
+      "visible_if": "{{ section.settings.enable_quick_add }}"
+    },
+    {
+      "type": "text",
+      "id": "sale_badge_text",
+      "label": "Sale badge text",
+      "default": "SALE",
+      "visible_if": "{{ section.settings.show_sale_badge }}"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "blocks": [
+    {
+      "type": "button",
+      "name": "Button",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "VIEW ALL"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_in_new_tab",
+          "label": "Open in new tab",
+          "default": false
+        },
+        {
+          "type": "select",
+          "id": "position",
+          "label": "Position",
+          "options": [
+            { "value": "top", "label": "Beside heading (top)" },
+            { "value": "bottom", "label": "Below grid" }
+          ],
+          "default": "top"
+        },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Style",
+          "options": [
+            { "value": "solid", "label": "Solid" },
+            { "value": "outline", "label": "Outline" },
+            { "value": "glow", "label": "Glow" }
+          ],
+          "default": "solid"
+        },
+        {
+          "type": "color",
+          "id": "bg_color",
+          "label": "Background / outline color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "text_color",
+          "label": "Text color",
+          "default": "#ff2fb1"
+        },
+        {
+          "type": "color",
+          "id": "glow_color",
+          "label": "Glow color",
+          "default": "#ff00c8",
+          "visible_if": "{{ block.settings.style == 'glow' }}"
+        },
+        {
+          "type": "range",
+          "id": "glow_size",
+          "label": "Glow intensity",
+          "min": 5,
+          "max": 50,
+          "step": 5,
+          "unit": "px",
+          "default": 20,
+          "visible_if": "{{ block.settings.style == 'glow' }}"
+        },
+        {
+          "type": "range",
+          "id": "corner_radius",
+          "label": "Corner radius",
+          "min": 0,
+          "max": 50,
+          "step": 1,
+          "unit": "px",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Collection Framed",
+      "category": "Banners",
+      "settings": {
+        "heading_text": "NEW ARRIVALS",
+        "max_products": 6,
+        "card_width": 220,
+        "card_width_mobile": 180
+      },
+      "blocks": {
+        "view_all": {
+          "type": "button",
+          "settings": { "label": "VIEW ALL", "position": "top", "style": "solid" }
+        }
+      },
+      "block_order": ["view_all"]
+    }
+  ]
+}
+{% endschema %}

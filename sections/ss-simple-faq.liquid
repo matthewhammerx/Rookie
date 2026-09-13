@@ -1,0 +1,271 @@
+<div class="rb-faq-shopify-section">
+  <h1 class="rb-faq-heading">{{ section.settings.heading }}</h1>
+
+  <div class="rb-faq-container">
+    {% for block in section.blocks %}
+      <div class="rb-faq-container-item">
+        <input type="checkbox" id="tab{{ forloop.index }}" class="tab-toggle">
+        <label for="tab{{ forloop.index }}" class="rb-faq-question">
+          {{ block.settings.question }}
+        </label>
+        <div class="rb-faq-answer">
+          {{ block.settings.answer }}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "SS - FAQ #1",
+  "presets": [
+    {
+      "category": "Custom sections",
+      "name": "SS - FAQ #1",
+      "blocks": [
+        {
+          "type": "text",
+          "settings": {
+            "question": "Do you offer free shipping?",
+            "answer": "<p>Yes, we provide free standard shipping on all orders over $100. For orders under $100, a small shipping fee applies, which will be shown at checkout.</p>"
+          }
+        },
+        {
+          "type": "text",
+          "settings": {
+            "question": "What is your refund policy?",
+            "answer": "<p>If you're not completely satisfied with your purchase, you can return it within 14 days for a full refund. Please ensure the item is unused and in its original packaging.</p>"
+          }
+        },
+        {
+          "type": "text",
+          "settings": {
+            "question": "How can I create headshots with AI?",
+            "answer": "<p>Need professional headshots quickly? <a href=\"https://headshots.so\">headshots.so</a>, <a href=\"https://headshots.dk\">headshots.dk</a>, <a href=\"https://headshots.se\">headshots.se</a>, and <a href=\"https://headshots.no\">headshots.no</a> make it easy to produce high-quality images in just a few minutes. Whether you’re updating your LinkedIn profile or website, these platforms help you get a polished look without any hassle.</p>"
+          }
+        }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "label": "Heading",
+      "id": "heading",
+      "default": "Frequently Asked Questions"
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size",
+      "label": "Heading font size",
+      "default": 3.2,
+      "min": 1.5,
+      "max": 6,
+      "step": 0.1
+    },
+    {
+      "type": "range",
+      "id": "question_font_size",
+      "label": "Question font size",
+      "default": 1.5,
+      "min": 0.8,
+      "max": 3.0,
+      "step": 0.1
+    },
+    {
+      "type": "range",
+      "id": "answer_font_size",
+      "label": "Answer font size",
+      "default": 1.1,
+      "min": 0.8,
+      "max": 2.5,
+      "step": 0.1
+    },
+    {
+      "type": "range",
+      "id": "heading_bottom_spacing",
+      "label": "Space under heading",
+      "default": 20,
+      "min": 0,
+      "max": 60,
+      "step": 2
+    },
+    {
+      "type": "color",
+      "label": "Icon color",
+      "id": "icon_color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "label": "Question hover color",
+      "id": "hover_color",
+      "default": "#EFEFEF"
+    },
+    {
+      "type": "color",
+      "label": "Question color",
+      "id": "question_color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "label": "Question background color",
+      "id": "background_color",
+      "default": "#D5CAA6"
+    },
+    {
+      "type": "color",
+      "label": "Answer color",
+      "id": "answer_color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "label": "Answer background color",
+      "id": "answer_bg_color",
+      "default": "#ffffff"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "text",
+      "name": "Questions/Answer",
+      "settings": [
+        {
+          "type": "text",
+          "label": "Question",
+          "id": "question",
+          "default": "Question text"
+        },
+        {
+          "type": "richtext",
+          "label": "Answer",
+          "id": "answer",
+          "default": "<p>Answer richtext</p>"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+{% style %}
+  .rb-faq-answer a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+
+  .rb-faq-shopify-section {
+  background-color: #000;
+  padding: 60px 30px;
+  margin-bottom: 0;
+}
+
+  .rb-faq-heading {
+    text-align: center;
+    padding: 20px 20px 0 20px;
+    margin: 0;
+    color: #fff !important;
+    font-size: {{ section.settings.heading_font_size }}rem;
+    margin-bottom: {{ section.settings.heading_bottom_spacing }}px;
+  }
+
+  .rb-faq-container {
+    margin: auto;
+    max-width: 1000px;
+    margin-top: 20px;
+  }
+
+  .rb-faq-container-item {
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .rb-faq-question::after {
+    color: {{ section.settings.icon_color }};
+    content: '\276F';
+    transition: all 0.2s ease;
+    margin-left: 20px;
+    flex-shrink: 0;
+  }
+
+  .rb-faq-question {
+    border-radius: 8px;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    background-color: {{ section.settings.background_color }};
+    padding: 18px 24px;
+    font-weight: bold;
+    color: {{ section.settings.question_color }};
+    font-size: {{ section.settings.question_font_size }}rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .rb-faq-question:hover {
+    color: {{ section.settings.hover_color }};
+  }
+
+  .rb-faq-answer {
+    position: relative;
+    width: 100%;
+    height: 0;
+    opacity: 0;
+    overflow: hidden;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: all 0.25s ease;
+    background-color: {{ section.settings.answer_bg_color }};
+    color: {{ section.settings.answer_color }};
+    font-size: {{ section.settings.answer_font_size }}rem;
+    line-height: 1.6;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .rb-faq-answer p {
+    margin: 0;
+  }
+
+  .tab-toggle:checked ~ .rb-faq-question {
+    border-radius: 8px 8px 0 0;
+  }
+
+  .tab-toggle:checked ~ .rb-faq-answer {
+    transform: translateY(0);
+    padding: 18px 24px;
+    height: auto;
+    opacity: 1;
+    overflow: visible;
+    visibility: visible;
+    border-top: 0;
+  }
+
+  .tab-toggle:checked ~ .rb-faq-question::after {
+    transform: rotate(90deg);
+  }
+
+  .tab-toggle {
+    display: none !important;
+  }
+
+  @media screen and (max-width: 749px) {
+    .rb-faq-shopify-section {
+      padding: 40px 16px;
+    }
+
+    .rb-faq-heading {
+      padding: 10px 10px 0 10px;
+    }
+
+    .rb-faq-question {
+      padding: 16px 18px;
+    }
+
+    .tab-toggle:checked ~ .rb-faq-answer {
+      padding: 16px 18px;
+    }
+  }
+{% endstyle %}
