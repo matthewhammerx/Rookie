@@ -1,0 +1,207 @@
+{% liquid
+  assign message_seconds = section.settings.message_seconds
+  assign block_count = section.blocks.size
+  assign total_cycle = block_count | times: message_seconds
+  assign item_window = 100.0 | divided_by: block_count
+  assign buffer = item_window | times: 0.08
+  assign hold_end = item_window | minus: buffer
+%}
+
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div
+  class="rotating-announcement-{{ section.id }} rotating-announcement section section--full-width color-{{ section.settings.color_scheme }}"
+>
+  <div class="rotating-announcement__stage">
+    {% for block in section.blocks %}
+      {% assign delay = forloop.index0 | times: message_seconds | times: -1 %}
+      <a
+        href="{{ block.settings.link | default: '#' }}"
+        class="rotating-announcement__item{% if block.settings.link == blank %} rotating-announcement__item--static{% endif %}"
+        style="animation-delay: {{ delay }}s;"
+        {{ block.shopify_attributes }}
+      >
+        {% if block.settings.text != blank %}
+          <span>{{ block.settings.text }}</span>
+        {% endif %}
+        {% if block.settings.badge_text != blank %}
+          <span class="rotating-announcement__badge">{{ block.settings.badge_text }}</span>
+        {% endif %}
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+  .rotating-announcement-{{ section.id }} {
+    position: relative;
+    z-index: 1;
+    padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
+  }
+
+  .rotating-announcement-{{ section.id }} .rotating-announcement__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 2.4em;
+    text-align: center;
+  }
+
+  .rotating-announcement-{{ section.id }} .rotating-announcement__item {
+    grid-area: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: inherit;
+    text-decoration: none;
+    font-family: var(--font-body--family, inherit);
+    font-weight: 600;
+    font-size: 1rem;
+    opacity: 0;
+    animation: rotatingAnnouncementCycle-{{ section.id }} {{ total_cycle }}s infinite;
+  }
+
+  .rotating-announcement-{{ section.id }} .rotating-announcement__item--static {
+    pointer-events: none;
+    cursor: default;
+  }
+
+  .rotating-announcement-{{ section.id }} .rotating-announcement__badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 6px;
+    background: {{ section.settings.badge_color }};
+    color: {{ section.settings.badge_text_color }};
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  @keyframes rotatingAnnouncementCycle-{{ section.id }} {
+    0% {
+      opacity: 0;
+    }
+    {{ buffer }}%,
+    {{ hold_end }}% {
+      opacity: 1;
+    }
+    {{ item_window }}%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rotating-announcement-{{ section.id }} .rotating-announcement__item {
+      animation: none;
+      opacity: 0;
+    }
+
+    .rotating-announcement-{{ section.id }} .rotating-announcement__item:first-child {
+      opacity: 1;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Rotating Announcement",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-5"
+    },
+    {
+      "type": "color",
+      "id": "badge_color",
+      "label": "Badge background",
+      "default": "#eb00ca"
+    },
+    {
+      "type": "color",
+      "id": "badge_text_color",
+      "label": "Badge text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "message_seconds",
+      "label": "Seconds per message",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "default": 20
+    }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "Message",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text"
+        },
+        {
+          "type": "text",
+          "id": "badge_text",
+          "label": "Badge text",
+          "info": "Optional. Shown as a colored pill next to the text."
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link",
+          "info": "Optional."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Rotating Announcement",
+      "blocks": [
+        {
+          "type": "message",
+          "settings": {
+            "text": "Fast & reliable shipping",
+            "badge_text": "we are legends"
+          }
+        },
+        {
+          "type": "message",
+          "settings": {
+            "text": "Free shipping on US & CAD orders $350+",
+            "badge_text": "we are legends"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

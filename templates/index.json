@@ -1749,124 +1749,34 @@
       }
     },
     "marquee_zF7MXm": {
-      "type": "marquee",
+      "type": "rotating-announcement",
       "blocks": {
-        "text_Tw9rBa": {
-          "type": "text",
-          "name": "t:names.text",
+        "msg_shipping": {
+          "type": "message",
           "settings": {
-            "text": "<p><em>FAST & RELIABLE SHIPPING</em></p>",
-            "width": "fit-content",
-            "max_width": "normal",
-            "alignment": "left",
-            "type_preset": "h2",
-            "font": "var(--font-body--family)",
-            "font_size": "1rem",
-            "line_height": "normal",
-            "letter_spacing": "normal",
-            "case": "none",
-            "wrap": "pretty",
-            "color": "var(--color-foreground)",
-            "background": false,
-            "background_color": "#00000026",
-            "corner_radius": 0,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {}
+            "text": "Fast & reliable shipping",
+            "badge_text": "we are legends"
+          }
         },
-        "text_9Dr9eN": {
-          "type": "text",
+        "msg_freeship": {
+          "type": "message",
           "settings": {
-            "text": "<p>we are legends</p>",
-            "width": "fit-content",
-            "max_width": "normal",
-            "alignment": "left",
-            "type_preset": "h1",
-            "font": "var(--font-body--family)",
-            "font_size": "1rem",
-            "line_height": "tight",
-            "letter_spacing": "tight",
-            "case": "none",
-            "wrap": "nowrap",
-            "color": "var(--color-foreground)",
-            "background": true,
-            "background_color": "#8c019f",
-            "corner_radius": 1,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 4,
-            "padding-inline-end": 4
-          },
-          "blocks": {}
-        },
-        "text_WNt6L6": {
-          "type": "text",
-          "name": "t:names.text",
-          "settings": {
-            "text": "<p><em>FREE SHIPPING ON US& CAD ORDERS $350+</em></p>",
-            "width": "fit-content",
-            "max_width": "normal",
-            "alignment": "left",
-            "type_preset": "h2",
-            "font": "var(--font-body--family)",
-            "font_size": "1rem",
-            "line_height": "normal",
-            "letter_spacing": "normal",
-            "case": "none",
-            "wrap": "pretty",
-            "color": "var(--color-foreground)",
-            "background": false,
-            "background_color": "#00000026",
-            "corner_radius": 0,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {}
-        },
-        "text_hRKMDi": {
-          "type": "text",
-          "settings": {
-            "text": "<p>we are legends</p>",
-            "width": "fit-content",
-            "max_width": "normal",
-            "alignment": "left",
-            "type_preset": "h1",
-            "font": "var(--font-body--family)",
-            "font_size": "1rem",
-            "line_height": "tight",
-            "letter_spacing": "tight",
-            "case": "none",
-            "wrap": "nowrap",
-            "color": "var(--color-foreground)",
-            "background": true,
-            "background_color": "#8c019f",
-            "corner_radius": 1,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 4,
-            "padding-inline-end": 4
-          },
-          "blocks": {}
+            "text": "Free shipping on US & CAD orders $350+",
+            "badge_text": "we are legends"
+          }
         }
       },
       "block_order": [
-        "text_Tw9rBa",
-        "text_9Dr9eN",
-        "text_WNt6L6",
-        "text_hRKMDi"
+        "msg_shipping",
+        "msg_freeship"
       ],
-      "name": "t:names.marquee_section",
       "settings": {
-        "movement_direction": "normal",
         "color_scheme": "scheme-5",
-        "padding-block-start": 24,
-        "padding-block-end": 24,
-        "gap_between_elements": 24
+        "badge_color": "#eb00ca",
+        "badge_text_color": "#ffffff",
+        "message_seconds": 4,
+        "padding_top": 20,
+        "padding_bottom": 20
       }
     },
     "hero_collection_showcase_76JyFb": {
@@ -2124,124 +2034,34 @@
       }
     },
     "marquee_Femaqd": {
-      "type": "marquee",
+      "type": "rotating-announcement",
       "blocks": {
-        "text_ETBa3T": {
-          "type": "text",
-          "name": "t:names.text",
+        "msg_shipping": {
+          "type": "message",
           "settings": {
-            "text": "<p><em>FAST & RELIABLE SHIPPING</em></p>",
-            "width": "fit-content",
-            "max_width": "normal",
-            "alignment": "left",
-            "type_preset": "h2",
-            "font": "var(--font-body--family)",
-            "font_size": "1rem",
-            "line_height": "normal",
-            "letter_spacing": "normal",
-            "case": "none",
-            "wrap": "pretty",
-            "color": "var(--color-foreground)",
-            "background": false,
-            "background_color": "#00000026",
-            "corner_radius": 0,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {}
+            "text": "Fast & reliable shipping",
+            "badge_text": "we are legends"
+          }
         },
-        "text_t3Hfdd": {
-          "type": "text",
+        "msg_freeship": {
+          "type": "message",
           "settings": {
-            "text": "<p>we are legends</p>",
-            "width": "fit-content",
-            "max_width": "normal",
-            "alignment": "left",
-            "type_preset": "h1",
-            "font": "var(--font-body--family)",
-            "font_size": "1rem",
-            "line_height": "tight",
-            "letter_spacing": "tight",
-            "case": "none",
-            "wrap": "nowrap",
-            "color": "var(--color-foreground)",
-            "background": true,
-            "background_color": "#8c019f",
-            "corner_radius": 1,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 4,
-            "padding-inline-end": 4
-          },
-          "blocks": {}
-        },
-        "text_VCdUHW": {
-          "type": "text",
-          "name": "t:names.text",
-          "settings": {
-            "text": "<p><em>FREE SHIPPING ON US& CAD ORDERS $350+</em></p>",
-            "width": "fit-content",
-            "max_width": "normal",
-            "alignment": "left",
-            "type_preset": "h2",
-            "font": "var(--font-body--family)",
-            "font_size": "1rem",
-            "line_height": "normal",
-            "letter_spacing": "normal",
-            "case": "none",
-            "wrap": "pretty",
-            "color": "var(--color-foreground)",
-            "background": false,
-            "background_color": "#00000026",
-            "corner_radius": 0,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {}
-        },
-        "text_thELXP": {
-          "type": "text",
-          "settings": {
-            "text": "<p>we are legends</p>",
-            "width": "fit-content",
-            "max_width": "normal",
-            "alignment": "left",
-            "type_preset": "h1",
-            "font": "var(--font-body--family)",
-            "font_size": "1rem",
-            "line_height": "tight",
-            "letter_spacing": "tight",
-            "case": "none",
-            "wrap": "nowrap",
-            "color": "var(--color-foreground)",
-            "background": true,
-            "background_color": "#8c019f",
-            "corner_radius": 1,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 4,
-            "padding-inline-end": 4
-          },
-          "blocks": {}
+            "text": "Free shipping on US & CAD orders $350+",
+            "badge_text": "we are legends"
+          }
         }
       },
       "block_order": [
-        "text_ETBa3T",
-        "text_t3Hfdd",
-        "text_VCdUHW",
-        "text_thELXP"
+        "msg_shipping",
+        "msg_freeship"
       ],
-      "name": "t:names.marquee_section",
       "settings": {
-        "movement_direction": "normal",
         "color_scheme": "scheme-5",
-        "padding-block-start": 63,
-        "padding-block-end": 39,
-        "gap_between_elements": 24
+        "badge_color": "#eb00ca",
+        "badge_text_color": "#ffffff",
+        "message_seconds": 4,
+        "padding_top": 20,
+        "padding_bottom": 20
       }
     },
     "ss_video_slider_8kyDmH": {
