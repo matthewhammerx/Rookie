@@ -14,6 +14,10 @@
     assign fetch_priority = 'high'
   endif
 
+  assign heading_glow_alpha = section.settings.heading_glow_strength | times: 1.0 | divided_by: 100
+  assign heading_glow_rgba = section.settings.heading_glow_color | color_modify: 'alpha', heading_glow_alpha
+  assign heading_glow_radius_2 = section.settings.heading_glow_size | times: 2.25 | round
+
   assign top_button_count = 0
   assign bottom_button_count = 0
   for block in section.blocks
@@ -44,7 +48,9 @@
     --hcs-accent-color: {{ section.settings.accent_color }};
     --hcs-heading-size: {{ section.settings.heading_size }}px;
     --hcs-heading-size-mobile: {{ section.settings.heading_size_mobile }}px;
-    --hcs-heading-glow-color: {{ section.settings.heading_glow_color }};
+    --hcs-heading-glow-color: {{ heading_glow_rgba }};
+    --hcs-heading-glow-radius-1: {{ section.settings.heading_glow_size }}px;
+    --hcs-heading-glow-radius-2: {{ heading_glow_radius_2 }}px;
     --hcs-card-title-size: {{ section.settings.card_title_size }}px;
     --hcs-card-title-size-mobile: {{ section.settings.card_title_size_mobile }}px;
     --hcs-card-price-size: {{ section.settings.card_price_size }}px;
@@ -451,8 +457,8 @@
 
   .hcs__heading--glow {
     text-shadow:
-      0 0 20px var(--hcs-heading-glow-color),
-      0 0 45px var(--hcs-heading-glow-color);
+      0 0 var(--hcs-heading-glow-radius-1) var(--hcs-heading-glow-color),
+      0 0 var(--hcs-heading-glow-radius-2) var(--hcs-heading-glow-color);
   }
 
   .hcs__subheading {
@@ -979,6 +985,28 @@
       "id": "heading_glow_color",
       "label": "Glow color",
       "default": "#ffffff",
+      "visible_if": "{{ section.settings.heading_glow }}"
+    },
+    {
+      "type": "range",
+      "id": "heading_glow_size",
+      "label": "Glow size",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ section.settings.heading_glow }}"
+    },
+    {
+      "type": "range",
+      "id": "heading_glow_strength",
+      "label": "Glow strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 55,
       "visible_if": "{{ section.settings.heading_glow }}"
     },
     {
