@@ -2633,44 +2633,26 @@
     "social_proof_stats_1": {
       "type": "social-proof-stats",
       "blocks": {
-        "stat_google": {
+        "stat_loved": {
           "type": "stat",
           "settings": {
+            "icon": "heart",
+            "value": "26.2K",
+            "label": "Loved by collectors on social media"
+          }
+        },
+        "stat_rated": {
+          "type": "stat",
+          "settings": {
+            "icon": "star",
             "value": "4.8\u2605",
-            "label": "342 Google reviews",
-            "icon": "star"
-          }
-        },
-        "stat_recommend": {
-          "type": "stat",
-          "settings": {
-            "value": "94%",
-            "label": "Recommended (57 reviews)",
-            "icon": "thumb"
-          }
-        },
-        "stat_instagram": {
-          "type": "stat",
-          "settings": {
-            "value": "17.6K",
-            "label": "Instagram followers",
-            "icon": "camera"
-          }
-        },
-        "stat_community": {
-          "type": "stat",
-          "settings": {
-            "value": "8.6K",
-            "label": "Community followers",
-            "icon": "people"
+            "label": "Rated by 399+ reviews"
           }
         }
       },
       "block_order": [
-        "stat_google",
-        "stat_recommend",
-        "stat_instagram",
-        "stat_community"
+        "stat_loved",
+        "stat_rated"
       ],
       "settings": {
         "color_scheme": "scheme-5",
