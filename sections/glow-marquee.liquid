@@ -3,8 +3,6 @@
   class="glow-marquee-{{ section.id }} glow-marquee section section--full-width color-{{ section.settings.color_scheme }}"
 >
   <div class="glow-marquee__ambient" aria-hidden="true"></div>
-  <div class="glow-marquee__fade glow-marquee__fade--top" aria-hidden="true"></div>
-  <div class="glow-marquee__fade glow-marquee__fade--bottom" aria-hidden="true"></div>
 
   <div class="glow-marquee__viewport">
     <div class="glow-marquee__track" style="animation-duration: {{ section.settings.speed }}s;">
@@ -27,25 +25,6 @@
 </div>
 
 <style>
-  .glow-marquee-{{ section.id }} .glow-marquee__fade {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: {{ section.settings.fade_size }}px;
-    pointer-events: none;
-    z-index: 2;
-  }
-
-  .glow-marquee-{{ section.id }} .glow-marquee__fade--top {
-    top: 0;
-    background: linear-gradient(to bottom, #000000 0%, transparent 100%);
-  }
-
-  .glow-marquee-{{ section.id }} .glow-marquee__fade--bottom {
-    bottom: 0;
-    background: linear-gradient(to top, #000000 0%, transparent 100%);
-  }
-
   .glow-marquee-{{ section.id }} {
     position: relative;
     z-index: 1;
@@ -158,16 +137,6 @@
       "step": 2,
       "unit": "s",
       "default": 22
-    },
-    {
-      "type": "range",
-      "id": "fade_size",
-      "label": "Top/bottom fade size",
-      "min": 0,
-      "max": 150,
-      "step": 10,
-      "unit": "px",
-      "default": 60
     },
     {
       "type": "range",

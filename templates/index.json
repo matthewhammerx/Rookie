@@ -2642,8 +2642,7 @@
         "value_b": "XX+",
         "label_b": "Shipped to countries",
         "padding_top": 40,
-        "padding_bottom": 40,
-        "fade_size": 80
+        "padding_bottom": 40
       }
     },
     "glow_marquee_1": {
@@ -2673,8 +2672,7 @@
         "accent_color": "#eb00ca",
         "speed": 22,
         "padding_top": 20,
-        "padding_bottom": 20,
-        "fade_size": 60
+        "padding_bottom": 20
       }
     }
   },

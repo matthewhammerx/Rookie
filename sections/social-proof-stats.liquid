@@ -3,8 +3,6 @@
   class="social-proof-stats-{{ section.id }} social-proof-stats section section--full-width color-{{ section.settings.color_scheme }}"
 >
   <div class="social-proof-stats__ambient" aria-hidden="true"></div>
-  <div class="social-proof-stats__fade social-proof-stats__fade--top" aria-hidden="true"></div>
-  <div class="social-proof-stats__fade social-proof-stats__fade--bottom" aria-hidden="true"></div>
 
   {% capture card_tag %}{% if section.settings.link != blank %}a{% else %}div{% endif %}{% endcapture %}
   <{{ card_tag }}
@@ -56,25 +54,6 @@
 </div>
 
 <style>
-  .social-proof-stats-{{ section.id }} .social-proof-stats__fade {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: {{ section.settings.fade_size }}px;
-    pointer-events: none;
-    z-index: 2;
-  }
-
-  .social-proof-stats-{{ section.id }} .social-proof-stats__fade--top {
-    top: 0;
-    background: linear-gradient(to bottom, #000000 0%, transparent 100%);
-  }
-
-  .social-proof-stats-{{ section.id }} .social-proof-stats__fade--bottom {
-    bottom: 0;
-    background: linear-gradient(to top, #000000 0%, transparent 100%);
-  }
-
   .social-proof-stats-{{ section.id }} {
     position: relative;
     z-index: 1;
@@ -279,16 +258,6 @@
       "id": "accent_color",
       "label": "Accent color (glow, icons, numbers)",
       "default": "#eb00ca"
-    },
-    {
-      "type": "range",
-      "id": "fade_size",
-      "label": "Top/bottom fade size",
-      "min": 0,
-      "max": 150,
-      "step": 10,
-      "unit": "px",
-      "default": 80
     },
     {
       "type": "url",
