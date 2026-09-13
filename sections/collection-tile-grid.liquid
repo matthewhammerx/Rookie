@@ -41,7 +41,8 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    padding: 20px 16px;
+    padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
+    padding-inline: 16px;
     width: 100%;
     margin: 0 auto;
   }
@@ -50,7 +51,7 @@
     .collection-tile-grid-{{ section.id }} .collection-tile-grid__inner {
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      padding: 30px 28px;
+      padding-inline: 28px;
     }
   }
 
@@ -254,6 +255,26 @@
       "id": "color_scheme",
       "label": "Color scheme",
       "default": "scheme-5"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 30
     },
     {
       "type": "range",
