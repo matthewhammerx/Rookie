@@ -1,4 +1,10 @@
-<div class="collection-tile-grid-{{ section.id }} collection-tile-grid">
+{% liquid
+  assign glow_alpha_inner = section.settings.glow_strength | times: 1.0 | divided_by: 100
+  assign glow_alpha_outer = glow_alpha_inner | times: 0.65
+%}
+
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div class="collection-tile-grid-{{ section.id }} collection-tile-grid color-{{ section.settings.color_scheme }}">
   <div class="collection-tile-grid__inner">
     {% for block in section.blocks %}
       <a
@@ -25,7 +31,8 @@
 <style>
   .collection-tile-grid-{{ section.id }} {
     width: 100%;
-    background: #000;
+    position: relative;
+    z-index: 1;
   }
 
   .collection-tile-grid-{{ section.id }} .collection-tile-grid__inner {
@@ -58,10 +65,18 @@
     content: '';
     position: absolute;
     inset: -8px;
-    border-radius: 18px;
-    background: radial-gradient(circle at var(--spot-x) var(--spot-y), rgba(200, 0, 255, 0.6), transparent 55%),
-      radial-gradient(circle at var(--spot-x) var(--spot-y), rgba(255, 0, 180, 0.4), transparent 70%);
-    filter: blur(18px);
+    border-radius: {{ section.settings.corner_radius | plus: 8 }}px;
+    background: radial-gradient(
+        circle at var(--spot-x) var(--spot-y),
+        {{ section.settings.glow_color | color_modify: 'alpha', glow_alpha_inner }},
+        transparent 55%
+      ),
+      radial-gradient(
+        circle at var(--spot-x) var(--spot-y),
+        {{ section.settings.glow_color | color_modify: 'alpha', glow_alpha_outer }},
+        transparent 70%
+      );
+    filter: blur({{ section.settings.glow_size }}px);
     opacity: 0;
     transition: opacity 0.25s ease;
     z-index: -1;
@@ -78,13 +93,14 @@
   .collection-tile-grid-{{ section.id }} .collection-item:hover::before,
   .collection-tile-grid-{{ section.id }} .collection-item.is-active::before {
     opacity: 1;
-    filter: blur(26px);
+    filter: blur({{ section.settings.glow_size | plus: 8 }}px);
   }
 
   .collection-tile-grid-{{ section.id }} .collection-item img {
     width: 100%;
     height: auto;
     display: block;
+    border-radius: {{ section.settings.corner_radius }}px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
@@ -169,6 +185,50 @@
   "name": "Collection Tiles (Glow)",
   "tag": "section",
   "class": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-5"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "Corner radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "color",
+      "id": "glow_color",
+      "label": "Glow color",
+      "default": "#c800ff"
+    },
+    {
+      "type": "range",
+      "id": "glow_strength",
+      "label": "Glow strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "glow_size",
+      "label": "Glow size (blur)",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "default": 22
+    }
+  ],
   "blocks": [
     {
       "type": "tile",
