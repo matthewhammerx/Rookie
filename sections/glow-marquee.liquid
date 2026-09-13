@@ -1,4 +1,4 @@
-<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div class="section-background section-background--fade-{{ section.id }} color-{{ section.settings.color_scheme }}"></div>
 <div
   class="glow-marquee-{{ section.id }} glow-marquee section section--full-width color-{{ section.settings.color_scheme }}"
 >
@@ -25,6 +25,23 @@
 </div>
 
 <style>
+  .section-background--fade-{{ section.id }} {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      black {{ section.settings.fade_size }}px,
+      black calc(100% - {{ section.settings.fade_size }}px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      black {{ section.settings.fade_size }}px,
+      black calc(100% - {{ section.settings.fade_size }}px),
+      transparent 100%
+    );
+  }
+
   .glow-marquee-{{ section.id }} {
     position: relative;
     z-index: 1;
@@ -137,6 +154,16 @@
       "step": 2,
       "unit": "s",
       "default": 22
+    },
+    {
+      "type": "range",
+      "id": "fade_size",
+      "label": "Top/bottom fade size",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "px",
+      "default": 60
     },
     {
       "type": "range",

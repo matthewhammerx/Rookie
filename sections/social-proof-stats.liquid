@@ -1,4 +1,4 @@
-<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div class="section-background section-background--fade-{{ section.id }} color-{{ section.settings.color_scheme }}"></div>
 <div
   class="social-proof-stats-{{ section.id }} social-proof-stats section section--full-width color-{{ section.settings.color_scheme }}"
 >
@@ -54,6 +54,23 @@
 </div>
 
 <style>
+  .section-background--fade-{{ section.id }} {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      black {{ section.settings.fade_size }}px,
+      black calc(100% - {{ section.settings.fade_size }}px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      black {{ section.settings.fade_size }}px,
+      black calc(100% - {{ section.settings.fade_size }}px),
+      transparent 100%
+    );
+  }
+
   .social-proof-stats-{{ section.id }} {
     position: relative;
     z-index: 1;
@@ -258,6 +275,16 @@
       "id": "accent_color",
       "label": "Accent color (glow, icons, numbers)",
       "default": "#eb00ca"
+    },
+    {
+      "type": "range",
+      "id": "fade_size",
+      "label": "Top/bottom fade size",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "px",
+      "default": 80
     },
     {
       "type": "url",
