@@ -2660,6 +2660,36 @@
         "padding_bottom": 20,
         "accent_color": "#eb00ca"
       }
+    },
+    "glow_marquee_1": {
+      "type": "glow-marquee",
+      "blocks": {
+        "item_shipping": {
+          "type": "item",
+          "settings": {
+            "text": "Fast & reliable shipping",
+            "badge_text": "we are legends"
+          }
+        },
+        "item_freeship": {
+          "type": "item",
+          "settings": {
+            "text": "Free shipping on US & CAD orders $350+",
+            "badge_text": "we are legends"
+          }
+        }
+      },
+      "block_order": [
+        "item_shipping",
+        "item_freeship"
+      ],
+      "settings": {
+        "color_scheme": "scheme-5",
+        "accent_color": "#eb00ca",
+        "speed": 22,
+        "padding_top": 20,
+        "padding_bottom": 20
+      }
     }
   },
   "order": [
@@ -2674,6 +2704,7 @@
     "custom_liquid_ibtitt",
     "collection_tile_grid_glow",
     "marquee_zF7MXm",
+    "glow_marquee_1",
     "social_proof_stats_1",
     "hero_collection_framed_g9dBmy",
     "product_list_jxprh6",

@@ -1,0 +1,203 @@
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div
+  class="glow-marquee-{{ section.id }} glow-marquee section section--full-width color-{{ section.settings.color_scheme }}"
+>
+  <div class="glow-marquee__ambient" aria-hidden="true"></div>
+
+  <div class="glow-marquee__viewport">
+    <div class="glow-marquee__track" style="animation-duration: {{ section.settings.speed }}s;">
+      {% for i in (1..2) %}
+        <div class="glow-marquee__set" aria-hidden="{% if i == 2 %}true{% else %}false{% endif %}">
+          {% for block in section.blocks %}
+            <span class="glow-marquee__item">
+              {% if block.settings.text != blank %}
+                <span class="glow-marquee__text">{{ block.settings.text }}</span>
+              {% endif %}
+              {% if block.settings.badge_text != blank %}
+                <span class="glow-marquee__badge">{{ block.settings.badge_text }}</span>
+              {% endif %}
+            </span>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .glow-marquee-{{ section.id }} {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
+  }
+
+  .glow-marquee-{{ section.id }} .glow-marquee__ambient {
+    position: absolute;
+    inset: -60% -10%;
+    background: radial-gradient(45% 80% at 50% 50%, {{ section.settings.accent_color }}22, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-marquee-{{ section.id }} .glow-marquee__viewport {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .glow-marquee-{{ section.id }} .glow-marquee__track {
+    display: flex;
+    width: max-content;
+    animation-name: glowMarqueeScroll-{{ section.id }};
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .glow-marquee-{{ section.id }} .glow-marquee__set {
+    display: flex;
+    align-items: center;
+  }
+
+  .glow-marquee-{{ section.id }} .glow-marquee__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    white-space: nowrap;
+    padding-inline: 28px;
+    font-family: var(--font-heading--family, inherit);
+    font-weight: 700;
+    font-size: clamp(1rem, 0.9rem + 0.6vw, 1.35rem);
+    background: linear-gradient(160deg, #ffffff 20%, {{ section.settings.accent_color }} 130%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .glow-marquee-{{ section.id }} .glow-marquee__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #ffffff;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03));
+    border: 1px solid {{ section.settings.accent_color }}66;
+    box-shadow: 0 0 24px -6px {{ section.settings.accent_color }}80;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+
+  @keyframes glowMarqueeScroll-{{ section.id }} {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glow-marquee-{{ section.id }} .glow-marquee__track {
+      animation: none;
+    }
+
+    .glow-marquee-{{ section.id }} .glow-marquee__set[aria-hidden='true'] {
+      display: none;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Glow Marquee",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-5"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color (badge, glow, text)",
+      "default": "#eb00ca"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Scroll speed (seconds per loop)",
+      "min": 8,
+      "max": 60,
+      "step": 2,
+      "unit": "s",
+      "default": 22
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "default": 20
+    }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text"
+        },
+        {
+          "type": "text",
+          "id": "badge_text",
+          "label": "Badge text",
+          "info": "Optional — shown as a glass pill next to the text."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Glow Marquee",
+      "blocks": [
+        {
+          "type": "item",
+          "settings": {
+            "text": "Fast & reliable shipping",
+            "badge_text": "we are legends"
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "text": "Free shipping on US & CAD orders $350+",
+            "badge_text": "we are legends"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
