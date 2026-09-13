@@ -1904,7 +1904,8 @@
         "enable_pokeball_icon": true,
         "sale_badge_text": "SALE",
         "padding_top": 0,
-        "padding_bottom": 48
+        "padding_bottom": 48,
+        "heading_row_layout": true
       }
     },
     "hero_collection_showcase_crxwVa": {
@@ -1967,7 +1968,8 @@
         "enable_pokeball_icon": true,
         "sale_badge_text": "SALE",
         "padding_top": 0,
-        "padding_bottom": 48
+        "padding_bottom": 48,
+        "heading_row_layout": true
       }
     },
     "hero_collection_showcase_EfTicA": {
@@ -2031,7 +2033,8 @@
         "enable_pokeball_icon": true,
         "sale_badge_text": "SALE",
         "padding_top": 0,
-        "padding_bottom": 48
+        "padding_bottom": 48,
+        "heading_row_layout": true
       }
     },
     "marquee_Femaqd": {
