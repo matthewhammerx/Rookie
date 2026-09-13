@@ -1788,7 +1788,7 @@
             "label": "SEE ALL",
             "link": "shopify://collections/etb",
             "open_in_new_tab": false,
-            "position": "top",
+            "position": "top_inline",
             "style": "glow",
             "bg_color": "#ffffff",
             "text_color": "#ff2fb1",
@@ -1839,8 +1839,7 @@
         "enable_pokeball_icon": true,
         "sale_badge_text": "SALE",
         "padding_top": 0,
-        "padding_bottom": 48,
-        "heading_row_layout": true
+        "padding_bottom": 48
       }
     },
     "hero_collection_showcase_HXKwj8": {
@@ -1852,7 +1851,7 @@
             "label": "SEE ALL",
             "link": "shopify://collections/singles",
             "open_in_new_tab": false,
-            "position": "top",
+            "position": "top_inline",
             "style": "glow",
             "bg_color": "#ffffff",
             "text_color": "#ff2fb1",
@@ -1904,8 +1903,7 @@
         "enable_pokeball_icon": true,
         "sale_badge_text": "SALE",
         "padding_top": 0,
-        "padding_bottom": 48,
-        "heading_row_layout": true
+        "padding_bottom": 48
       }
     },
     "hero_collection_showcase_crxwVa": {
@@ -1917,7 +1915,7 @@
             "label": "SEE ALL",
             "link": "shopify://collections/booster-box",
             "open_in_new_tab": false,
-            "position": "top",
+            "position": "top_inline",
             "style": "glow",
             "bg_color": "#ffffff",
             "text_color": "#ff2fb1",
@@ -1968,8 +1966,7 @@
         "enable_pokeball_icon": true,
         "sale_badge_text": "SALE",
         "padding_top": 0,
-        "padding_bottom": 48,
-        "heading_row_layout": true
+        "padding_bottom": 48
       }
     },
     "hero_collection_showcase_EfTicA": {
@@ -1981,7 +1978,7 @@
             "label": "SEE ALL",
             "link": "shopify://collections/collection-box",
             "open_in_new_tab": false,
-            "position": "top",
+            "position": "top_inline",
             "style": "glow",
             "bg_color": "#ffffff",
             "text_color": "#ff2fb1",
@@ -2033,8 +2030,7 @@
         "enable_pokeball_icon": true,
         "sale_badge_text": "SALE",
         "padding_top": 0,
-        "padding_bottom": 48,
-        "heading_row_layout": true
+        "padding_bottom": 48
       }
     },
     "marquee_Femaqd": {

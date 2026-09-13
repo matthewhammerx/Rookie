@@ -16,9 +16,13 @@
 
   assign top_button_count = 0
   assign bottom_button_count = 0
+  assign heading_row_layout = false
   for block in section.blocks
     if block.type == 'button' and block.settings.position == 'top'
       assign top_button_count = top_button_count | plus: 1
+    elsif block.type == 'button' and block.settings.position == 'top_inline'
+      assign top_button_count = top_button_count | plus: 1
+      assign heading_row_layout = true
     elsif block.type == 'button' and block.settings.position == 'bottom'
       assign bottom_button_count = bottom_button_count | plus: 1
     endif
@@ -93,7 +97,7 @@
 
   <div class="hcs__content">
   <div
-    class="hcs__top-content{% if section.settings.heading_row_layout %} hcs__top-content--row{% endif %}"
+    class="hcs__top-content{% if heading_row_layout %} hcs__top-content--row{% endif %}"
     data-testid="hcs-top-content"
   >
     <div class="hcs__heading-row">
@@ -104,7 +108,7 @@
       {%- endif -%}
 
     {%- for block in section.blocks -%}
-      {%- if block.type == 'button' and block.settings.position == 'top' -%}
+      {%- if block.type == 'button' and block.settings.position == 'top' or block.type == 'button' and block.settings.position == 'top_inline' -%}
         <a
           {% if block.settings.link != blank %}href="{{ block.settings.link }}"{% else %}href="javascript:void(0);"{% endif %}
           {% if block.settings.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}
@@ -979,13 +983,6 @@
       "visible_if": "{{ section.settings.heading_glow }}"
     },
     {
-      "type": "checkbox",
-      "id": "heading_row_layout",
-      "label": "Put the top button next to the heading (same row)",
-      "info": "Only applies to a button set to \"Above grid\". Off by default (heading and button stay stacked).",
-      "default": false
-    },
-    {
       "type": "header",
       "content": "Grid"
     },
@@ -1240,6 +1237,7 @@
           "label": "Position",
           "options": [
             { "value": "top", "label": "Above grid (over media)" },
+            { "value": "top_inline", "label": "Above grid, next to heading" },
             { "value": "bottom", "label": "Below grid" }
           ],
           "default": "bottom"
