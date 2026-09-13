@@ -59,6 +59,7 @@
     --spot-y: 50%;
     display: block;
     animation: collectionTileFloat-{{ section.id }} 5s ease-in-out infinite;
+    transition: filter 0.25s ease;
   }
 
   .collection-tile-grid-{{ section.id }} .collection-item:hover,
@@ -66,6 +67,15 @@
     animation-play-state: paused;
     z-index: 5;
   }
+
+  {% if section.settings.spotlight_enabled %}
+    .collection-tile-grid-{{ section.id }} .collection-tile-grid__inner:has(.collection-item:hover)
+      .collection-item:not(:hover),
+    .collection-tile-grid-{{ section.id }} .collection-tile-grid__inner:has(.collection-item.is-active)
+      .collection-item:not(.is-active) {
+      filter: grayscale({{ section.settings.spotlight_grayscale }}%) blur({{ section.settings.spotlight_blur }}px);
+    }
+  {% endif %}
 
   .collection-tile-grid-{{ section.id }} .collection-item__frame {
     position: relative;
@@ -266,6 +276,36 @@
       "step": 2,
       "unit": "px",
       "default": 22
+    },
+    {
+      "type": "header",
+      "content": "Hover spotlight"
+    },
+    {
+      "type": "checkbox",
+      "id": "spotlight_enabled",
+      "label": "Dim other tiles when one is hovered",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "spotlight_blur",
+      "label": "Other tiles blur",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "spotlight_grayscale",
+      "label": "Other tiles grayscale",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "unit": "%",
+      "default": 100
     }
   ],
   "blocks": [
