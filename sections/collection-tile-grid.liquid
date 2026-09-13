@@ -4,7 +4,7 @@
 %}
 
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
-<div class="collection-tile-grid-{{ section.id }} collection-tile-grid color-{{ section.settings.color_scheme }}">
+<div class="collection-tile-grid-{{ section.id }} collection-tile-grid section section--full-width color-{{ section.settings.color_scheme }}">
   <div class="collection-tile-grid__inner">
     {% for block in section.blocks %}
       <a
@@ -184,7 +184,6 @@
 {
   "name": "Collection Tiles (Glow)",
   "tag": "section",
-  "class": "section",
   "settings": [
     {
       "type": "color_scheme",
