@@ -2607,7 +2607,28 @@
         "glow_strength": 35,
         "padding_top": 32,
         "padding_bottom": 32
-      }
+      },
+      "blocks": {
+        "countdown_1": {
+          "type": "countdown",
+          "settings": {
+            "year": "2026",
+            "month": "10",
+            "day": "31",
+            "hour": "23",
+            "minute": "59",
+            "days_text": "Days",
+            "hours_text": "Hours",
+            "minutes_text": "Minutes",
+            "seconds_text": "Seconds",
+            "hide_on_complete": false,
+            "completed_text": "This drop has ended."
+          }
+        }
+      },
+      "block_order": [
+        "countdown_1"
+      ]
     }
   },
   "order": [

@@ -65,6 +65,39 @@
         <p class="promo-card__subheading">{{ section.settings.subheading_text }}</p>
       {%- endif -%}
 
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'countdown' -%}
+          <div
+            class="promo-card__countdown"
+            data-countdown
+            data-end="{{ block.settings.year }}-{{ block.settings.month }}-{{ block.settings.day }}T{{ block.settings.hour }}:{{ block.settings.minute }}:00Z"
+            data-hide-on-complete="{{ block.settings.hide_on_complete }}"
+            {{ block.shopify_attributes }}
+          >
+            <div class="promo-card__countdown-item" data-unit="days">
+              <span class="promo-card__countdown-num" data-value>00</span>
+              <span class="promo-card__countdown-label">{{ block.settings.days_text }}</span>
+            </div>
+            <span class="promo-card__countdown-sep" aria-hidden="true">:</span>
+            <div class="promo-card__countdown-item" data-unit="hours">
+              <span class="promo-card__countdown-num" data-value>00</span>
+              <span class="promo-card__countdown-label">{{ block.settings.hours_text }}</span>
+            </div>
+            <span class="promo-card__countdown-sep" aria-hidden="true">:</span>
+            <div class="promo-card__countdown-item" data-unit="minutes">
+              <span class="promo-card__countdown-num" data-value>00</span>
+              <span class="promo-card__countdown-label">{{ block.settings.minutes_text }}</span>
+            </div>
+            <span class="promo-card__countdown-sep" aria-hidden="true">:</span>
+            <div class="promo-card__countdown-item" data-unit="seconds">
+              <span class="promo-card__countdown-num" data-value>00</span>
+              <span class="promo-card__countdown-label">{{ block.settings.seconds_text }}</span>
+            </div>
+          </div>
+          <p class="promo-card__countdown-complete" data-countdown-complete hidden>{{ block.settings.completed_text }}</p>
+        {%- endif -%}
+      {%- endfor -%}
+
       {%- if section.settings.cta_label != blank -%}
         <span class="promo-card__cta">
           {{ section.settings.cta_label }}
@@ -197,6 +230,81 @@
     line-height: 1.55;
   }
 
+  .promo-card-{{ section.id }} .promo-card__countdown {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__countdown-item[hidden] {
+    display: none;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__countdown-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    padding: 8px 10px;
+    border-radius: 14px;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.7);
+  }
+
+  .promo-card-{{ section.id }} .promo-card__countdown-num {
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    font-size: 1.3rem;
+    line-height: 1;
+    background: linear-gradient(160deg, var(--pc-heading-color) 10%, var(--pc-accent) 120%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__countdown-label {
+    margin-top: 4px;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .promo-card-{{ section.id }} .promo-card__countdown-sep {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-7px);
+  }
+
+  .promo-card-{{ section.id }} .promo-card__countdown-sep[hidden] {
+    display: none;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__countdown-complete {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.92rem;
+  }
+
+  @media screen and (min-width: 750px) {
+    .promo-card-{{ section.id }} .promo-card__countdown {
+      gap: 10px;
+    }
+
+    .promo-card-{{ section.id }} .promo-card__countdown-item {
+      min-width: 62px;
+      padding: 10px 14px;
+    }
+
+    .promo-card-{{ section.id }} .promo-card__countdown-num {
+      font-size: 1.6rem;
+    }
+  }
+
   .promo-card-{{ section.id }} .promo-card__cta {
     margin-top: 6px;
     display: inline-flex;
@@ -253,11 +361,73 @@
       if (!root) return;
 
       var card = root.querySelector('.promo-card__card--spotlight');
-      if (!card || card.dataset.promoCardBound) return;
-      card.dataset.promoCardBound = 'true';
+      if (card && !card.dataset.promoCardBound) {
+        card.dataset.promoCardBound = 'true';
+        card.addEventListener('pointermove', function (e) {
+          setSpot(card, e.clientX, e.clientY);
+        });
+      }
 
-      card.addEventListener('pointermove', function (e) {
-        setSpot(card, e.clientX, e.clientY);
+      initCountdown(root);
+    }
+
+    function initCountdown(root) {
+      var el = root.querySelector('[data-countdown]');
+      if (!el || el.dataset.countdownBound) return;
+      el.dataset.countdownBound = 'true';
+
+      var endTime = new Date(el.dataset.end).getTime();
+      var hideOnComplete = el.dataset.hideOnComplete === 'true';
+      var completeEl = root.querySelector('[data-countdown-complete]');
+      var daysItem = el.querySelector('[data-unit="days"]');
+      var timerId = null;
+
+      function setUnit(unit, value) {
+        var item = el.querySelector('[data-unit="' + unit + '"] [data-value]');
+        if (item) item.textContent = String(value).padStart(2, '0');
+      }
+
+      function tick() {
+        var diff = endTime - Date.now();
+
+        if (diff <= 0) {
+          clearInterval(timerId);
+          if (hideOnComplete) {
+            el.hidden = true;
+          } else {
+            el.querySelectorAll('[data-value]').forEach(function (n) {
+              n.textContent = '00';
+            });
+          }
+          if (completeEl) completeEl.hidden = false;
+          return;
+        }
+
+        var day = 86400000;
+        var hour = 3600000;
+        var minute = 60000;
+        var days = Math.floor(diff / day);
+        var hours = Math.floor((diff % day) / hour);
+        var minutes = Math.floor((diff % hour) / minute);
+        var seconds = Math.floor((diff % minute) / 1000);
+
+        if (daysItem) {
+          var showDays = days > 0;
+          daysItem.hidden = !showDays;
+          if (daysItem.nextElementSibling) daysItem.nextElementSibling.hidden = !showDays;
+        }
+
+        setUnit('days', days);
+        setUnit('hours', hours);
+        setUnit('minutes', minutes);
+        setUnit('seconds', seconds);
+      }
+
+      tick();
+      timerId = setInterval(tick, 1000);
+
+      document.addEventListener('shopify:section:unload', function (e) {
+        if (e.detail.sectionId === '{{ section.id }}') clearInterval(timerId);
       });
     }
 
@@ -283,8 +453,14 @@
       "id": "section_width",
       "label": "Width",
       "options": [
-        { "value": "page-width", "label": "Page width" },
-        { "value": "full-width", "label": "Full width" }
+        {
+          "value": "page-width",
+          "label": "Page width"
+        },
+        {
+          "value": "full-width",
+          "label": "Full width"
+        }
       ],
       "default": "page-width"
     },
@@ -450,6 +626,639 @@
   "presets": [
     {
       "name": "Promo Card"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "countdown",
+      "name": "Countdown timer",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "Target date/time is in UTC."
+        },
+        {
+          "type": "header",
+          "content": "Target date"
+        },
+        {
+          "type": "select",
+          "id": "year",
+          "label": "Year",
+          "default": "2026",
+          "options": [
+            {
+              "value": "2025",
+              "label": "2025"
+            },
+            {
+              "value": "2026",
+              "label": "2026"
+            },
+            {
+              "value": "2027",
+              "label": "2027"
+            },
+            {
+              "value": "2028",
+              "label": "2028"
+            },
+            {
+              "value": "2029",
+              "label": "2029"
+            },
+            {
+              "value": "2030",
+              "label": "2030"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "month",
+          "label": "Month",
+          "default": "01",
+          "options": [
+            {
+              "value": "01",
+              "label": "January"
+            },
+            {
+              "value": "02",
+              "label": "February"
+            },
+            {
+              "value": "03",
+              "label": "March"
+            },
+            {
+              "value": "04",
+              "label": "April"
+            },
+            {
+              "value": "05",
+              "label": "May"
+            },
+            {
+              "value": "06",
+              "label": "June"
+            },
+            {
+              "value": "07",
+              "label": "July"
+            },
+            {
+              "value": "08",
+              "label": "August"
+            },
+            {
+              "value": "09",
+              "label": "September"
+            },
+            {
+              "value": "10",
+              "label": "October"
+            },
+            {
+              "value": "11",
+              "label": "November"
+            },
+            {
+              "value": "12",
+              "label": "December"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "day",
+          "label": "Day",
+          "default": "01",
+          "options": [
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "02",
+              "label": "02"
+            },
+            {
+              "value": "03",
+              "label": "03"
+            },
+            {
+              "value": "04",
+              "label": "04"
+            },
+            {
+              "value": "05",
+              "label": "05"
+            },
+            {
+              "value": "06",
+              "label": "06"
+            },
+            {
+              "value": "07",
+              "label": "07"
+            },
+            {
+              "value": "08",
+              "label": "08"
+            },
+            {
+              "value": "09",
+              "label": "09"
+            },
+            {
+              "value": "10",
+              "label": "10"
+            },
+            {
+              "value": "11",
+              "label": "11"
+            },
+            {
+              "value": "12",
+              "label": "12"
+            },
+            {
+              "value": "13",
+              "label": "13"
+            },
+            {
+              "value": "14",
+              "label": "14"
+            },
+            {
+              "value": "15",
+              "label": "15"
+            },
+            {
+              "value": "16",
+              "label": "16"
+            },
+            {
+              "value": "17",
+              "label": "17"
+            },
+            {
+              "value": "18",
+              "label": "18"
+            },
+            {
+              "value": "19",
+              "label": "19"
+            },
+            {
+              "value": "20",
+              "label": "20"
+            },
+            {
+              "value": "21",
+              "label": "21"
+            },
+            {
+              "value": "22",
+              "label": "22"
+            },
+            {
+              "value": "23",
+              "label": "23"
+            },
+            {
+              "value": "24",
+              "label": "24"
+            },
+            {
+              "value": "25",
+              "label": "25"
+            },
+            {
+              "value": "26",
+              "label": "26"
+            },
+            {
+              "value": "27",
+              "label": "27"
+            },
+            {
+              "value": "28",
+              "label": "28"
+            },
+            {
+              "value": "29",
+              "label": "29"
+            },
+            {
+              "value": "30",
+              "label": "30"
+            },
+            {
+              "value": "31",
+              "label": "31"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "hour",
+          "label": "Hour",
+          "default": "00",
+          "options": [
+            {
+              "value": "00",
+              "label": "12 AM"
+            },
+            {
+              "value": "01",
+              "label": "01 AM"
+            },
+            {
+              "value": "02",
+              "label": "02 AM"
+            },
+            {
+              "value": "03",
+              "label": "03 AM"
+            },
+            {
+              "value": "04",
+              "label": "04 AM"
+            },
+            {
+              "value": "05",
+              "label": "05 AM"
+            },
+            {
+              "value": "06",
+              "label": "06 AM"
+            },
+            {
+              "value": "07",
+              "label": "07 AM"
+            },
+            {
+              "value": "08",
+              "label": "08 AM"
+            },
+            {
+              "value": "09",
+              "label": "09 AM"
+            },
+            {
+              "value": "10",
+              "label": "10 AM"
+            },
+            {
+              "value": "11",
+              "label": "11 AM"
+            },
+            {
+              "value": "12",
+              "label": "12 PM"
+            },
+            {
+              "value": "13",
+              "label": "01 PM"
+            },
+            {
+              "value": "14",
+              "label": "02 PM"
+            },
+            {
+              "value": "15",
+              "label": "03 PM"
+            },
+            {
+              "value": "16",
+              "label": "04 PM"
+            },
+            {
+              "value": "17",
+              "label": "05 PM"
+            },
+            {
+              "value": "18",
+              "label": "06 PM"
+            },
+            {
+              "value": "19",
+              "label": "07 PM"
+            },
+            {
+              "value": "20",
+              "label": "08 PM"
+            },
+            {
+              "value": "21",
+              "label": "09 PM"
+            },
+            {
+              "value": "22",
+              "label": "10 PM"
+            },
+            {
+              "value": "23",
+              "label": "11 PM"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "minute",
+          "label": "Minute",
+          "default": "00",
+          "options": [
+            {
+              "value": "00",
+              "label": "00"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "02",
+              "label": "02"
+            },
+            {
+              "value": "03",
+              "label": "03"
+            },
+            {
+              "value": "04",
+              "label": "04"
+            },
+            {
+              "value": "05",
+              "label": "05"
+            },
+            {
+              "value": "06",
+              "label": "06"
+            },
+            {
+              "value": "07",
+              "label": "07"
+            },
+            {
+              "value": "08",
+              "label": "08"
+            },
+            {
+              "value": "09",
+              "label": "09"
+            },
+            {
+              "value": "10",
+              "label": "10"
+            },
+            {
+              "value": "11",
+              "label": "11"
+            },
+            {
+              "value": "12",
+              "label": "12"
+            },
+            {
+              "value": "13",
+              "label": "13"
+            },
+            {
+              "value": "14",
+              "label": "14"
+            },
+            {
+              "value": "15",
+              "label": "15"
+            },
+            {
+              "value": "16",
+              "label": "16"
+            },
+            {
+              "value": "17",
+              "label": "17"
+            },
+            {
+              "value": "18",
+              "label": "18"
+            },
+            {
+              "value": "19",
+              "label": "19"
+            },
+            {
+              "value": "20",
+              "label": "20"
+            },
+            {
+              "value": "21",
+              "label": "21"
+            },
+            {
+              "value": "22",
+              "label": "22"
+            },
+            {
+              "value": "23",
+              "label": "23"
+            },
+            {
+              "value": "24",
+              "label": "24"
+            },
+            {
+              "value": "25",
+              "label": "25"
+            },
+            {
+              "value": "26",
+              "label": "26"
+            },
+            {
+              "value": "27",
+              "label": "27"
+            },
+            {
+              "value": "28",
+              "label": "28"
+            },
+            {
+              "value": "29",
+              "label": "29"
+            },
+            {
+              "value": "30",
+              "label": "30"
+            },
+            {
+              "value": "31",
+              "label": "31"
+            },
+            {
+              "value": "32",
+              "label": "32"
+            },
+            {
+              "value": "33",
+              "label": "33"
+            },
+            {
+              "value": "34",
+              "label": "34"
+            },
+            {
+              "value": "35",
+              "label": "35"
+            },
+            {
+              "value": "36",
+              "label": "36"
+            },
+            {
+              "value": "37",
+              "label": "37"
+            },
+            {
+              "value": "38",
+              "label": "38"
+            },
+            {
+              "value": "39",
+              "label": "39"
+            },
+            {
+              "value": "40",
+              "label": "40"
+            },
+            {
+              "value": "41",
+              "label": "41"
+            },
+            {
+              "value": "42",
+              "label": "42"
+            },
+            {
+              "value": "43",
+              "label": "43"
+            },
+            {
+              "value": "44",
+              "label": "44"
+            },
+            {
+              "value": "45",
+              "label": "45"
+            },
+            {
+              "value": "46",
+              "label": "46"
+            },
+            {
+              "value": "47",
+              "label": "47"
+            },
+            {
+              "value": "48",
+              "label": "48"
+            },
+            {
+              "value": "49",
+              "label": "49"
+            },
+            {
+              "value": "50",
+              "label": "50"
+            },
+            {
+              "value": "51",
+              "label": "51"
+            },
+            {
+              "value": "52",
+              "label": "52"
+            },
+            {
+              "value": "53",
+              "label": "53"
+            },
+            {
+              "value": "54",
+              "label": "54"
+            },
+            {
+              "value": "55",
+              "label": "55"
+            },
+            {
+              "value": "56",
+              "label": "56"
+            },
+            {
+              "value": "57",
+              "label": "57"
+            },
+            {
+              "value": "58",
+              "label": "58"
+            },
+            {
+              "value": "59",
+              "label": "59"
+            }
+          ]
+        },
+        {
+          "type": "header",
+          "content": "Labels"
+        },
+        {
+          "type": "text",
+          "id": "days_text",
+          "label": "Days label",
+          "default": "Days"
+        },
+        {
+          "type": "text",
+          "id": "hours_text",
+          "label": "Hours label",
+          "default": "Hours"
+        },
+        {
+          "type": "text",
+          "id": "minutes_text",
+          "label": "Minutes label",
+          "default": "Minutes"
+        },
+        {
+          "type": "text",
+          "id": "seconds_text",
+          "label": "Seconds label",
+          "default": "Seconds"
+        },
+        {
+          "type": "header",
+          "content": "When it ends"
+        },
+        {
+          "type": "checkbox",
+          "id": "hide_on_complete",
+          "label": "Hide timer when it reaches zero",
+          "default": false
+        },
+        {
+          "type": "text",
+          "id": "completed_text",
+          "label": "Message shown instead",
+          "default": "This drop has ended."
+        }
+      ]
     }
   ]
 }
