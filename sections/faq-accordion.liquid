@@ -87,7 +87,19 @@
     background: linear-gradient(165deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
     border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: 0 16px 30px -22px rgba(0, 0, 0, 0.8);
-    transition: border-color 0.25s ease, box-shadow 0.3s ease;
+    transition: border-color 0.25s ease, box-shadow 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
+  }
+
+  .faq-accordion-{{ section.id }} .faq-accordion__list:has(.faq-accordion__trigger[aria-expanded='true'])
+    .faq-accordion__item:not(:has(.faq-accordion__trigger[aria-expanded='true'])) {
+    opacity: 0.45;
+    filter: grayscale(70%);
+  }
+
+  .faq-accordion-{{ section.id }} .faq-accordion__list:has(.faq-accordion__trigger[aria-expanded='true'])
+    .faq-accordion__item:not(:has(.faq-accordion__trigger[aria-expanded='true'])):hover {
+    opacity: 1;
+    filter: none;
   }
 
   .faq-accordion-{{ section.id }} .faq-accordion__item::before {
