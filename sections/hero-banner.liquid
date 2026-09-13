@@ -206,9 +206,13 @@
       {%- endif -%}
 
       {%- if section.settings.heading_text != blank -%}
-        <h1 class="hero-banner__heading{% if section.settings.heading_glow %} hero-banner__heading--glow{% endif %}">
+        <div
+          class="hero-banner__heading{% if section.settings.heading_glow %} hero-banner__heading--glow{% endif %}"
+          role="heading"
+          aria-level="1"
+        >
           {{ section.settings.heading_text }}
-        </h1>
+        </div>
       {%- endif -%}
 
       {%- if section.settings.subheading_text != blank -%}
@@ -433,6 +437,32 @@
     background-clip: text;
     color: transparent;
   }
+
+  .hero-banner-{{ section.id }} .hero-banner__heading p {
+    margin: 0;
+  }
+
+  .hero-banner-{{ section.id }} .hero-banner__heading em {
+    font-style: normal;
+    color: var(--hb-accent);
+  }
+
+  {%- if section.settings.heading_use_custom_fonts -%}
+    {{ section.settings.heading_font | font_face: font_display: 'swap' }}
+    {{ section.settings.heading_accent_font | font_face: font_display: 'swap' }}
+
+    .hero-banner-{{ section.id }} .hero-banner__heading {
+      font-family: {{ section.settings.heading_font.family }}, {{ section.settings.heading_font.fallback_families }};
+      font-weight: {{ section.settings.heading_font.weight }};
+      font-style: {{ section.settings.heading_font.style }};
+    }
+
+    .hero-banner-{{ section.id }} .hero-banner__heading em {
+      font-family: {{ section.settings.heading_accent_font.family }}, {{ section.settings.heading_accent_font.fallback_families }};
+      font-weight: {{ section.settings.heading_accent_font.weight }};
+      font-style: {{ section.settings.heading_accent_font.style }};
+    }
+  {%- endif -%}
 
   .hero-banner-{{ section.id }} .hero-banner__heading--glow {
     filter:
@@ -788,10 +818,11 @@
       "label": "Eyebrow text (optional)"
     },
     {
-      "type": "text",
+      "type": "richtext",
       "id": "heading_text",
       "label": "Heading",
-      "default": "YOUR NEXT GRAIL IS HERE"
+      "info": "Put each line in its own paragraph. Select a word and make it italic to give it the accent font/color instead of the base ones.",
+      "default": "<p>NEW</p><p><em>ARRIVALS</em></p>"
     },
     {
       "type": "richtext",
@@ -804,6 +835,28 @@
       "id": "heading_color",
       "label": "Heading base color",
       "default": "#ffffff"
+    },
+    {
+      "type": "checkbox",
+      "id": "heading_use_custom_fonts",
+      "label": "Use custom fonts for heading",
+      "info": "Applies a base font to the heading and a separate accent font to any italicized words.",
+      "default": false
+    },
+    {
+      "type": "font_picker",
+      "id": "heading_font",
+      "label": "Base font",
+      "default": "assistant_n7",
+      "visible_if": "{{ section.settings.heading_use_custom_fonts }}"
+    },
+    {
+      "type": "font_picker",
+      "id": "heading_accent_font",
+      "label": "Accent font",
+      "info": "Used for italicized words in the heading.",
+      "default": "permanent_marker_n4",
+      "visible_if": "{{ section.settings.heading_use_custom_fonts }}"
     },
     {
       "type": "checkbox",
