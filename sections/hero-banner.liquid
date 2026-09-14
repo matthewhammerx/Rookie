@@ -44,10 +44,6 @@
   assign tf_pos3 = tf_size | times: 0.8 | round
   assign top_fade_gradient = 'linear-gradient(to bottom, ' | append: tf_color0 | append: ' 0%, ' | append: tf_color1 | append: ' ' | append: tf_pos1 | append: '%, ' | append: tf_color2 | append: ' ' | append: tf_pos2 | append: '%, ' | append: tf_color3 | append: ' ' | append: tf_pos3 | append: '%, transparent ' | append: tf_size | append: '%)'
 
-  assign heading_glow_alpha = section.settings.heading_glow_strength | times: 1.0 | divided_by: 100
-  assign heading_glow_rgba = section.settings.heading_glow_color | color_modify: 'alpha', heading_glow_alpha
-  assign heading_glow_radius_2 = section.settings.heading_glow_size | times: 2.25 | round
-
   assign ambient_glow_alpha = section.settings.ambient_glow_strength | times: 1.0 | divided_by: 100
   assign ambient_glow_rgba = accent | color_modify: 'alpha', ambient_glow_alpha
 
@@ -108,9 +104,6 @@
   style="
     --hb-accent: {{ accent }};
     --hb-heading-color: {{ section.settings.heading_color }};
-    --hb-heading-accent-color: {{ section.settings.heading_accent_color }};
-    --hb-heading-size: {{ section.settings.heading_size }}px;
-    --hb-heading-size-mobile: {{ section.settings.heading_size_mobile }}px;
     --hb-subheading-color: {{ section.settings.subheading_color }};
     --hb-subheading-size: {{ section.settings.subheading_size }}px;
     --hb-subheading-size-mobile: {{ section.settings.subheading_size_mobile }}px;
@@ -129,9 +122,6 @@
     --hb-bottom-fade-gradient: {{ bottom_fade_gradient }};
     --hb-top-fade-gradient: {{ top_fade_gradient }};
     --hb-ambient-color: {{ ambient_glow_rgba }};
-    --hb-heading-glow-color: {{ heading_glow_rgba }};
-    --hb-heading-glow-radius-1: {{ section.settings.heading_glow_size }}px;
-    --hb-heading-glow-radius-2: {{ heading_glow_radius_2 }}px;
     --hb-image-position: {{ section.settings.image_position }};
     padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
   "
@@ -213,13 +203,54 @@
         <span class="hero-banner__eyebrow">{{ section.settings.eyebrow_text }}</span>
       {%- endif -%}
 
-      {%- if section.settings.heading_text != blank -%}
-        <div
-          class="hero-banner__heading{% if section.settings.heading_glow %} hero-banner__heading--glow{% endif %}"
-          role="heading"
-          aria-level="1"
-        >
-          {{ section.settings.heading_text }}
+      {%- assign heading_line_count = 0 -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'heading_line' -%}{%- assign heading_line_count = heading_line_count | plus: 1 -%}{%- endif -%}
+      {%- endfor -%}
+
+      {%- if heading_line_count > 0 -%}
+        <div class="hero-banner__heading-group" role="heading" aria-level="1">
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'heading_line' -%}
+              {%- liquid
+                assign hl_glow_alpha = block.settings.glow_strength | times: 1.0 | divided_by: 100
+                assign hl_glow_rgba = block.settings.glow_color | color_modify: 'alpha', hl_glow_alpha
+                assign hl_glow_radius_2 = block.settings.glow_size | times: 2.25 | round
+              -%}
+              <div
+                id="HBHeadingLine-{{ block.id }}"
+                class="hero-banner__heading-line{% if block.settings.uppercase %} hero-banner__heading-line--uppercase{% endif %}"
+                style="
+                  font-size: {{ block.settings.font_size_mobile }}px;
+                  color: {{ block.settings.color }};
+                  {% if block.settings.use_custom_font %}
+                    font-family: {{ block.settings.font.family }}, {{ block.settings.font.fallback_families }};
+                    font-weight: {{ block.settings.font.weight }};
+                    font-style: {{ block.settings.font.style }};
+                  {% endif %}
+                  {% if block.settings.enable_glow %}
+                    filter:
+                      drop-shadow(0 0 {{ block.settings.glow_size }}px {{ hl_glow_rgba }})
+                      drop-shadow(0 0 {{ hl_glow_radius_2 }}px {{ hl_glow_rgba }});
+                  {% endif %}
+                "
+                {{ block.shopify_attributes }}
+              >
+                {{ block.settings.text }}
+              </div>
+              <style>
+                {%- if block.settings.use_custom_font -%}
+                  {{ block.settings.font | font_face: font_display: 'swap' }}
+                {%- endif -%}
+
+                @media screen and (min-width: 750px) {
+                  #HBHeadingLine-{{ block.id }} {
+                    font-size: {{ block.settings.font_size_desktop }}px;
+                  }
+                }
+              </style>
+            {%- endif -%}
+          {%- endfor -%}
         </div>
       {%- endif -%}
 
@@ -433,55 +464,21 @@
     text-transform: uppercase;
   }
 
-  .hero-banner-{{ section.id }} .hero-banner__heading {
+  .hero-banner-{{ section.id }} .hero-banner__heading-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .hero-banner-{{ section.id }} .hero-banner__heading-line {
     margin: 0;
     font-weight: 800;
     line-height: 1.02;
     letter-spacing: 0.005em;
+  }
+
+  .hero-banner-{{ section.id }} .hero-banner__heading-line--uppercase {
     text-transform: uppercase;
-    font-size: var(--hb-heading-size-mobile);
-    background: linear-gradient(160deg, var(--hb-heading-color) 10%, var(--hb-accent) 120%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  @media screen and (min-width: 750px) {
-    .hero-banner-{{ section.id }} .hero-banner__heading {
-      font-size: var(--hb-heading-size);
-    }
-  }
-
-  .hero-banner-{{ section.id }} .hero-banner__heading p {
-    margin: 0;
-  }
-
-  .hero-banner-{{ section.id }} .hero-banner__heading em {
-    font-style: normal;
-    color: var(--hb-heading-accent-color);
-  }
-
-  {%- if section.settings.heading_use_custom_fonts -%}
-    {{ section.settings.heading_font | font_face: font_display: 'swap' }}
-    {{ section.settings.heading_accent_font | font_face: font_display: 'swap' }}
-
-    .hero-banner-{{ section.id }} .hero-banner__heading {
-      font-family: {{ section.settings.heading_font.family }}, {{ section.settings.heading_font.fallback_families }};
-      font-weight: {{ section.settings.heading_font.weight }};
-      font-style: {{ section.settings.heading_font.style }};
-    }
-
-    .hero-banner-{{ section.id }} .hero-banner__heading em {
-      font-family: {{ section.settings.heading_accent_font.family }}, {{ section.settings.heading_accent_font.fallback_families }};
-      font-weight: {{ section.settings.heading_accent_font.weight }};
-      font-style: {{ section.settings.heading_accent_font.style }};
-    }
-  {%- endif -%}
-
-  .hero-banner-{{ section.id }} .hero-banner__heading--glow {
-    filter:
-      drop-shadow(0 0 var(--hb-heading-glow-radius-1) var(--hb-heading-glow-color))
-      drop-shadow(0 0 var(--hb-heading-glow-radius-2) var(--hb-heading-glow-color));
   }
 
   .hero-banner-{{ section.id }} .hero-banner__subheading {
@@ -861,31 +858,8 @@
       "default": 12
     },
     {
-      "type": "richtext",
-      "id": "heading_text",
-      "label": "Heading",
-      "info": "Put each line in its own paragraph. Select a word and make it italic to give it the accent font/color instead of the base ones.",
-      "default": "<p>NEW</p><p><em>ARRIVALS</em></p>"
-    },
-    {
-      "type": "range",
-      "id": "heading_size",
-      "label": "Heading size (desktop)",
-      "min": 24,
-      "max": 140,
-      "step": 4,
-      "unit": "px",
-      "default": 84
-    },
-    {
-      "type": "range",
-      "id": "heading_size_mobile",
-      "label": "Heading size (mobile)",
-      "min": 20,
-      "max": 90,
-      "step": 2,
-      "unit": "px",
-      "default": 44
+      "type": "paragraph",
+      "content": "Add \"Heading Line\" blocks below to build the headline -- each one is its own size, color, font and glow."
     },
     {
       "type": "richtext",
@@ -922,72 +896,9 @@
     {
       "type": "color",
       "id": "heading_color",
-      "label": "Heading base color",
+      "label": "Base text color",
+      "info": "Used as the fill for the countdown timer numbers.",
       "default": "#ffffff"
-    },
-    {
-      "type": "color",
-      "id": "heading_accent_color",
-      "label": "Heading accent color",
-      "info": "Color of italicized words in the heading.",
-      "default": "#eb00ca"
-    },
-    {
-      "type": "checkbox",
-      "id": "heading_use_custom_fonts",
-      "label": "Use custom fonts for heading",
-      "info": "Applies a base font to the heading and a separate accent font to any italicized words.",
-      "default": false
-    },
-    {
-      "type": "font_picker",
-      "id": "heading_font",
-      "label": "Base font",
-      "default": "assistant_n7",
-      "visible_if": "{{ section.settings.heading_use_custom_fonts }}"
-    },
-    {
-      "type": "font_picker",
-      "id": "heading_accent_font",
-      "label": "Accent font",
-      "info": "Used for italicized words in the heading.",
-      "default": "anton_n4",
-      "visible_if": "{{ section.settings.heading_use_custom_fonts }}"
-    },
-    {
-      "type": "checkbox",
-      "id": "heading_glow",
-      "label": "Enable heading glow",
-      "default": false
-    },
-    {
-      "type": "color",
-      "id": "heading_glow_color",
-      "label": "Glow color",
-      "default": "#ffffff",
-      "visible_if": "{{ section.settings.heading_glow }}"
-    },
-    {
-      "type": "range",
-      "id": "heading_glow_size",
-      "label": "Glow size",
-      "min": 0,
-      "max": 60,
-      "step": 2,
-      "unit": "px",
-      "default": 16,
-      "visible_if": "{{ section.settings.heading_glow }}"
-    },
-    {
-      "type": "range",
-      "id": "heading_glow_strength",
-      "label": "Glow strength",
-      "min": 0,
-      "max": 100,
-      "step": 5,
-      "unit": "%",
-      "default": 55,
-      "visible_if": "{{ section.settings.heading_glow }}"
     },
     {
       "type": "header",
@@ -1240,6 +1151,114 @@
     }
   ],
   "blocks": [
+    {
+      "type": "heading_line",
+      "name": "Heading line",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "NEW"
+        },
+        {
+          "type": "header",
+          "content": "Size"
+        },
+        {
+          "type": "range",
+          "id": "font_size_desktop",
+          "label": "Size (desktop)",
+          "min": 20,
+          "max": 180,
+          "step": 4,
+          "unit": "px",
+          "default": 84
+        },
+        {
+          "type": "range",
+          "id": "font_size_mobile",
+          "label": "Size (mobile)",
+          "min": 16,
+          "max": 110,
+          "step": 2,
+          "unit": "px",
+          "default": 44
+        },
+        {
+          "type": "header",
+          "content": "Style"
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "Color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "checkbox",
+          "id": "uppercase",
+          "label": "Uppercase",
+          "default": true
+        },
+        {
+          "type": "header",
+          "content": "Font"
+        },
+        {
+          "type": "checkbox",
+          "id": "use_custom_font",
+          "label": "Use custom font",
+          "default": false
+        },
+        {
+          "type": "font_picker",
+          "id": "font",
+          "label": "Font",
+          "default": "assistant_n7",
+          "visible_if": "{{ block.settings.use_custom_font }}"
+        },
+        {
+          "type": "header",
+          "content": "Glow"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_glow",
+          "label": "Enable glow",
+          "default": false
+        },
+        {
+          "type": "color",
+          "id": "glow_color",
+          "label": "Glow color",
+          "default": "#ffffff",
+          "visible_if": "{{ block.settings.enable_glow }}"
+        },
+        {
+          "type": "range",
+          "id": "glow_size",
+          "label": "Glow size",
+          "min": 0,
+          "max": 60,
+          "step": 2,
+          "unit": "px",
+          "default": 16,
+          "visible_if": "{{ block.settings.enable_glow }}"
+        },
+        {
+          "type": "range",
+          "id": "glow_strength",
+          "label": "Glow strength",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "unit": "%",
+          "default": 55,
+          "visible_if": "{{ block.settings.enable_glow }}"
+        }
+      ]
+    },
     {
       "type": "button",
       "name": "Button",
@@ -1965,6 +1984,22 @@
     {
       "name": "Hero Banner",
       "blocks": [
+        {
+          "type": "heading_line",
+          "settings": {
+            "text": "NEW",
+            "color": "#ffffff"
+          }
+        },
+        {
+          "type": "heading_line",
+          "settings": {
+            "text": "ARRIVALS",
+            "color": "#eb00ca",
+            "font_size_desktop": 96,
+            "font_size_mobile": 50
+          }
+        },
         {
           "type": "button"
         }
