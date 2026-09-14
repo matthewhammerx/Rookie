@@ -108,6 +108,14 @@
   style="
     --hb-accent: {{ accent }};
     --hb-heading-color: {{ section.settings.heading_color }};
+    --hb-heading-accent-color: {{ section.settings.heading_accent_color }};
+    --hb-heading-size: {{ section.settings.heading_size }}px;
+    --hb-heading-size-mobile: {{ section.settings.heading_size_mobile }}px;
+    --hb-subheading-color: {{ section.settings.subheading_color }};
+    --hb-subheading-size: {{ section.settings.subheading_size }}px;
+    --hb-subheading-size-mobile: {{ section.settings.subheading_size_mobile }}px;
+    --hb-eyebrow-color: {{ section.settings.eyebrow_color }};
+    --hb-eyebrow-size: {{ section.settings.eyebrow_size }}px;
     --hb-min-height: {{ min_height }};
     --hb-min-height-mobile: {{ min_height_mobile }};
     --hb-content-max-width: {{ section.settings.content_max_width }}px;
@@ -222,7 +230,7 @@
       {%- for block in section.blocks -%}
         {%- if block.type == 'countdown' -%}
           <div
-            class="hero-banner__countdown"
+            class="hero-banner__countdown{% unless block.settings.show_separators %} hero-banner__countdown--no-sep{% endunless %}"
             data-countdown
             data-end="{{ block.settings.year }}-{{ block.settings.month }}-{{ block.settings.day }}T{{ block.settings.hour }}:{{ block.settings.minute }}:00Z"
             data-hide-on-complete="{{ block.settings.hide_on_complete }}"
@@ -418,8 +426,8 @@
     border-radius: 999px;
     border: 1px solid color-mix(in srgb, var(--hb-accent) 45%, transparent);
     background: color-mix(in srgb, var(--hb-accent) 14%, transparent);
-    color: var(--hb-accent);
-    font-size: 0.75rem;
+    color: var(--hb-eyebrow-color);
+    font-size: var(--hb-eyebrow-size);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -431,11 +439,17 @@
     line-height: 1.02;
     letter-spacing: 0.005em;
     text-transform: uppercase;
-    font-size: clamp(2.2rem, 1.6rem + 4vw, 5.2rem);
+    font-size: var(--hb-heading-size-mobile);
     background: linear-gradient(160deg, var(--hb-heading-color) 10%, var(--hb-accent) 120%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+
+  @media screen and (min-width: 750px) {
+    .hero-banner-{{ section.id }} .hero-banner__heading {
+      font-size: var(--hb-heading-size);
+    }
   }
 
   .hero-banner-{{ section.id }} .hero-banner__heading p {
@@ -444,7 +458,7 @@
 
   .hero-banner-{{ section.id }} .hero-banner__heading em {
     font-style: normal;
-    color: var(--hb-accent);
+    color: var(--hb-heading-accent-color);
   }
 
   {%- if section.settings.heading_use_custom_fonts -%}
@@ -472,9 +486,15 @@
 
   .hero-banner-{{ section.id }} .hero-banner__subheading {
     max-width: 56ch;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: clamp(0.95rem, 0.85rem + 0.4vw, 1.15rem);
+    color: var(--hb-subheading-color);
+    font-size: var(--hb-subheading-size-mobile);
     line-height: 1.6;
+  }
+
+  @media screen and (min-width: 750px) {
+    .hero-banner-{{ section.id }} .hero-banner__subheading {
+      font-size: var(--hb-subheading-size);
+    }
   }
 
   .hero-banner-{{ section.id }} .hero-banner__subheading p {
@@ -502,7 +522,14 @@
     border-radius: 14px;
     background: linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
     border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: 0 12px 28px -18px rgba(0, 0, 0, 0.8);
+    box-shadow:
+      0 18px 34px -14px rgba(0, 0, 0, 0.9),
+      0 6px 16px -8px rgba(0, 0, 0, 0.6),
+      0 0 24px -8px color-mix(in srgb, var(--hb-accent) 45%, transparent);
+  }
+
+  .hero-banner-{{ section.id }} .hero-banner__countdown--no-sep .hero-banner__countdown-sep {
+    display: none;
   }
 
   .hero-banner-{{ section.id }} .hero-banner__countdown-num {
@@ -818,11 +845,47 @@
       "label": "Eyebrow text (optional)"
     },
     {
+      "type": "color",
+      "id": "eyebrow_color",
+      "label": "Eyebrow text color",
+      "default": "#eb00ca"
+    },
+    {
+      "type": "range",
+      "id": "eyebrow_size",
+      "label": "Eyebrow text size",
+      "min": 10,
+      "max": 22,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
       "type": "richtext",
       "id": "heading_text",
       "label": "Heading",
       "info": "Put each line in its own paragraph. Select a word and make it italic to give it the accent font/color instead of the base ones.",
       "default": "<p>NEW</p><p><em>ARRIVALS</em></p>"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size (desktop)",
+      "min": 24,
+      "max": 140,
+      "step": 4,
+      "unit": "px",
+      "default": 84
+    },
+    {
+      "type": "range",
+      "id": "heading_size_mobile",
+      "label": "Heading size (mobile)",
+      "min": 20,
+      "max": 90,
+      "step": 2,
+      "unit": "px",
+      "default": 44
     },
     {
       "type": "richtext",
@@ -832,9 +895,42 @@
     },
     {
       "type": "color",
+      "id": "subheading_color",
+      "label": "Subheading color",
+      "default": "#e6e6e6"
+    },
+    {
+      "type": "range",
+      "id": "subheading_size",
+      "label": "Subheading size (desktop)",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "subheading_size_mobile",
+      "label": "Subheading size (mobile)",
+      "min": 12,
+      "max": 26,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "color",
       "id": "heading_color",
       "label": "Heading base color",
       "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "heading_accent_color",
+      "label": "Heading accent color",
+      "info": "Color of italicized words in the heading.",
+      "default": "#eb00ca"
     },
     {
       "type": "checkbox",
@@ -1169,7 +1265,7 @@
           "type": "select",
           "id": "style",
           "label": "Style",
-          "default": "solid",
+          "default": "glow",
           "options": [
             {
               "value": "solid",
@@ -1839,6 +1935,12 @@
           "id": "seconds_text",
           "label": "Seconds label",
           "default": "Seconds"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_separators",
+          "label": "Show \":\" separators between tiles",
+          "default": true
         },
         {
           "type": "header",

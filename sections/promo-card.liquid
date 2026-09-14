@@ -68,7 +68,7 @@
       {%- for block in section.blocks -%}
         {%- if block.type == 'countdown' -%}
           <div
-            class="promo-card__countdown"
+            class="promo-card__countdown{% unless block.settings.show_separators %} promo-card__countdown--no-sep{% endunless %}"
             data-countdown
             data-end="{{ block.settings.year }}-{{ block.settings.month }}-{{ block.settings.day }}T{{ block.settings.hour }}:{{ block.settings.minute }}:00Z"
             data-hide-on-complete="{{ block.settings.hide_on_complete }}"
@@ -251,7 +251,14 @@
     border-radius: 14px;
     background: linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
     border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.7);
+    box-shadow:
+      0 16px 30px -14px rgba(0, 0, 0, 0.9),
+      0 6px 14px -8px rgba(0, 0, 0, 0.6),
+      0 0 22px -8px color-mix(in srgb, var(--pc-accent) 45%, transparent);
+  }
+
+  .promo-card-{{ section.id }} .promo-card__countdown--no-sep .promo-card__countdown-sep {
+    display: none;
   }
 
   .promo-card-{{ section.id }} .promo-card__countdown-num {
@@ -1241,6 +1248,12 @@
           "id": "seconds_text",
           "label": "Seconds label",
           "default": "Seconds"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_separators",
+          "label": "Show \":\" separators between tiles",
+          "default": true
         },
         {
           "type": "header",
