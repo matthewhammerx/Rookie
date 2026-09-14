@@ -521,12 +521,6 @@
     margin-top: 4px;
   }
 
-  .hero-banner-{{ section.id }} .hero-banner__countdown--backdrop {
-    background: var(--hbc-backdrop-color);
-    border-radius: var(--hbc-backdrop-radius);
-    padding: 14px 16px;
-  }
-
   .hero-banner-{{ section.id }} .hero-banner__countdown-item[hidden] {
     display: none;
   }
@@ -545,6 +539,11 @@
       0 18px 34px -14px rgba(0, 0, 0, 0.9),
       0 6px 16px -8px rgba(0, 0, 0, 0.6),
       0 0 24px -8px color-mix(in srgb, var(--hb-accent) 45%, transparent);
+  }
+
+  .hero-banner-{{ section.id }} .hero-banner__countdown--backdrop .hero-banner__countdown-item {
+    background: var(--hbc-backdrop-color);
+    border-radius: var(--hbc-backdrop-radius);
   }
 
   .hero-banner-{{ section.id }} .hero-banner__countdown--no-sep .hero-banner__countdown-sep {
@@ -2034,8 +2033,8 @@
         {
           "type": "checkbox",
           "id": "enable_backdrop",
-          "label": "Enable backdrop behind timer",
-          "info": "Adds a tinted card behind the whole timer, useful for legibility over busy images.",
+          "label": "Enable tile backdrop",
+          "info": "Fills each individual tile with a tinted color, useful for legibility over busy images.",
           "default": true
         },
         {
@@ -2059,7 +2058,7 @@
         {
           "type": "range",
           "id": "backdrop_radius",
-          "label": "Backdrop corner radius",
+          "label": "Tile corner radius",
           "min": 0,
           "max": 60,
           "step": 2,
