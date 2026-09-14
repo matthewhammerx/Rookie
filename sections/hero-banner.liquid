@@ -128,6 +128,7 @@
     --hb-ambient-color: {{ ambient_glow_rgba }};
     --hb-image-position: {{ section.settings.image_position }};
     padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
+    margin-bottom: -{{ section.settings.pull_next_section_up }}px;
   "
 >
   <div class="hero-banner__media" aria-hidden="true">
@@ -1359,6 +1360,21 @@
       "min": 0,
       "max": 100,
       "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Compact stacking"
+    },
+    {
+      "type": "range",
+      "id": "pull_next_section_up",
+      "label": "Pull next section up",
+      "info": "Overlaps whatever comes right after this hero (e.g. a collection's filter bar) by this many pixels, closing the gap so they read as one connected block instead of two separate sections.",
+      "min": 0,
+      "max": 150,
+      "step": 5,
       "unit": "px",
       "default": 0
     }
