@@ -227,6 +227,9 @@
                     font-family: {{ block.settings.font.family }}, {{ block.settings.font.fallback_families }};
                     font-weight: {{ block.settings.font.weight }};
                     font-style: {{ block.settings.font.style }};
+                  {% else %}
+                    font-weight: {{ block.settings.font_weight }};
+                    font-style: {% if block.settings.italic %}italic{% else %}normal{% endif %};
                   {% endif %}
                   {% if block.settings.enable_glow %}
                     filter:
@@ -1217,6 +1220,28 @@
           "label": "Font",
           "default": "assistant_n7",
           "visible_if": "{{ block.settings.use_custom_font }}"
+        },
+        {
+          "type": "select",
+          "id": "font_weight",
+          "label": "Weight",
+          "default": "800",
+          "options": [
+            { "value": "400", "label": "Regular" },
+            { "value": "500", "label": "Medium" },
+            { "value": "600", "label": "Semibold" },
+            { "value": "700", "label": "Bold" },
+            { "value": "800", "label": "Extra bold" },
+            { "value": "900", "label": "Black" }
+          ],
+          "visible_if": "{{ block.settings.use_custom_font == false }}"
+        },
+        {
+          "type": "checkbox",
+          "id": "italic",
+          "label": "Italic",
+          "default": false,
+          "visible_if": "{{ block.settings.use_custom_font == false }}"
         },
         {
           "type": "header",
