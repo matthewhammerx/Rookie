@@ -43,14 +43,14 @@
                 {% if block.settings.video != null %}
                   <video
                     data-native-video
-                    src="{{ mp4_source.url | default: fallback_source.url }}"
+                    data-src="{{ mp4_source.url | default: fallback_source.url }}"
                     {% if block.settings.video.preview_image %}
                       poster="{{ block.settings.video.preview_image | image_url: width: 800 }}"
                     {% endif %}
                     muted
                     playsinline
                     loop
-                    preload="metadata"
+                    preload="none"
                   ></video>
                 {% elsif block.settings.video_url != null %}
                   {% if block.settings.video_url.type == 'youtube' %}
@@ -58,18 +58,18 @@
                       data-embed-video
                       data-play-src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&mute=1&autoplay=1&controls=0&playsinline=1&loop=1&playlist={{ video_id }}"
                       data-pause-src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&mute=1&autoplay=0&controls=0&playsinline=1&loop=1&playlist={{ video_id }}"
-                      src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&mute=1&autoplay=0&controls=0&playsinline=1&loop=1&playlist={{ video_id }}"
                       allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                       allowfullscreen
+                      loading="lazy"
                     ></iframe>
                   {% else %}
                     <iframe
                       data-embed-video
                       data-play-src="https://player.vimeo.com/video/{{ video_id }}?autoplay=1&muted=1&loop=1&background=1"
                       data-pause-src="https://player.vimeo.com/video/{{ video_id }}?autoplay=0&muted=1&loop=1&background=1"
-                      src="https://player.vimeo.com/video/{{ video_id }}?autoplay=0&muted=1&loop=1&background=1"
                       allow="autoplay; fullscreen; picture-in-picture"
                       allowfullscreen
+                      loading="lazy"
                     ></iframe>
                   {% endif %}
                 {% endif %}
@@ -359,13 +359,28 @@
       var playBtn = slide.querySelector('[data-toggle-play]');
 
       var manuallyPaused = false;
+      var loaded = false;
 
       function setPlayIcon(isPlaying) {
         if (!playBtn) return;
         playBtn.classList.toggle('is-playing', isPlaying);
       }
 
+      function ensureLoaded() {
+        if (loaded) return;
+        loaded = true;
+        if (video && video.dataset.src) {
+          video.src = video.dataset.src;
+          video.load();
+        }
+        if (frame && !frame.getAttribute('src')) {
+          var pauseSrc = frame.getAttribute('data-pause-src');
+          if (pauseSrc) frame.src = pauseSrc;
+        }
+      }
+
       function play() {
+        ensureLoaded();
         if (video) {
           var p = video.play();
           if (p && p.catch) p.catch(function () {});
@@ -381,7 +396,7 @@
         if (video) video.pause();
         if (frame) {
           var src = frame.getAttribute('data-pause-src');
-          if (src && frame.src !== src) frame.src = src;
+          if (src && frame.src !== src && frame.getAttribute('src')) frame.src = src;
         }
         setPlayIcon(false);
       }
@@ -407,6 +422,7 @@
 
       slide._vsPlay = play;
       slide._vsPause = pause;
+      slide._vsEnsureLoaded = ensureLoaded;
       slide._vsIsManuallyPaused = function () {
         return manuallyPaused;
       };
@@ -485,6 +501,11 @@
           function (entries) {
             entries.forEach(function (entry) {
               var slide = entry.target;
+
+              if (entry.isIntersecting) {
+                slide._vsEnsureLoaded && slide._vsEnsureLoaded();
+              }
+
               var isFocused = entry.isIntersecting && entry.intersectionRatio > 0.6;
               slide.classList.toggle('is-focused', isFocused);
 
@@ -496,7 +517,7 @@
               }
             });
           },
-          { root: track, threshold: [0, 0.6, 1] }
+          { root: track, rootMargin: '0px 400px', threshold: [0, 0.6, 1] }
         );
         slides.forEach(function (slide) {
           observer.observe(slide);
