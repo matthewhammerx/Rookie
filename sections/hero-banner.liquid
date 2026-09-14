@@ -252,11 +252,54 @@
                 {%- if block.settings.use_custom_font -%}
                   {{ block.settings.font | font_face: font_display: 'swap' }}
                 {%- endif -%}
+                {%- if block.settings.bold_custom_font -%}
+                  {{ block.settings.bold_font | font_face: font_display: 'swap' }}
+                {%- endif -%}
+                {%- if block.settings.italic_custom_font -%}
+                  {{ block.settings.italic_font | font_face: font_display: 'swap' }}
+                {%- endif -%}
 
                 @media screen and (min-width: 750px) {
                   #HBHeadingLine-{{ block.id }} {
                     font-size: {{ block.settings.font_size_desktop }}px;
                   }
+                }
+
+                #HBHeadingLine-{{ block.id }} p {
+                  margin: 0;
+                }
+
+                #HBHeadingLine-{{ block.id }} strong,
+                #HBHeadingLine-{{ block.id }} em {
+                  font-style: normal;
+                  background: none;
+                  -webkit-background-clip: initial;
+                  background-clip: initial;
+                }
+
+                #HBHeadingLine-{{ block.id }} strong {
+                  color: {{ block.settings.bold_color }};
+                  {%- if block.settings.bold_custom_font -%}
+                    font-family: {{ block.settings.bold_font.family }}, {{ block.settings.bold_font.fallback_families }};
+                    font-weight: {{ block.settings.bold_font.weight }};
+                    font-style: {{ block.settings.bold_font.style }};
+                  {%- else -%}
+                    font-weight: 800;
+                  {%- endif -%}
+                }
+
+                #HBHeadingLine-{{ block.id }} em {
+                  color: {{ block.settings.italic_color }};
+                  {%- if block.settings.italic_custom_font -%}
+                    font-family: {{ block.settings.italic_font.family }}, {{ block.settings.italic_font.fallback_families }};
+                    font-weight: {{ block.settings.italic_font.weight }};
+                    font-style: {{ block.settings.italic_font.style }};
+                  {%- endif -%}
+                }
+
+                #HBHeadingLine-{{ block.id }} strong em,
+                #HBHeadingLine-{{ block.id }} em strong {
+                  color: {{ block.settings.italic_color }};
                 }
               </style>
             {%- endif -%}
@@ -1239,10 +1282,11 @@
       "name": "Heading line",
       "settings": [
         {
-          "type": "text",
+          "type": "richtext",
           "id": "text",
           "label": "Text",
-          "default": "NEW"
+          "info": "Bold and italic words use their own color/font below, so you can mix styles on one line.",
+          "default": "<p>NEW</p>"
         },
         {
           "type": "header",
@@ -1315,7 +1359,7 @@
         {
           "type": "select",
           "id": "font_weight",
-          "label": "Weight",
+          "label": "Weight (plain text)",
           "default": "800",
           "options": [
             { "value": "400", "label": "Regular" },
@@ -1330,9 +1374,63 @@
         {
           "type": "checkbox",
           "id": "italic",
-          "label": "Italic",
+          "label": "Italic (whole line)",
           "default": false,
           "visible_if": "{{ block.settings.use_custom_font == false }}"
+        },
+        {
+          "type": "header",
+          "content": "Bold words"
+        },
+        {
+          "type": "paragraph",
+          "content": "Bold a word in the Text field above to give it this color/font."
+        },
+        {
+          "type": "color",
+          "id": "bold_color",
+          "label": "Color",
+          "default": "#eb00ca"
+        },
+        {
+          "type": "checkbox",
+          "id": "bold_custom_font",
+          "label": "Use custom font",
+          "default": false
+        },
+        {
+          "type": "font_picker",
+          "id": "bold_font",
+          "label": "Font",
+          "default": "assistant_n7",
+          "visible_if": "{{ block.settings.bold_custom_font }}"
+        },
+        {
+          "type": "header",
+          "content": "Italic words"
+        },
+        {
+          "type": "paragraph",
+          "content": "Italicize a word in the Text field above to give it this color/font."
+        },
+        {
+          "type": "color",
+          "id": "italic_color",
+          "label": "Color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "checkbox",
+          "id": "italic_custom_font",
+          "label": "Use custom font",
+          "default": false
+        },
+        {
+          "type": "font_picker",
+          "id": "italic_font",
+          "label": "Font",
+          "default": "anton_n4",
+          "visible_if": "{{ block.settings.italic_custom_font }}"
         },
         {
           "type": "header",
@@ -2231,14 +2329,14 @@
         {
           "type": "heading_line",
           "settings": {
-            "text": "NEW",
+            "text": "<p>NEW</p>",
             "color": "#ffffff"
           }
         },
         {
           "type": "heading_line",
           "settings": {
-            "text": "ARRIVALS",
+            "text": "<p>ARRIVALS</p>",
             "color": "#eb00ca",
             "font_size_desktop": 96,
             "font_size_mobile": 50
