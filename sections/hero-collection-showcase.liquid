@@ -72,12 +72,15 @@
         section.settings.background_video
         | video_tag:
           poster: nil,
-          autoplay: true,
+          autoplay: false,
           loop: true,
           controls: false,
           muted: true,
+          playsinline: true,
+          preload: 'none',
           class: 'hcs__media',
-          data-testid: 'hcs-video'
+          data-testid: 'hcs-video',
+          data-lazy-video: true
       }}
     {%- elsif media_type == 'image' and section.settings.background_image != blank -%}
       {{
@@ -283,6 +286,34 @@
 
 <script>
   (function () {
+    var heroRoot = document.getElementById('HCS-{{ section.id }}');
+    var lazyVideo = heroRoot ? heroRoot.querySelector('[data-lazy-video]') : null;
+
+    if (lazyVideo && !lazyVideo.dataset.lazyBound) {
+      lazyVideo.dataset.lazyBound = 'true';
+
+      var playVideo = function () {
+        lazyVideo.play().catch(function () {});
+      };
+
+      if ('IntersectionObserver' in window) {
+        var videoObserver = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                playVideo();
+                videoObserver.unobserve(lazyVideo);
+              }
+            });
+          },
+          { rootMargin: '600px 0px' }
+        );
+        videoObserver.observe(lazyVideo);
+      } else {
+        playVideo();
+      }
+    }
+
     var track = document.getElementById('HCS-Grid-{{ section.id }}');
     if (!track) return;
     var root = track.closest('#HCS-{{ section.id }}');
