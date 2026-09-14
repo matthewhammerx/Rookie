@@ -229,7 +229,7 @@
                     color: transparent;
                     {% if block.settings.animate_shine %}
                       background-size: 250% 100%;
-                      animation: heroBannerGlossyShine-{{ section.id }} {{ block.settings.shine_speed }}s linear infinite;
+                      animation: heroBannerGlossyShine-{{ section.id }} {{ block.settings.shine_speed }}s ease-in-out infinite alternate;
                     {% endif %}
                   {% else %}
                     color: {{ block.settings.color }};
