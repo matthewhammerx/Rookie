@@ -223,14 +223,20 @@
                 style="
                   font-size: {{ block.settings.font_size_mobile }}px;
                   {% if block.settings.text_style == 'glossy' %}
-                    background: linear-gradient(135deg, #ffffff 0%, {{ block.settings.color }} 45%, color-mix(in srgb, {{ block.settings.color }} 55%, #000000) 100%);
+                    {% if block.settings.animate_shine %}
+                      background-image:
+                        linear-gradient(135deg, #ffffff 0%, {{ block.settings.color }} 45%, color-mix(in srgb, {{ block.settings.color }} 55%, #000000) 100%),
+                        linear-gradient(120deg, transparent 42%, rgba(255, 255, 255, 0.95) 50%, transparent 58%);
+                      background-size: 100% 100%, 250% 100%;
+                      background-repeat: no-repeat, no-repeat;
+                      background-position: 0 0, 250% 0;
+                      animation: heroBannerGlossyShine-{{ section.id }} {{ block.settings.shine_speed }}s ease-in-out infinite;
+                    {% else %}
+                      background: linear-gradient(135deg, #ffffff 0%, {{ block.settings.color }} 45%, color-mix(in srgb, {{ block.settings.color }} 55%, #000000) 100%);
+                    {% endif %}
                     -webkit-background-clip: text;
                     background-clip: text;
                     color: transparent;
-                    {% if block.settings.animate_shine %}
-                      background-size: 250% 100%;
-                      animation: heroBannerGlossyShine-{{ section.id }} {{ block.settings.shine_speed }}s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
-                    {% endif %}
                   {% else %}
                     color: {{ block.settings.color }};
                   {% endif %}
@@ -447,14 +453,15 @@
 
 <style>
   @keyframes heroBannerGlossyShine-{{ section.id }} {
-    0% {
-      background-position: 200% 0;
+    0%,
+    45% {
+      background-position: 0 0, 250% 0;
     }
-    50% {
-      background-position: 15% 0;
+    65% {
+      background-position: 0 0, -250% 0;
     }
     100% {
-      background-position: -200% 0;
+      background-position: 0 0, -250% 0;
     }
   }
 
