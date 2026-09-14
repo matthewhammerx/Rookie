@@ -225,7 +225,8 @@
                 id="HBHeadingLine-{{ block.id }}"
                 class="hero-banner__heading-line{% if block.settings.uppercase %} hero-banner__heading-line--uppercase{% endif %}{% if block.settings.text_style == 'glossy' and block.settings.animate_shine %} hero-banner__heading-line--shine{% endif %}"
                 style="
-                  font-size: {{ block.settings.font_size_mobile }}px;
+                  --hbl-size: {{ block.settings.font_size_mobile }}px;
+                  --hbl-size-desktop: {{ block.settings.font_size_desktop }}px;
                   {% if block.settings.text_style == 'glossy' %}
                     {% if block.settings.animate_shine %}
                       background-image: linear-gradient(
@@ -277,9 +278,13 @@
                   {{ block.settings.italic_font | font_face: font_display: 'swap' }}
                 {%- endif -%}
 
+                #HBHeadingLine-{{ block.id }} {
+                  font-size: var(--hbl-size);
+                }
+
                 @media screen and (min-width: 750px) {
                   #HBHeadingLine-{{ block.id }} {
-                    font-size: {{ block.settings.font_size_desktop }}px;
+                    font-size: var(--hbl-size-desktop);
                   }
                 }
 
