@@ -13,6 +13,10 @@
 
     <span class="social-proof-stats__line">
       {% case section.settings.icon_a %}
+        {% when 'clock' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        {% when 'truck' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="7" width="13" height="9" rx="1.5"/><path d="M14.5 10h3.5l3 3.2V16h-2"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg>
         {% when 'star' %}
           <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>
         {% when 'thumb' %}
@@ -34,6 +38,10 @@
 
     <span class="social-proof-stats__line">
       {% case section.settings.icon_b %}
+        {% when 'clock' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        {% when 'truck' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="7" width="13" height="9" rx="1.5"/><path d="M14.5 10h3.5l3 3.2V16h-2"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg>
         {% when 'star' %}
           <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>
         {% when 'thumb' %}
@@ -49,6 +57,31 @@
       {% endcase %}
       <span class="social-proof-stats__value" data-count-to="{{ section.settings.value_b | escape }}">{{ section.settings.value_b }}</span>
       <span class="social-proof-stats__label">{{ section.settings.label_b }}</span>
+    </span>
+
+    <span class="social-proof-stats__divider" aria-hidden="true"></span>
+
+    <span class="social-proof-stats__line">
+      {% case section.settings.icon_c %}
+        {% when 'clock' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        {% when 'truck' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="7" width="13" height="9" rx="1.5"/><path d="M14.5 10h3.5l3 3.2V16h-2"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg>
+        {% when 'star' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>
+        {% when 'thumb' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3Zm0 0l4.5-7.5a1.8 1.8 0 0 1 3.3 1.3L13.8 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H10a3 3 0 0 1-3-3v-6Z"/></svg>
+        {% when 'camera' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="4"/><path d="M8 6.5l1.3-2h5.4l1.3 2"/></svg>
+        {% when 'people' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M2.5 20c0-3.3 2.7-5.7 6-5.7s6 2.4 6 5.7M15 20c0-2.4 1.7-4.4 4-4.9"/></svg>
+        {% when 'heart' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-10-9.3C.4 8 1.8 4.5 5.2 3.6c2-.5 4 .3 5.3 2 .4.5.9 1.2 1.5 2 .6-.8 1.1-1.5 1.5-2 1.3-1.7 3.3-2.5 5.3-2 3.4.9 4.8 4.4 3.2 7.6-2.5 4.7-10 9.3-10 9.3Z"/></svg>
+        {% when 'globe' %}
+          <svg class="social-proof-stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18"/></svg>
+      {% endcase %}
+      <span class="social-proof-stats__value" data-count-to="{{ section.settings.value_c | escape }}">{{ section.settings.value_c }}</span>
+      <span class="social-proof-stats__label">{{ section.settings.label_c }}</span>
     </span>
   </{{ card_tag }}>
 </div>
@@ -179,13 +212,20 @@
 
     function animateCounter(el) {
       var raw = el.dataset.countTo || '';
-      var match = raw.match(/^([\d,.]+)(.*)$/);
-      if (!match) return;
+      var match = raw.match(/(\d[\d,.]*)/);
+      if (!match) {
+        el.textContent = raw;
+        return;
+      }
 
       var numberPart = match[1].replace(/,/g, '');
-      var suffix = match[2];
+      var prefix = raw.slice(0, match.index);
+      var suffix = raw.slice(match.index + match[1].length);
       var target = parseFloat(numberPart);
-      if (isNaN(target)) return;
+      if (isNaN(target)) {
+        el.textContent = raw;
+        return;
+      }
 
       var decimals = numberPart.indexOf('.') > -1 ? numberPart.split('.')[1].length : 0;
       var start = null;
@@ -195,7 +235,7 @@
         var progress = Math.min((timestamp - start) / duration, 1);
         var eased = easeOutQuad(progress);
         var current = (target * eased).toFixed(decimals);
-        el.textContent = current + suffix;
+        el.textContent = prefix + current + suffix;
         if (progress < 1) {
           requestAnimationFrame(frame);
         } else {
@@ -280,6 +320,8 @@
         { "value": "camera", "label": "Camera" },
         { "value": "people", "label": "People" },
         { "value": "globe", "label": "Globe" },
+        { "value": "clock", "label": "Clock" },
+        { "value": "truck", "label": "Truck" },
         { "value": "none", "label": "None" }
       ],
       "default": "heart"
@@ -311,6 +353,8 @@
         { "value": "thumb", "label": "Thumbs up" },
         { "value": "camera", "label": "Camera" },
         { "value": "people", "label": "People" },
+        { "value": "clock", "label": "Clock" },
+        { "value": "truck", "label": "Truck" },
         { "value": "none", "label": "None" }
       ],
       "default": "globe"
@@ -326,6 +370,39 @@
       "id": "label_b",
       "label": "Label",
       "default": "Shipped to countries"
+    },
+    {
+      "type": "header",
+      "content": "Stat 3"
+    },
+    {
+      "type": "select",
+      "id": "icon_c",
+      "label": "Icon",
+      "options": [
+        { "value": "clock", "label": "Clock" },
+        { "value": "truck", "label": "Truck" },
+        { "value": "star", "label": "Star" },
+        { "value": "heart", "label": "Heart" },
+        { "value": "thumb", "label": "Thumbs up" },
+        { "value": "camera", "label": "Camera" },
+        { "value": "people", "label": "People" },
+        { "value": "globe", "label": "Globe" },
+        { "value": "none", "label": "None" }
+      ],
+      "default": "clock"
+    },
+    {
+      "type": "text",
+      "id": "value_c",
+      "label": "Value",
+      "default": "<12H"
+    },
+    {
+      "type": "text",
+      "id": "label_c",
+      "label": "Label",
+      "default": "Express shipping"
     },
     {
       "type": "range",

@@ -2551,6 +2551,9 @@
         "icon_b": "globe",
         "value_b": "XX+",
         "label_b": "Shipped to countries",
+        "icon_c": "clock",
+        "value_c": "<12H",
+        "label_c": "Express shipping",
         "padding_top": 40,
         "padding_bottom": 40
       }
