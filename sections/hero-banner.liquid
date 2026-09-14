@@ -229,7 +229,7 @@
                     color: transparent;
                     {% if block.settings.animate_shine %}
                       background-size: 250% 100%;
-                      animation: heroBannerGlossyShine-{{ section.id }} {{ block.settings.shine_speed }}s ease-in-out infinite alternate;
+                      animation: heroBannerGlossyShine-{{ section.id }} {{ block.settings.shine_speed }}s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
                     {% endif %}
                   {% else %}
                     color: {{ block.settings.color }};
@@ -447,10 +447,13 @@
 
 <style>
   @keyframes heroBannerGlossyShine-{{ section.id }} {
-    from {
+    0% {
       background-position: 200% 0;
     }
-    to {
+    50% {
+      background-position: 15% 0;
+    }
+    100% {
       background-position: -200% 0;
     }
   }
