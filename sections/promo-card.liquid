@@ -144,12 +144,10 @@
     }
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .promo-card-{{ section.id }} .promo-card__card:hover {
-      transform: translateY(-4px) scale(1.015);
-      border-color: var(--pc-accent-border);
-      box-shadow: 0 28px 70px -28px rgba(0, 0, 0, 0.8), 0 0 60px -14px var(--pc-accent-border);
-    }
+  .promo-card-{{ section.id }} .promo-card__card:hover {
+    transform: translateY(-4px) scale(1.015);
+    border-color: var(--pc-accent-border);
+    box-shadow: 0 28px 70px -28px rgba(0, 0, 0, 0.8), 0 0 60px -14px var(--pc-accent-border);
   }
 
   .promo-card-{{ section.id }} .promo-card__media {
