@@ -5,9 +5,20 @@
   <div class="glow-marquee__ambient" aria-hidden="true"></div>
 
   <div class="glow-marquee__viewport">
-    <div class="glow-marquee__track" style="animation-duration: {{ section.settings.speed }}s;">
+    <div
+      class="glow-marquee__track"
+      data-marquee-track
+      data-marquee-duration="{{ section.settings.speed }}"
+      style="animation-duration: {{ section.settings.speed }}s;"
+    >
       {% for i in (1..2) %}
-        <div class="glow-marquee__set" aria-hidden="{% if i == 2 %}true{% else %}false{% endif %}">
+        <div
+          class="glow-marquee__set"
+          {% if i == 1 %}
+            data-marquee-set
+          {% endif %}
+          aria-hidden="{% if i == 2 %}true{% else %}false{% endif %}"
+        >
           {% for block in section.blocks %}
             <span class="glow-marquee__item">
               {% if block.settings.text != blank %}
@@ -97,7 +108,7 @@
       transform: translateX(0);
     }
     to {
-      transform: translateX(-50%);
+      transform: translateX(var(--marquee-distance, -50%));
     }
   }
 
@@ -111,6 +122,65 @@
     }
   }
 </style>
+
+<script>
+  (function () {
+    var sectionRoot = document.querySelector('.glow-marquee-{{ section.id }}');
+    if (!sectionRoot) return;
+
+    var track = sectionRoot.querySelector('[data-marquee-track]');
+    if (!track || track.dataset.marqueeBound) return;
+    track.dataset.marqueeBound = 'true';
+
+    var originalSet = track.querySelector('[data-marquee-set]');
+    if (!originalSet) return;
+
+    var resizeTimer = null;
+
+    function rebuild() {
+      // Drop every clone except the original set and its single aria-hidden twin.
+      var sets = track.querySelectorAll('.glow-marquee__set');
+      for (var i = 2; i < sets.length; i++) {
+        sets[i].remove();
+      }
+
+      var setWidth = originalSet.getBoundingClientRect().width;
+      if (!setWidth) return;
+
+      var viewportWidth = track.parentElement.getBoundingClientRect().width;
+      var totalWidth = setWidth * track.querySelectorAll('.glow-marquee__set').length;
+
+      while (totalWidth < viewportWidth * 2) {
+        var clone = originalSet.cloneNode(true);
+        clone.removeAttribute('data-marquee-set');
+        clone.setAttribute('aria-hidden', 'true');
+        track.appendChild(clone);
+        totalWidth += setWidth;
+      }
+
+      track.style.setProperty('--marquee-distance', -setWidth + 'px');
+    }
+
+    rebuild();
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(rebuild);
+    }
+
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(rebuild, 200);
+    });
+
+    document.addEventListener('shopify:section:load', function (e) {
+      if (e.detail.sectionId === '{{ section.id }}') {
+        track.dataset.marqueeBound = '';
+        rebuild();
+        track.dataset.marqueeBound = 'true';
+      }
+    });
+  })();
+</script>
 
 {% schema %}
 {
