@@ -34,15 +34,22 @@
     --pc-height: {{ section.settings.card_height }}px;
     --pc-height-mobile: {{ section.settings.card_height_mobile }}px;
     --pc-overlay-opacity: {{ overlay_opacity_decimal }};
+    --pc-section-glow-color: {{ section.settings.section_glow_color }};
+    --pc-section-glow-size: {{ section.settings.section_glow_size }}px;
+    --pc-section-glow-speed: {{ section.settings.section_glow_speed }}s;
     padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
   "
 >
-  <a
-    {% if section.settings.link != blank %}href="{{ section.settings.link }}"{% else %}href="javascript:void(0);"{% endif %}
-    {% if section.settings.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}
-    class="promo-card__card{% if section.settings.enable_spotlight %} promo-card__card--spotlight{% endif %}"
-    aria-label="{{ section.settings.heading_text }}"
-  >
+  <div class="promo-card__glow-wrapper">
+    {%- if section.settings.enable_section_glow -%}
+      <div class="promo-card__section-glow" aria-hidden="true"></div>
+    {%- endif -%}
+    <a
+      {% if section.settings.link != blank %}href="{{ section.settings.link }}"{% else %}href="javascript:void(0);"{% endif %}
+      {% if section.settings.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}
+      class="promo-card__card{% if section.settings.enable_spotlight %} promo-card__card--spotlight{% endif %}"
+      aria-label="{{ section.settings.heading_text }}"
+    >
     {%- if section.settings.background_image != blank -%}
       <div class="promo-card__media" aria-hidden="true">
         {{
@@ -128,12 +135,45 @@
         </span>
       {%- endif -%}
     </div>
-  </a>
+    </a>
+  </div>
 </div>
 
 <style>
+  .promo-card-{{ section.id }} .promo-card__glow-wrapper {
+    position: relative;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__section-glow {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: var(--pc-radius);
+    pointer-events: none;
+    animation: promoCardSectionGlow-{{ section.id }} var(--pc-section-glow-speed) ease-in-out infinite;
+  }
+
+  @keyframes promoCardSectionGlow-{{ section.id }} {
+    0%,
+    100% {
+      box-shadow: 0 0 var(--pc-section-glow-size) 0 color-mix(in srgb, var(--pc-section-glow-color) 30%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 calc(var(--pc-section-glow-size) * 1.7) calc(var(--pc-section-glow-size) * 0.25)
+        color-mix(in srgb, var(--pc-section-glow-color) 65%, transparent);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .promo-card-{{ section.id }} .promo-card__section-glow {
+      animation: none;
+      box-shadow: 0 0 var(--pc-section-glow-size) 0 color-mix(in srgb, var(--pc-section-glow-color) 45%, transparent);
+    }
+  }
+
   .promo-card-{{ section.id }} .promo-card__card {
     position: relative;
+    z-index: 1;
     display: block;
     isolation: isolate;
     overflow: hidden;
@@ -664,6 +704,42 @@
       "step": 5,
       "unit": "%",
       "default": 35
+    },
+    {
+      "type": "header",
+      "content": "Section glow"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_section_glow",
+      "label": "Enable pulsing glow around the section",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "section_glow_color",
+      "label": "Glow color",
+      "default": "#eb00ca"
+    },
+    {
+      "type": "range",
+      "id": "section_glow_size",
+      "label": "Glow size",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "section_glow_speed",
+      "label": "Pulse speed",
+      "min": 1,
+      "max": 6,
+      "step": 0.5,
+      "unit": "s",
+      "default": 2.5
     },
     {
       "type": "header",
