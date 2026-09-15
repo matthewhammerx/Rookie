@@ -3,9 +3,11 @@
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
 <div class="section section--page-width color-{{ section.settings.color_scheme }}">
   <div
-    class="spacing-style search-page__header"
+    class="spacing-style search-page__header search-page__header-{{ section.id }}"
     style="
       --horizontal-alignment: {{ section.settings.alignment }};
+      --search-heading-size-mobile: {{ section.settings.heading_size_mobile }}px;
+      --search-heading-size-desktop: {{ section.settings.heading_size }}px;
       {% render 'spacing-style', settings: section.settings %}
     "
   >
@@ -23,6 +25,54 @@
     {% content_for 'block', id: 'search', type: '_search-input' %}
   </div>
 </div>
+
+<style>
+  .search-page__header-{{ section.id }} h3 {
+    font-size: var(--search-heading-size-mobile);
+  }
+
+  @media screen and (min-width: 750px) {
+    .search-page__header-{{ section.id }} h3 {
+      font-size: var(--search-heading-size-desktop);
+    }
+  }
+
+  .search-page__header-{{ section.id }} search-page-input-component {
+    background: linear-gradient(165deg, rgba(40, 20, 34, 0.85), rgba(20, 10, 18, 0.75));
+    border: 1px solid rgba(235, 0, 202, 0.4);
+    border-radius: 999px;
+    box-shadow: 0 0 24px -6px rgba(235, 0, 202, 0.5);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+
+  .search-page__header-{{ section.id }} search-page-input-component:focus-within {
+    border-color: rgba(235, 0, 202, 0.85);
+    box-shadow: 0 0 28px -4px rgba(235, 0, 202, 0.75);
+  }
+
+  .search-page__header-{{ section.id }} .search-page-input {
+    background: transparent;
+    border: none;
+    border-radius: 999px;
+    color: #ffffff;
+  }
+
+  .search-page__header-{{ section.id }} .search-page-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .search-page__header-{{ section.id }} .search__icon svg {
+    color: #eb00ca;
+  }
+
+  .search-page__header-{{ section.id }} .search__reset-button {
+    color: #eb00ca;
+  }
+
+  .search-page__header-{{ section.id }} .search__reset-button:hover {
+    color: #ffffff;
+  }
+</style>
 
 {% schema %}
 {
@@ -53,6 +103,30 @@
       "id": "color_scheme",
       "label": "t:settings.color_scheme",
       "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Heading size"
+    },
+    {
+      "type": "range",
+      "id": "heading_size_mobile",
+      "label": "Heading size (mobile)",
+      "min": 16,
+      "max": 64,
+      "step": 1,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size (desktop)",
+      "min": 20,
+      "max": 96,
+      "step": 1,
+      "unit": "px",
+      "default": 40
     },
     {
       "type": "header",
