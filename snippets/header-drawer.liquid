@@ -1488,4 +1488,34 @@
 .menu-drawer-container[open] .menu-drawer__backdrop {
   z-index: 999999 !important;
 }
+
+/*
+  Force the dark/pink brand look here too, regardless of the drawer's
+  own "color scheme" setting, matching the frosted-glass dark look
+  used by the nav dropdowns and the search modal.
+*/
+.menu-drawer {
+  --color-background: rgb(10 10 12 / 1) !important;
+  --color-background-rgb: 10 10 12 !important;
+  --color-foreground: rgb(255 255 255 / 1) !important;
+  --color-foreground-rgb: 255 255 255 !important;
+  --color-border: rgb(255 255 255 / 0.14) !important;
+  --color-border-rgb: 255 255 255 !important;
+  --color-primary: rgb(255 47 177 / 1) !important;
+  --color-primary-rgb: 255 47 177 !important;
+  --color-primary-hover: rgb(235 0 202 / 1) !important;
+  --color-primary-hover-rgb: 235 0 202 !important;
+  background: rgba(8, 8, 11, 0.94) !important;
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+
+  @media screen and (min-width: 750px) {
+    border-radius: 0 22px 22px 0;
+  }
+}
+
+.menu-drawer .mobile-sell-btn:hover {
+  border-color: rgba(255, 47, 177, 0.4);
+}
 {% endstylesheet %}
