@@ -182,15 +182,6 @@
   {% endfor %}
 </ul>
 
-{% if menu_content_type == 'collection_images' and parent_link.url != blank %}
-  <a href="{{ parent_link.url }}" class="mega-menu__shop-all">
-    Shop All Products
-    <span class="mega-menu__shop-all-arrow" aria-hidden="true">
-      {%- render 'icon', icon: 'arrow' -%}
-    </span>
-  </a>
-{% endif %}
-
 {% liquid
   # decide how many grid columns are needed for the menu list, and how many columns are needed for the featured content
   # prioritize a minimum of 1 featured_collection (2 columns), and minimum 2 featured_products (2 columns)
