@@ -536,6 +536,20 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 26px !important;
     box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+  }
+
+  /*
+    predictive-search-component and its inner panels paint their own
+    solid --color-background on top of everything, which was hiding
+    the blurred glass panel above. Make the whole chain transparent
+    so the dialog's own frosted background shows through.
+  */
+  .search-modal predictive-search-component,
+  .search-modal .predictive-search-form__content,
+  .search-modal .predictive-search-form__content-wrapper {
+    background: transparent !important;
+    background-color: transparent !important;
   }
 
   .search-modal__content::backdrop {
