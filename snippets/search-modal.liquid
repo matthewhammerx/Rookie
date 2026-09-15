@@ -508,4 +508,41 @@
     --button-color: var(--color-foreground);
     --button-background-color: transparent;
   }
+
+  /*
+    Force the site's dark/pink brand look here regardless of the
+    theme-wide "popover color scheme" setting, matching the dark
+    frosted-glass look used by the nav dropdowns.
+  */
+  .search-modal predictive-search-component {
+    --color-background: rgb(10 10 12 / 1);
+    --color-background-rgb: 10 10 12;
+    --color-foreground: rgb(255 255 255 / 1);
+    --color-foreground-rgb: 255 255 255;
+    --color-border: rgb(255 255 255 / 0.12);
+    --color-border-rgb: 255 255 255;
+    --color-primary: rgb(255 47 177 / 1);
+    --color-primary-rgb: 255 47 177;
+    --color-primary-hover: rgb(235 0 202 / 1);
+    --color-primary-hover-rgb: 235 0 202;
+  }
+
+  .search-modal__content {
+    background: rgba(8, 8, 11, 0.92);
+    backdrop-filter: blur(28px) saturate(150%);
+    -webkit-backdrop-filter: blur(28px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .search-modal__content::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .search-modal .predictive-search-form__header-inner {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .search-modal .predictive-search__close-modal-button:hover {
+    color: #ff2fb1;
+  }
 {% endstylesheet %}
