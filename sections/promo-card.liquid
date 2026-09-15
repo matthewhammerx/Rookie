@@ -48,6 +48,10 @@
     --pc-heading-image-width-mobile: {{ section.settings.heading_image_width_mobile }}px;
     --pc-content-align: {{ content_align_items }};
     --pc-text-align: {{ section.settings.content_alignment }};
+    --pc-content-offset-x: {{ section.settings.content_offset_x }}px;
+    --pc-content-offset-x-mobile: {{ section.settings.content_offset_x_mobile }}px;
+    --pc-content-offset-y: {{ section.settings.content_offset_y }}px;
+    --pc-content-offset-y-mobile: {{ section.settings.content_offset_y_mobile }}px;
     padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
   "
 >
@@ -300,6 +304,7 @@
     height: 100%;
     gap: 10px;
     padding: 32px 26px;
+    transform: translate(var(--pc-content-offset-x-mobile), var(--pc-content-offset-y-mobile));
   }
 
   .promo-card-{{ section.id }} .promo-card__content > * {
@@ -310,6 +315,7 @@
     .promo-card-{{ section.id }} .promo-card__content {
       padding: 48px 56px;
       max-width: 640px;
+      transform: translate(var(--pc-content-offset-x), var(--pc-content-offset-y));
     }
   }
 
@@ -630,6 +636,50 @@
         }
       ],
       "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Content position nudge"
+    },
+    {
+      "type": "range",
+      "id": "content_offset_x",
+      "label": "Horizontal nudge (desktop)",
+      "min": -300,
+      "max": 300,
+      "step": 10,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "content_offset_x_mobile",
+      "label": "Horizontal nudge (mobile)",
+      "min": -150,
+      "max": 150,
+      "step": 5,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "content_offset_y",
+      "label": "Vertical nudge (desktop)",
+      "min": -150,
+      "max": 150,
+      "step": 10,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "content_offset_y_mobile",
+      "label": "Vertical nudge (mobile)",
+      "min": -100,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 0
     },
     {
       "type": "text",
