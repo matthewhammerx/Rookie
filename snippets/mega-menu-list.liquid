@@ -109,7 +109,7 @@
     <div>
       <a
         href="{{ link.url }}"
-        class="mega-menu__link {% if link.links != blank %}mega-menu__link--parent{% endif %}{% if menu_content_type == 'collection_images' %} mega-menu__link--row{% endif %}"
+        class="mega-menu__link {% if link.links != blank %}mega-menu__link--parent{% endif %}"
       >
         {% if menu_content_type == 'collection_images' %}
           {%- capture collection_image_sizes -%}

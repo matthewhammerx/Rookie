@@ -634,46 +634,6 @@
       flex: 0 0 190px;
     }
 
-    /*
-      Seed-style product list: rows of small thumbnail + name stacked
-      in a single column, instead of the wrapped grid of square tiles
-      above. Only kicks in for menus using the collection-images style
-      (the ones that actually have a .mega-menu__link--row inside).
-    */
-    .menu-list__list-item:not([slot='overflow']) .mega-menu__list:has(.mega-menu__link--row) {
-      flex-wrap: nowrap;
-      flex-direction: column;
-      justify-content: flex-start;
-      gap: 2px;
-      width: 280px;
-    }
-
-    .menu-list__list-item:not([slot='overflow']) .mega-menu__list:has(.mega-menu__link--row) .mega-menu__column {
-      flex: 0 0 auto;
-      width: 100%;
-    }
-  }
-
-  .mega-menu__link--row {
-    display: flex !important;
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-  }
-
-  .mega-menu__link--row .mega-menu__link-image {
-    width: 44px;
-    height: 44px;
-    aspect-ratio: 1 / 1;
-    flex-shrink: 0;
-    margin-bottom: 0;
-    border-radius: 10px;
-  }
-
-  .mega-menu__link--row .wrap-text {
-    font-size: 14px;
-    font-weight: 600;
   }
 
   .mega-menu__column {
