@@ -37,6 +37,8 @@
     --pc-section-glow-color: {{ section.settings.section_glow_color }};
     --pc-section-glow-size: {{ section.settings.section_glow_size }}px;
     --pc-section-glow-speed: {{ section.settings.section_glow_speed }}s;
+    --pc-heading-image-width: {{ section.settings.heading_image_width }}px;
+    --pc-heading-image-width-mobile: {{ section.settings.heading_image_width_mobile }}px;
     padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
   "
 >
@@ -72,7 +74,17 @@
         <span class="promo-card__eyebrow">{{ section.settings.eyebrow_text }}</span>
       {%- endif -%}
 
-      {%- if section.settings.heading_text != blank -%}
+      {%- if section.settings.heading_image != blank -%}
+        {{
+          section.settings.heading_image
+          | image_url: width: 1200
+          | image_tag:
+            widths: '300, 500, 800, 1200',
+            alt: section.settings.heading_text,
+            class: 'promo-card__heading-image',
+            loading: 'lazy'
+        }}
+      {%- elsif section.settings.heading_text != blank -%}
         <h2 class="promo-card__heading">{{ section.settings.heading_text }}</h2>
       {%- endif -%}
 
@@ -281,6 +293,19 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+
+  .promo-card-{{ section.id }} .promo-card__heading-image {
+    display: block;
+    width: 100%;
+    max-width: var(--pc-heading-image-width-mobile);
+    height: auto;
+  }
+
+  @media screen and (min-width: 750px) {
+    .promo-card-{{ section.id }} .promo-card__heading-image {
+      max-width: var(--pc-heading-image-width);
+    }
   }
 
   .promo-card-{{ section.id }} .promo-card__subheading {
@@ -552,6 +577,34 @@
       "id": "heading_text",
       "label": "Heading",
       "default": "MYSTERY BAGS"
+    },
+    {
+      "type": "image_picker",
+      "id": "heading_image",
+      "label": "Heading image (optional)",
+      "info": "Replaces the text heading above with an image (e.g. a stylized logo)."
+    },
+    {
+      "type": "range",
+      "id": "heading_image_width",
+      "label": "Heading image width (desktop)",
+      "min": 80,
+      "max": 600,
+      "step": 10,
+      "unit": "px",
+      "default": 320,
+      "visible_if": "{{ section.settings.heading_image != blank }}"
+    },
+    {
+      "type": "range",
+      "id": "heading_image_width_mobile",
+      "label": "Heading image width (mobile)",
+      "min": 60,
+      "max": 400,
+      "step": 10,
+      "unit": "px",
+      "default": 220,
+      "visible_if": "{{ section.settings.heading_image != blank }}"
     },
     {
       "type": "textarea",
