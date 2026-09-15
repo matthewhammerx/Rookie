@@ -11,6 +11,9 @@
   assign glow_alpha = section.settings.glow_strength | times: 1.0 | divided_by: 100
   assign glow_rgba = accent | color_modify: 'alpha', glow_alpha
   assign border_rgba = accent | color_modify: 'alpha', 0.55
+  assign eyebrow_border_rgba = section.settings.eyebrow_color | color_modify: 'alpha', 0.55
+  assign subheading_alpha = section.settings.subheading_opacity | times: 1.0 | divided_by: 100
+  assign subheading_rgba = section.settings.subheading_color | color_modify: 'alpha', subheading_alpha
 -%}
 
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
@@ -22,6 +25,11 @@
     --pc-glow-color: {{ glow_rgba }};
     --pc-glow-size: {{ section.settings.glow_size }}px;
     --pc-heading-color: {{ section.settings.heading_color }};
+    --pc-eyebrow-color: {{ section.settings.eyebrow_color }};
+    --pc-eyebrow-border: {{ eyebrow_border_rgba }};
+    --pc-subheading-color: {{ subheading_rgba }};
+    --pc-cta-bg: {{ section.settings.cta_bg_color }};
+    --pc-cta-text: {{ section.settings.cta_text_color }};
     --pc-radius: {{ section.settings.corner_radius }}px;
     --pc-height: {{ section.settings.card_height }}px;
     --pc-height-mobile: {{ section.settings.card_height_mobile }}px;
@@ -213,9 +221,9 @@
     align-items: center;
     padding: 5px 14px;
     border-radius: 999px;
-    border: 1px solid var(--pc-accent-border);
-    background: color-mix(in srgb, var(--pc-accent) 16%, transparent);
-    color: var(--pc-accent);
+    border: 1px solid var(--pc-eyebrow-border);
+    background: color-mix(in srgb, var(--pc-eyebrow-color) 16%, transparent);
+    color: var(--pc-eyebrow-color);
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -238,7 +246,7 @@
   .promo-card-{{ section.id }} .promo-card__subheading {
     margin: 0;
     max-width: 46ch;
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--pc-subheading-color);
     font-size: 0.98rem;
     line-height: 1.55;
   }
@@ -337,8 +345,8 @@
     gap: 8px;
     padding: 12px 22px;
     border-radius: 999px;
-    background: var(--pc-accent);
-    color: #fff;
+    background: var(--pc-cta-bg);
+    color: var(--pc-cta-text);
     font-weight: 700;
     font-size: 0.9rem;
     letter-spacing: 0.02em;
@@ -561,6 +569,40 @@
       "type": "color",
       "id": "heading_color",
       "label": "Heading base color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "eyebrow_color",
+      "label": "Eyebrow color",
+      "default": "#eb00ca"
+    },
+    {
+      "type": "color",
+      "id": "subheading_color",
+      "label": "Subheading color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "subheading_opacity",
+      "label": "Subheading opacity",
+      "min": 20,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 75
+    },
+    {
+      "type": "color",
+      "id": "cta_bg_color",
+      "label": "Button background color",
+      "default": "#eb00ca"
+    },
+    {
+      "type": "color",
+      "id": "cta_text_color",
+      "label": "Button text color",
       "default": "#ffffff"
     },
     {
