@@ -109,7 +109,7 @@
     <div>
       <a
         href="{{ link.url }}"
-        class="mega-menu__link {% if link.links != blank %}mega-menu__link--parent{% endif %}"
+        class="mega-menu__link {% if link.links != blank %}mega-menu__link--parent{% endif %}{% if menu_content_type == 'collection_images' %} mega-menu__link--row{% endif %}"
       >
         {% if menu_content_type == 'collection_images' %}
           {%- capture collection_image_sizes -%}
@@ -181,6 +181,15 @@
     %}
   {% endfor %}
 </ul>
+
+{% if menu_content_type == 'collection_images' and parent_link.url != blank %}
+  <a href="{{ parent_link.url }}" class="mega-menu__shop-all">
+    Shop All Products
+    <span class="mega-menu__shop-all-arrow" aria-hidden="true">
+      {%- render 'icon', icon: 'arrow' -%}
+    </span>
+  </a>
+{% endif %}
 
 {% liquid
   # decide how many grid columns are needed for the menu list, and how many columns are needed for the featured content
