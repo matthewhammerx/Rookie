@@ -630,9 +630,11 @@
     }
   }
 
-  .hcs__card:hover {
-    transform: translateY(-4px) scale(1.035);
-    z-index: 5;
+  @media (hover: hover) and (pointer: fine) {
+    .hcs__card:hover {
+      transform: translateY(-4px) scale(1.035);
+      z-index: 5;
+    }
   }
 
   .hcs__card-badge {
