@@ -133,7 +133,7 @@
 {% stylesheet %}
   /* Search modal style */
   .search-modal {
-    --search-border-radius: var(--style-border-radius-popover);
+    --search-border-radius: 26px;
     --search-border-width: var(--style-border-width);
   }
 
@@ -525,24 +525,55 @@
     --color-primary-rgb: 255 47 177;
     --color-primary-hover: rgb(235 0 202 / 1);
     --color-primary-hover-rgb: 235 0 202;
+    --resource-card-corner-radius: 18px;
+    --card-corner-radius: 18px;
   }
 
   .search-modal__content {
-    background: rgba(8, 8, 11, 0.92);
-    backdrop-filter: blur(28px) saturate(150%);
-    -webkit-backdrop-filter: blur(28px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(10, 10, 13, 0.72);
+    backdrop-filter: blur(44px) saturate(160%);
+    -webkit-backdrop-filter: blur(44px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 26px !important;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
   }
 
   .search-modal__content::backdrop {
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .search-modal .predictive-search-form__header {
+    background: transparent;
+    border: none;
+    padding: 20px 20px 8px;
   }
 
   .search-modal .predictive-search-form__header-inner {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+  }
+
+  .search-modal input.search-input {
+    padding-block: 14px;
+  }
+
+  .search-modal .predictive-search-form__content {
+    background: transparent;
+    padding-inline: 12px;
+  }
+
+  .search-modal .predictive-search-form__content-wrapper {
+    background: transparent;
   }
 
   .search-modal .predictive-search__close-modal-button:hover {
     color: #ff2fb1;
+  }
+
+  .search-modal .predictive-search__reset-button-icon:hover {
+    background-color: rgba(255, 47, 177, 0.12);
   }
 {% endstylesheet %}
