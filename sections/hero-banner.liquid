@@ -139,12 +139,14 @@
             section.settings.background_video
             | video_tag:
               image_size: '2600x',
-              autoplay: true,
+              autoplay: false,
               loop: section.settings.video_loop,
               muted: true,
               playsinline: true,
               controls: false,
-              class: 'hero-banner__video'
+              preload: 'none',
+              class: 'hero-banner__video',
+              data-lazy-video: true
           }}
         {%- endif -%}
       {%- when 'image' -%}
@@ -867,10 +869,38 @@
       });
     }
 
+    function initLazyVideo(root) {
+      var video = root.querySelector('[data-lazy-video]');
+      if (!video || video.dataset.lazyBound) return;
+      video.dataset.lazyBound = 'true';
+
+      var playVideo = function () {
+        video.play().catch(function () {});
+      };
+
+      if ('IntersectionObserver' in window) {
+        var videoObserver = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                playVideo();
+                videoObserver.unobserve(video);
+              }
+            });
+          },
+          { rootMargin: '600px 0px' }
+        );
+        videoObserver.observe(video);
+      } else {
+        playVideo();
+      }
+    }
+
     function init() {
       var root = document.querySelector(rootSelector);
       if (!root) return;
       initCountdown(root);
+      initLazyVideo(root);
     }
 
     init();
