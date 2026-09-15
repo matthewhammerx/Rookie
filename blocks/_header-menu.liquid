@@ -634,6 +634,14 @@
       flex: 0 0 190px;
     }
 
+    /*
+      When a dropdown has exactly 5 tiles, cap the row width to fit only
+      3 across so the last 2 wrap to a centered second row (3 on top,
+      2 on bottom) instead of 4 on top and 1 stranded alone.
+    */
+    .menu-list__list-item:not([slot='overflow']) .mega-menu__list:has(> .mega-menu__column:nth-child(5):last-child) {
+      max-width: 606px;
+    }
   }
 
   .mega-menu__column {
