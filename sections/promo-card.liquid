@@ -14,6 +14,13 @@
   assign eyebrow_border_rgba = section.settings.eyebrow_color | color_modify: 'alpha', 0.55
   assign subheading_alpha = section.settings.subheading_opacity | times: 1.0 | divided_by: 100
   assign subheading_rgba = section.settings.subheading_color | color_modify: 'alpha', subheading_alpha
+
+  assign content_align_items = 'flex-start'
+  if section.settings.content_alignment == 'center'
+    assign content_align_items = 'center'
+  elsif section.settings.content_alignment == 'right'
+    assign content_align_items = 'flex-end'
+  endif
 -%}
 
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
@@ -39,6 +46,8 @@
     --pc-section-glow-speed: {{ section.settings.section_glow_speed }}s;
     --pc-heading-image-width: {{ section.settings.heading_image_width }}px;
     --pc-heading-image-width-mobile: {{ section.settings.heading_image_width_mobile }}px;
+    --pc-content-align: {{ content_align_items }};
+    --pc-text-align: {{ section.settings.content_alignment }};
     padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
   "
 >
@@ -285,16 +294,16 @@
     z-index: 2;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: var(--pc-content-align);
     justify-content: center;
-    text-align: left;
+    text-align: var(--pc-text-align);
     height: 100%;
     gap: 10px;
     padding: 32px 26px;
   }
 
   .promo-card-{{ section.id }} .promo-card__content > * {
-    text-align: left;
+    text-align: var(--pc-text-align);
   }
 
   @media screen and (min-width: 750px) {
@@ -601,6 +610,26 @@
     {
       "type": "header",
       "content": "Content"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Content alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
     },
     {
       "type": "text",
