@@ -552,6 +552,18 @@
     background-color: transparent !important;
   }
 
+  /*
+    Show the whole product image, resized to fit, instead of cropping
+    it to fill the box (same technique as the showcase card gallery).
+  */
+  .search-modal .resource-card__media {
+    background-color: rgba(255, 255, 255, 0.04);
+  }
+
+  .search-modal .resource-card__image {
+    object-fit: contain !important;
+  }
+
   .search-modal__content::backdrop {
     background: rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(6px);
