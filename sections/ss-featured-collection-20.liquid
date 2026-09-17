@@ -1737,14 +1737,10 @@ For inquiries or permissions, contact daniel@section.store
 
 <div
   class="section-{{ section.id }} featured-{{ section.id }}"
-  {% if background_style == 'solid' %}
-    style="background-color: {{ background_color }};"
-  {% elsif background_style == 'video' %}
-    style="background-color: {{ background_color }};"
-  {% endif %}
+  style="background-color: {{ background_color }};"
 >
   {% if background_style == 'video' and background_video != blank %}
-    {{ background_video | video_tag: image_size: '2200x', autoplay: true, loop: video_loop, muted: true, playsinline: true, controls: false, class: video_class }}
+    {{ background_video | video_tag: image_size: '2200x', autoplay: false, loop: video_loop, muted: true, playsinline: true, controls: false, preload: 'none', class: video_class, data-lazy-video: true }}
   {% elsif background_style == 'image' and background_image != blank %}
     <div class="{{ bg_layer_class }}" style="background-image: url('{{ background_image | image_url: width: 2200 }}');"></div>
   {% elsif background_style == 'gradient' %}
@@ -2147,6 +2143,54 @@ For inquiries or permissions, contact daniel@section.store
   {% endif %}
 {% endfor %}
 
+{% if background_style == 'video' and background_video != blank %}
+  <script>
+    (function () {
+      function initLazyVideo_{{ section.id }}() {
+        var video = document.querySelector('.section-{{ section.id }} [data-lazy-video]');
+        if (!video || video.dataset.lazyBound === 'true') return;
+        video.dataset.lazyBound = 'true';
+
+        var playVideo = function () {
+          video.play().catch(function () {});
+        };
+
+        if ('IntersectionObserver' in window) {
+          var observer = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                  playVideo();
+                  observer.unobserve(video);
+                }
+              });
+            },
+            { rootMargin: '600px 0px' }
+          );
+          observer.observe(video);
+        } else {
+          playVideo();
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLazyVideo_{{ section.id }});
+      } else {
+        initLazyVideo_{{ section.id }}();
+      }
+
+      if (window.Shopify && Shopify.designMode) {
+        document.addEventListener('shopify:section:load', function (event) {
+          if (event.detail.sectionId === '{{ section.id }}') {
+            var video = document.querySelector('.section-{{ section.id }} [data-lazy-video]');
+            if (video) video.dataset.lazyBound = '';
+            initLazyVideo_{{ section.id }}();
+          }
+        });
+      }
+    })();
+  </script>
+{% endif %}
 
 {% schema %}
   {
