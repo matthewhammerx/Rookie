@@ -192,53 +192,43 @@
     }
   }
 
-  /*
-    A soft round light that travels around the card. A radial-gradient
-    fades outward in every direction on its own -- no filter/blur, so
-    nothing for border-radius to clip incorrectly, and no "flat line"
-    look like a conic-gradient (which only varies by angle, not
-    distance) would give.
-  */
+  @property --pc-glow-angle-{{ section.id }} {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+
   .promo-card-{{ section.id }} .promo-card__section-glow--orbit {
-    inset: calc(var(--pc-section-glow-size) * -0.9);
-    background-image: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--pc-section-glow-color) 90%, transparent) 0%,
-      color-mix(in srgb, var(--pc-section-glow-color) 40%, transparent) 35%,
-      transparent 68%
+    --pc-glow-angle-{{ section.id }}: 0deg;
+    inset: calc(var(--pc-section-glow-size) * -0.5);
+    background: conic-gradient(
+      from var(--pc-glow-angle-{{ section.id }}),
+      transparent 0%,
+      color-mix(in srgb, var(--pc-section-glow-color) 85%, transparent) 8%,
+      transparent 22%
     );
-    background-size: 60% 60%;
-    background-repeat: no-repeat;
+    filter: blur(calc(var(--pc-section-glow-size) * 0.5));
     animation: promoCardSectionGlowOrbit-{{ section.id }} var(--pc-section-glow-speed) linear infinite;
   }
 
+  /*
+    This blur+border-radius pairing is unreliable specifically on
+    mobile Safari (iOS), where the blur can leak past the rounded
+    corners in a square instead of following them. Desktop renders it
+    correctly already, so this only touches mobile widths -- a mask
+    forces Safari to respect the radius, and stays solid white (no
+    fade of its own) so it doesn't cut the glow's own falloff short.
+  */
+  @media screen and (max-width: 749px) {
+    .promo-card-{{ section.id }} .promo-card__section-glow--orbit {
+      -webkit-mask-image: -webkit-radial-gradient(white, white);
+      mask-image: radial-gradient(white, white);
+    }
+  }
+
   @keyframes promoCardSectionGlowOrbit-{{ section.id }} {
-    0% {
-      background-position: 0% 0%;
-    }
-    12.5% {
-      background-position: 50% 0%;
-    }
-    25% {
-      background-position: 100% 0%;
-    }
-    37.5% {
-      background-position: 100% 50%;
-    }
-    50% {
-      background-position: 100% 100%;
-    }
-    62.5% {
-      background-position: 50% 100%;
-    }
-    75% {
-      background-position: 0% 100%;
-    }
-    87.5% {
-      background-position: 0% 50%;
-    }
-    100% {
-      background-position: 0% 0%;
+    to {
+      --pc-glow-angle-{{ section.id }}: 360deg;
     }
   }
 
