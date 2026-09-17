@@ -209,6 +209,12 @@
     );
     filter: blur(calc(var(--pc-section-glow-size) * 0.5));
     animation: promoCardSectionGlowOrbit-{{ section.id }} var(--pc-section-glow-speed) linear infinite;
+    /* Safari (notably iOS) doesn't reliably clip a blurred element to its
+       own border-radius -- the blur leaks out in a square instead of
+       following the rounded corners. Any mask-image forces it to respect
+       the radius properly. */
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
   }
 
   @keyframes promoCardSectionGlowOrbit-{{ section.id }} {
