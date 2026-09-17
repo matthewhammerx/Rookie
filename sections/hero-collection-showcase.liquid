@@ -690,9 +690,11 @@
     transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 
-  .hcs__expand-toggle:hover {
-    background: rgba(255, 47, 177, 0.14);
-    border-color: rgba(255, 47, 177, 0.4);
+  @media (hover: hover) and (pointer: fine) {
+    .hcs__expand-toggle:hover {
+      background: rgba(255, 47, 177, 0.14);
+      border-color: rgba(255, 47, 177, 0.4);
+    }
   }
 
   .hcs__expand-toggle-icon {
