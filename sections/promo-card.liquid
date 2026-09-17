@@ -207,30 +207,54 @@
     }
   }
 
-  @property --pc-glow-angle-{{ section.id }} {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
-  }
-
+  /*
+    A conic-gradient only varies color by angle, never by distance from
+    the card -- the visible sliver peeking out from behind the card was
+    a flat, sharp-edged line with no radial softness at all (not an
+    actual glow). Use a soft round radial-gradient "light" instead,
+    animating its position around the card's perimeter -- radial
+    gradients fade outward on their own, no filter/blur needed, so
+    there's nothing here for border-radius to clip incorrectly.
+  */
   .promo-card-{{ section.id }} .promo-card__section-glow--orbit {
-    --pc-glow-angle-{{ section.id }}: 0deg;
-    inset: calc(var(--pc-section-glow-size) * -0.35);
-    border-radius: calc(var(--pc-radius) + var(--pc-section-glow-size) * 0.35);
-    background: conic-gradient(
-      from var(--pc-glow-angle-{{ section.id }}),
-      transparent 0%,
-      transparent 8%,
-      color-mix(in srgb, var(--pc-section-glow-color) 75%, transparent) 25%,
-      transparent 42%,
-      transparent 100%
+    inset: calc(var(--pc-section-glow-size) * -1.2);
+    background-image: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--pc-section-glow-color) 85%, transparent) 0%,
+      transparent 70%
     );
+    background-size: 55% 55%;
+    background-repeat: no-repeat;
     animation: promoCardSectionGlowOrbit-{{ section.id }} var(--pc-section-glow-speed) linear infinite;
   }
 
   @keyframes promoCardSectionGlowOrbit-{{ section.id }} {
-    to {
-      --pc-glow-angle-{{ section.id }}: 360deg;
+    0% {
+      background-position: 0% 0%;
+    }
+    12.5% {
+      background-position: 50% 0%;
+    }
+    25% {
+      background-position: 100% 0%;
+    }
+    37.5% {
+      background-position: 100% 50%;
+    }
+    50% {
+      background-position: 100% 100%;
+    }
+    62.5% {
+      background-position: 50% 100%;
+    }
+    75% {
+      background-position: 0% 100%;
+    }
+    87.5% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 0% 0%;
     }
   }
 
