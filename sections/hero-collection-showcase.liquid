@@ -35,11 +35,14 @@
   endif
 
   assign hcs_page_size = max_products
+
+  assign quick_add_bg_alpha = section.settings.quick_add_bg_opacity | times: 1.0 | divided_by: 100
+  assign quick_add_bg_rgba = section.settings.quick_add_bg_color | color_modify: 'alpha', quick_add_bg_alpha
 -%}
 
 <div
   id="HCS-{{ section.id }}"
-  class="hcs color-{{ section.settings.color_scheme }}{% if section.settings.show_full_product_name %} hcs--full-title{% endif %}{% if section.settings.enable_pokeball_icon %} hcs--pokeball{% endif %}"
+  class="hcs color-{{ section.settings.color_scheme }}{% if section.settings.show_full_product_name %} hcs--full-title{% endif %}{% if section.settings.enable_pokeball_icon %} hcs--pokeball{% endif %}{% if section.settings.quick_add_custom_bg %} hcs--quick-add-custom-bg{% endif %}"
   style="
     --hcs-bg: {{ section.settings.background_color }};
     --hcs-fade-size: {{ section.settings.fade_size }}%;
@@ -61,6 +64,7 @@
     --hcs-card-blur-amount: {{ section.settings.card_blur_amount }}px;
     --hcs-card-blur-fade: {{ section.settings.card_blur_fade_size }}%;
     --hcs-image-fit: {% if section.settings.image_fit_contain %}contain{% else %}cover{% endif %};
+    --hcs-quick-add-bg: {{ quick_add_bg_rgba }};
     padding-top: {{ section.settings.padding_top }}px;
     padding-bottom: {{ section.settings.padding_bottom }}px;
   "
@@ -851,6 +855,16 @@
     display: flex !important;
   }
 
+  @media screen and (max-width: 749px) {
+    .hcs--quick-add-custom-bg .hcs__quick-add .quick-add__button {
+      background: var(--hcs-quick-add-bg);
+    }
+
+    .hcs--quick-add-custom-bg .hcs__quick-add .quick-add__button .add-to-cart-text {
+      background: transparent;
+    }
+  }
+
   @media screen and (min-width: 750px) {
     .hcs__quick-add .quick-add__button {
       opacity: 0;
@@ -1419,6 +1433,32 @@
       "info": "Replaces the default cart icon with a Pokéball, and shows a pink 'catch' flash instead of a checkmark when added.",
       "default": true,
       "visible_if": "{{ section.settings.enable_quick_add }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "quick_add_custom_bg",
+      "label": "Customize quick add background (mobile)",
+      "info": "Overrides the default white background of the corner button on mobile so you can control its color and transparency.",
+      "default": false,
+      "visible_if": "{{ section.settings.enable_quick_add }}"
+    },
+    {
+      "type": "color",
+      "id": "quick_add_bg_color",
+      "label": "Background color",
+      "default": "#000000",
+      "visible_if": "{{ section.settings.enable_quick_add and section.settings.quick_add_custom_bg }}"
+    },
+    {
+      "type": "range",
+      "id": "quick_add_bg_opacity",
+      "label": "Background opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 35,
+      "visible_if": "{{ section.settings.enable_quick_add and section.settings.quick_add_custom_bg }}"
     },
     {
       "type": "text",
