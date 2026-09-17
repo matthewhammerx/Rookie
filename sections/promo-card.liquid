@@ -57,6 +57,9 @@
 >
   <div class="promo-card__glow-wrapper">
     {%- if section.settings.enable_section_glow -%}
+      {%- if section.settings.section_glow_style == 'orbit' -%}
+        <div class="promo-card__section-glow promo-card__section-glow--ambient" aria-hidden="true"></div>
+      {%- endif -%}
       <div class="promo-card__section-glow promo-card__section-glow--{{ section.settings.section_glow_style }}" aria-hidden="true"></div>
     {%- endif -%}
     <a
@@ -181,6 +184,18 @@
     animation: promoCardSectionGlowPulse-{{ section.id }} var(--pc-section-glow-speed) ease-in-out infinite;
   }
 
+  /*
+    The orbit ring sits outside the card (so its band can peek out from
+    behind it) -- that gap means its own box-shadow starts too far out,
+    leaving a visible dark ring between the card and the glow. This
+    separate layer sits flush with the card (inset: 0, matching the
+    base rule) so its glow bleeds outward starting right at the edge.
+  */
+  .promo-card-{{ section.id }} .promo-card__section-glow--ambient {
+    box-shadow: 0 0 calc(var(--pc-section-glow-size) * 0.7) 0
+      color-mix(in srgb, var(--pc-section-glow-color) 28%, transparent);
+  }
+
   @keyframes promoCardSectionGlowPulse-{{ section.id }} {
     0%,
     100% {
@@ -210,8 +225,6 @@
       transparent 42%,
       transparent 100%
     );
-    box-shadow: 0 0 calc(var(--pc-section-glow-size) * 0.6) calc(var(--pc-section-glow-size) * 0.05)
-      color-mix(in srgb, var(--pc-section-glow-color) 22%, transparent);
     animation: promoCardSectionGlowOrbit-{{ section.id }} var(--pc-section-glow-speed) linear infinite;
   }
 
