@@ -57,7 +57,7 @@
 >
   <div class="promo-card__glow-wrapper">
     {%- if section.settings.enable_section_glow -%}
-      <div class="promo-card__section-glow promo-card__section-glow--pulse" aria-hidden="true"></div>
+      <div class="promo-card__section-glow promo-card__section-glow--{{ section.settings.section_glow_style }}" aria-hidden="true"></div>
     {%- endif -%}
     <a
       {% if section.settings.link != blank %}href="{{ section.settings.link }}"{% else %}href="javascript:void(0);"{% endif %}
@@ -189,6 +189,56 @@
     50% {
       box-shadow: 0 0 calc(var(--pc-section-glow-size) * 1.7) calc(var(--pc-section-glow-size) * 0.25)
         color-mix(in srgb, var(--pc-section-glow-color) 65%, transparent);
+    }
+  }
+
+  /*
+    A soft round light that travels around the card. A radial-gradient
+    fades outward in every direction on its own -- no filter/blur, so
+    nothing for border-radius to clip incorrectly, and no "flat line"
+    look like a conic-gradient (which only varies by angle, not
+    distance) would give.
+  */
+  .promo-card-{{ section.id }} .promo-card__section-glow--orbit {
+    inset: calc(var(--pc-section-glow-size) * -0.9);
+    background-image: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--pc-section-glow-color) 90%, transparent) 0%,
+      color-mix(in srgb, var(--pc-section-glow-color) 40%, transparent) 35%,
+      transparent 68%
+    );
+    background-size: 60% 60%;
+    background-repeat: no-repeat;
+    animation: promoCardSectionGlowOrbit-{{ section.id }} var(--pc-section-glow-speed) linear infinite;
+  }
+
+  @keyframes promoCardSectionGlowOrbit-{{ section.id }} {
+    0% {
+      background-position: 0% 0%;
+    }
+    12.5% {
+      background-position: 50% 0%;
+    }
+    25% {
+      background-position: 100% 0%;
+    }
+    37.5% {
+      background-position: 100% 50%;
+    }
+    50% {
+      background-position: 100% 100%;
+    }
+    62.5% {
+      background-position: 50% 100%;
+    }
+    75% {
+      background-position: 0% 100%;
+    }
+    87.5% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 0% 0%;
     }
   }
 
@@ -855,8 +905,25 @@
     {
       "type": "checkbox",
       "id": "enable_section_glow",
-      "label": "Enable pulsing glow around the section",
+      "label": "Enable animated glow around the section",
       "default": false
+    },
+    {
+      "type": "select",
+      "id": "section_glow_style",
+      "label": "Glow animation",
+      "options": [
+        {
+          "value": "pulse",
+          "label": "Pulse (breathes in and out)"
+        },
+        {
+          "value": "orbit",
+          "label": "Orbit (soft light travels around the box)"
+        }
+      ],
+      "default": "pulse",
+      "visible_if": "{{ section.settings.enable_section_glow }}"
     },
     {
       "type": "color",
@@ -877,7 +944,7 @@
     {
       "type": "range",
       "id": "section_glow_speed",
-      "label": "Pulse speed",
+      "label": "Animation speed",
       "min": 1,
       "max": 6,
       "step": 0.5,
