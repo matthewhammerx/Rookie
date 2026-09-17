@@ -200,24 +200,17 @@
 
   .promo-card-{{ section.id }} .promo-card__section-glow--orbit {
     --pc-glow-angle-{{ section.id }}: 0deg;
-    inset: calc(var(--pc-section-glow-size) * -0.5);
     background: conic-gradient(
       from var(--pc-glow-angle-{{ section.id }}),
       transparent 0%,
-      color-mix(in srgb, var(--pc-section-glow-color) 85%, transparent) 8%,
-      transparent 22%
+      transparent 4%,
+      color-mix(in srgb, var(--pc-section-glow-color) 90%, transparent) 14%,
+      transparent 26%,
+      transparent 100%
     );
-    filter: blur(calc(var(--pc-section-glow-size) * 0.5));
+    box-shadow: 0 0 calc(var(--pc-section-glow-size) * 0.8) calc(var(--pc-section-glow-size) * 0.1)
+      color-mix(in srgb, var(--pc-section-glow-color) 18%, transparent);
     animation: promoCardSectionGlowOrbit-{{ section.id }} var(--pc-section-glow-speed) linear infinite;
-    /* Safari (notably iOS) doesn't reliably clip a blurred element to its
-       own border-radius -- the blur leaks out in a square instead of
-       following the rounded corners. Merely having a mask-image forces
-       it to respect the radius properly, so this stays solid white
-       (fully visible) everywhere -- it must not impose its own fade,
-       or it cuts the glow's own soft falloff short instead of letting
-       it dissolve naturally. */
-    -webkit-mask-image: -webkit-radial-gradient(white, white);
-    mask-image: radial-gradient(white, white);
   }
 
   @keyframes promoCardSectionGlowOrbit-{{ section.id }} {
