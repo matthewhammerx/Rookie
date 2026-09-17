@@ -35,9 +35,6 @@
   endif
 
   assign hcs_page_size = max_products
-  if section.settings.enable_expand
-    assign hcs_page_size = 24
-  endif
 -%}
 
 <div
@@ -169,7 +166,7 @@
         -%}
         <a
           href="{{ product.url }}"
-          class="hcs__card{% if forloop.index > max_products %} hcs__card--overflow{% endif %}"
+          class="hcs__card"
         >
           {%- if section.settings.enable_card_blur -%}
             <div class="hcs__card-blur" aria-hidden="true"></div>
@@ -213,7 +210,7 @@
           </div>
         </a>
       {%- endfor -%}
-      {%- if paginate.next and section.settings.enable_expand -%}
+      {%- if paginate.next -%}
         <span
           class="hcs__load-more-sentinel"
           data-hcs-sentinel
@@ -422,62 +419,68 @@
       true
     );
 
+    // Infinite scroll always runs, independent of the expand/2-row
+    // toggle -- scrolling to the end of the row (single row or 2-row)
+    // loads more of the collection either way.
+    var loadMoreObserver = null;
+    var isLoadingMore = false;
+
+    function fetchNextPage(sentinel) {
+      if (isLoadingMore) return;
+      var nextUrl = sentinel.dataset.nextUrl;
+      if (!nextUrl) return;
+      isLoadingMore = true;
+
+      var separator = nextUrl.indexOf('?') > -1 ? '&' : '?';
+      var fetchUrl = nextUrl + separator + 'section_id={{ section.id }}';
+
+      fetch(fetchUrl)
+        .then(function (response) {
+          return response.text();
+        })
+        .then(function (html) {
+          var parsed = new DOMParser().parseFromString(html, 'text/html');
+          var newGrid = parsed.getElementById('HCS-Grid-{{ section.id }}');
+          if (!newGrid) return;
+
+          if (loadMoreObserver) loadMoreObserver.unobserve(sentinel);
+          sentinel.remove();
+
+          Array.prototype.slice.call(newGrid.children).forEach(function (child) {
+            track.appendChild(child);
+          });
+
+          var newSentinel = track.querySelector('[data-hcs-sentinel]');
+          if (newSentinel && loadMoreObserver) loadMoreObserver.observe(newSentinel);
+        })
+        .catch(function () {})
+        .finally(function () {
+          isLoadingMore = false;
+        });
+    }
+
+    function setupInfiniteScroll() {
+      if (loadMoreObserver || !('IntersectionObserver' in window)) return;
+      loadMoreObserver = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) fetchNextPage(entry.target);
+          });
+        },
+        { root: track, rootMargin: '0px 500px 0px 0px' }
+      );
+
+      var sentinel = track.querySelector('[data-hcs-sentinel]');
+      if (sentinel) loadMoreObserver.observe(sentinel);
+    }
+
+    setupInfiniteScroll();
+
     var expandWrapper = root ? root.querySelector('[data-hcs-expand-wrapper]') : null;
     var expandToggle = root ? root.querySelector('[data-hcs-expand-toggle]') : null;
 
     if (expandWrapper && expandToggle) {
       var expandLabel = expandToggle.querySelector('[data-hcs-expand-label]');
-      var loadMoreObserver = null;
-      var isLoadingMore = false;
-
-      function fetchNextPage(sentinel) {
-        if (isLoadingMore) return;
-        var nextUrl = sentinel.dataset.nextUrl;
-        if (!nextUrl) return;
-        isLoadingMore = true;
-
-        var separator = nextUrl.indexOf('?') > -1 ? '&' : '?';
-        var fetchUrl = nextUrl + separator + 'section_id={{ section.id }}';
-
-        fetch(fetchUrl)
-          .then(function (response) {
-            return response.text();
-          })
-          .then(function (html) {
-            var parsed = new DOMParser().parseFromString(html, 'text/html');
-            var newGrid = parsed.getElementById('HCS-Grid-{{ section.id }}');
-            if (!newGrid) return;
-
-            if (loadMoreObserver) loadMoreObserver.unobserve(sentinel);
-            sentinel.remove();
-
-            Array.prototype.slice.call(newGrid.children).forEach(function (child) {
-              track.appendChild(child);
-            });
-
-            var newSentinel = track.querySelector('[data-hcs-sentinel]');
-            if (newSentinel && loadMoreObserver) loadMoreObserver.observe(newSentinel);
-          })
-          .catch(function () {})
-          .finally(function () {
-            isLoadingMore = false;
-          });
-      }
-
-      function setupInfiniteScroll() {
-        if (loadMoreObserver || !('IntersectionObserver' in window)) return;
-        loadMoreObserver = new IntersectionObserver(
-          function (entries) {
-            entries.forEach(function (entry) {
-              if (entry.isIntersecting) fetchNextPage(entry.target);
-            });
-          },
-          { root: track, rootMargin: '0px 500px 0px 0px' }
-        );
-
-        var sentinel = track.querySelector('[data-hcs-sentinel]');
-        if (sentinel) loadMoreObserver.observe(sentinel);
-      }
 
       expandToggle.addEventListener('click', function () {
         // Flex-row and grid-2-row are fundamentally different layout
@@ -492,13 +495,6 @@
           var isExpanded = expandWrapper.classList.toggle('hcs__carousel-wrapper--expanded');
           expandToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
           if (expandLabel) expandLabel.textContent = isExpanded ? 'Show less' : 'Show more';
-
-          if (isExpanded) {
-            setupInfiniteScroll();
-          } else if (loadMoreObserver) {
-            var sentinel = track.querySelector('[data-hcs-sentinel]');
-            if (sentinel) loadMoreObserver.unobserve(sentinel);
-          }
 
           requestAnimationFrame(function () {
             track.classList.remove('hcs__grid--transitioning');
@@ -652,17 +648,8 @@
     user-select: none;
   }
 
-  .hcs__card--overflow {
-    display: none;
-  }
-
-  /* Expanded state: reveal the overflow cards and switch to a 2-row grid,
-     scrolling horizontally through columns of 2 stacked cards instead of
-     one long single row. */
-  .hcs__carousel-wrapper--expanded .hcs__card--overflow {
-    display: flex;
-  }
-
+  /* Expanded state: switch to a 2-row grid, scrolling horizontally
+     through columns of 2 stacked cards instead of one long single row. */
   .hcs__carousel-wrapper--expanded .hcs__grid {
     display: grid;
     grid-template-rows: repeat(2, 1fr);
@@ -1248,8 +1235,8 @@
     {
       "type": "checkbox",
       "id": "enable_expand",
-      "label": "Enable \"Show more\" expand + infinite scroll",
-      "info": "Adds a toggle below the row that reveals a 2-row layout and loads more products from the collection as you scroll.",
+      "label": "Enable \"Show more\" 2-row layout toggle",
+      "info": "Adds a toggle below the row that switches it into a 2-row layout. Infinite scroll through the collection is always on regardless of this setting.",
       "default": false
     },
     {
