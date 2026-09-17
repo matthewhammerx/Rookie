@@ -855,14 +855,12 @@
     display: flex !important;
   }
 
-  @media screen and (max-width: 749px) {
-    .hcs--quick-add-custom-bg .hcs__quick-add .quick-add__button {
-      background: var(--hcs-quick-add-bg);
-    }
+  .hcs--quick-add-custom-bg .hcs__quick-add .quick-add__button {
+    background: var(--hcs-quick-add-bg);
+  }
 
-    .hcs--quick-add-custom-bg .hcs__quick-add .quick-add__button .add-to-cart-text {
-      background: transparent;
-    }
+  .hcs--quick-add-custom-bg .hcs__quick-add .quick-add__button .add-to-cart-text {
+    background: transparent;
   }
 
   @media screen and (min-width: 750px) {
@@ -1435,8 +1433,8 @@
     {
       "type": "checkbox",
       "id": "quick_add_custom_bg",
-      "label": "Customize quick add background (mobile)",
-      "info": "Overrides the default white background of the corner button on mobile so you can control its color and transparency.",
+      "label": "Customize quick add background",
+      "info": "Overrides the default white background of the corner button (mobile and desktop) so you can control its color and transparency.",
       "default": false,
       "visible_if": "{{ section.settings.enable_quick_add }}"
     },
