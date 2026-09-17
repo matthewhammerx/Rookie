@@ -723,6 +723,7 @@
     overflow: hidden;
     background: linear-gradient(to top, var(--hcs-card-bg) 0%, transparent 45%);
     transition: transform 0.25s ease, box-shadow 0.25s ease;
+    will-change: transform;
   }
 
   @media screen and (min-width: 750px) {
@@ -736,6 +737,7 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
+    contain: strict;
     -webkit-backdrop-filter: blur(var(--hcs-card-blur-amount));
     backdrop-filter: blur(var(--hcs-card-blur-amount));
     -webkit-mask-image: linear-gradient(to top, black 0%, transparent var(--hcs-card-blur-fade));
@@ -804,9 +806,11 @@
     }
   }
 
-  .hcs__card:hover {
-    transform: translateY(-4px) scale(1.035);
-    z-index: 5;
+  @media (hover: hover) and (pointer: fine) {
+    .hcs__grid:not(.hcs__grid--dragging) .hcs__card:hover {
+      transform: translateY(-4px) scale(1.035);
+      z-index: 5;
+    }
   }
 
   .hcs__card-badge {
