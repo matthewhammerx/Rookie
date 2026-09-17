@@ -690,11 +690,9 @@
     transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .hcs__expand-toggle:hover {
-      background: rgba(255, 47, 177, 0.14);
-      border-color: rgba(255, 47, 177, 0.4);
-    }
+  .hcs__expand-toggle:hover {
+    background: rgba(255, 47, 177, 0.14);
+    border-color: rgba(255, 47, 177, 0.4);
   }
 
   .hcs__expand-toggle-icon {
@@ -765,9 +763,9 @@
     transition: opacity 0.25s ease, background-color 0.2s ease, transform 0.2s ease;
   }
 
-  .hcs__carousel-wrapper:hover .hcs__arrow,
-  .hcs__carousel-wrapper:active .hcs__arrow,
-  .hcs__carousel-wrapper:focus-within .hcs__arrow {
+  .hcs__carousel-wrapper:has(.hcs__grid:hover) .hcs__arrow,
+  .hcs__carousel-wrapper:has(.hcs__grid:active) .hcs__arrow,
+  .hcs__carousel-wrapper:has(.hcs__grid:focus-within) .hcs__arrow {
     opacity: 1;
     pointer-events: auto;
   }
