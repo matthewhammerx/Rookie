@@ -5,7 +5,7 @@
   {% endif %}
   lang="{{ request.locale.iso_code }}"
 >
-  <head><!-- SEOAnt Speed Up Script -->{%- if shop.metafields.seoantAppSiteSpeedUpV2.switch == 1 -%}{% include 'SEOAnt-SpeedUp' %}{%- endif -%}<!-- /SEOAnt Speed Up Script -->
+  <head>
     {%- if settings.favicon != blank -%}
       <link
         rel="icon"
