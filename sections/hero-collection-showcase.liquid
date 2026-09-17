@@ -480,16 +480,30 @@
       }
 
       expandToggle.addEventListener('click', function () {
-        var isExpanded = expandWrapper.classList.toggle('hcs__carousel-wrapper--expanded');
-        expandToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
-        if (expandLabel) expandLabel.textContent = isExpanded ? 'Show less' : 'Show more';
+        // Flex-row and grid-2-row are fundamentally different layout
+        // models, so the browser can't smoothly animate between them --
+        // fade out, swap the layout while invisible, then fade back in
+        // reads as a clean transition instead of a hard snap.
+        track.classList.add('hcs__grid--transitioning');
 
-        if (isExpanded) {
-          setupInfiniteScroll();
-        } else if (loadMoreObserver) {
-          var sentinel = track.querySelector('[data-hcs-sentinel]');
-          if (sentinel) loadMoreObserver.unobserve(sentinel);
-        }
+        window.setTimeout(function () {
+          track.scrollLeft = 0;
+
+          var isExpanded = expandWrapper.classList.toggle('hcs__carousel-wrapper--expanded');
+          expandToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+          if (expandLabel) expandLabel.textContent = isExpanded ? 'Show less' : 'Show more';
+
+          if (isExpanded) {
+            setupInfiniteScroll();
+          } else if (loadMoreObserver) {
+            var sentinel = track.querySelector('[data-hcs-sentinel]');
+            if (sentinel) loadMoreObserver.unobserve(sentinel);
+          }
+
+          requestAnimationFrame(function () {
+            track.classList.remove('hcs__grid--transitioning');
+          });
+        }, 180);
       });
     }
   })();
@@ -615,6 +629,11 @@
     scroll-padding-left: 20px;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    transition: opacity 0.18s ease;
+  }
+
+  .hcs__grid--transitioning {
+    opacity: 0;
   }
 
   .hcs__grid::-webkit-scrollbar {
