@@ -8,8 +8,17 @@ For inquiries or permissions, contact daniel@section.store
 ---------------------------------------------------------
 {% endcomment %}
 
-
-<link href="https://cdn.jsdelivr.net/npm/@pqina/flip@1.8.4/dist/flip.min.css" rel="stylesheet">
+{%- liquid
+  assign needs_flip_clock_library = false
+  for block in section.blocks
+    if block.type == 'timer' and block.settings.timer_style == 'flip_card'
+      assign needs_flip_clock_library = true
+    endif
+  endfor
+-%}
+{% if needs_flip_clock_library %}
+  <link href="https://cdn.jsdelivr.net/npm/@pqina/flip@1.8.4/dist/flip.min.css" rel="stylesheet">
+{% endif %}
 
 {%- liquid
   assign padding_horizontal = section.settings.padding_horizontal
