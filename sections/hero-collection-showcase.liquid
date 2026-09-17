@@ -33,6 +33,11 @@
   if section.settings.collection != blank and section.settings.collection.products.size > 0
     assign has_real_products = true
   endif
+
+  assign hcs_page_size = max_products
+  if section.settings.enable_expand
+    assign hcs_page_size = 24
+  endif
 -%}
 
 <div
@@ -149,10 +154,11 @@
     {%- endif -%}
   </div>
 
-  <div class="hcs__carousel-wrapper{% if section.settings.show_arrows_mobile %} hcs__carousel-wrapper--mobile-arrows{% endif %}">
+  <div class="hcs__carousel-wrapper{% if section.settings.show_arrows_mobile %} hcs__carousel-wrapper--mobile-arrows{% endif %}" data-hcs-expand-wrapper>
     <div class="hcs__grid" id="HCS-Grid-{{ section.id }}" data-testid="hcs-grid">
     {%- if has_real_products -%}
-      {%- for product in section.settings.collection.products limit: max_products -%}
+      {%- paginate section.settings.collection.products by hcs_page_size -%}
+      {%- for product in section.settings.collection.products -%}
         {%- liquid
           assign on_sale = false
           if product.compare_at_price > product.price
@@ -163,7 +169,7 @@
         -%}
         <a
           href="{{ product.url }}"
-          class="hcs__card"
+          class="hcs__card{% if forloop.index > max_products %} hcs__card--overflow{% endif %}"
         >
           {%- if section.settings.enable_card_blur -%}
             <div class="hcs__card-blur" aria-hidden="true"></div>
@@ -207,6 +213,15 @@
           </div>
         </a>
       {%- endfor -%}
+      {%- if paginate.next and section.settings.enable_expand -%}
+        <span
+          class="hcs__load-more-sentinel"
+          data-hcs-sentinel
+          data-next-url="{{ paginate.next.url }}"
+          aria-hidden="true"
+        ></span>
+      {%- endif -%}
+      {%- endpaginate -%}
     {%- else -%}
       {%- for i in (1..max_products) -%}
         <div class="hcs__card hcs__card--placeholder">
@@ -224,6 +239,23 @@
       {%- endfor -%}
     {%- endif -%}
     </div>
+
+    {%- if section.settings.enable_expand and has_real_products -%}
+      <button
+        type="button"
+        class="hcs__expand-toggle"
+        data-hcs-expand-toggle
+        aria-expanded="false"
+        aria-controls="HCS-Grid-{{ section.id }}"
+      >
+        <span class="hcs__expand-toggle-label" data-hcs-expand-label>Show more</span>
+        <span class="svg-wrapper hcs__expand-toggle-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+      </button>
+    {%- endif -%}
 
     {%- if section.settings.show_carousel_arrows -%}
       <button
@@ -389,6 +421,77 @@
       },
       true
     );
+
+    var expandWrapper = root ? root.querySelector('[data-hcs-expand-wrapper]') : null;
+    var expandToggle = root ? root.querySelector('[data-hcs-expand-toggle]') : null;
+
+    if (expandWrapper && expandToggle) {
+      var expandLabel = expandToggle.querySelector('[data-hcs-expand-label]');
+      var loadMoreObserver = null;
+      var isLoadingMore = false;
+
+      function fetchNextPage(sentinel) {
+        if (isLoadingMore) return;
+        var nextUrl = sentinel.dataset.nextUrl;
+        if (!nextUrl) return;
+        isLoadingMore = true;
+
+        var separator = nextUrl.indexOf('?') > -1 ? '&' : '?';
+        var fetchUrl = nextUrl + separator + 'section_id={{ section.id }}';
+
+        fetch(fetchUrl)
+          .then(function (response) {
+            return response.text();
+          })
+          .then(function (html) {
+            var parsed = new DOMParser().parseFromString(html, 'text/html');
+            var newGrid = parsed.getElementById('HCS-Grid-{{ section.id }}');
+            if (!newGrid) return;
+
+            if (loadMoreObserver) loadMoreObserver.unobserve(sentinel);
+            sentinel.remove();
+
+            Array.prototype.slice.call(newGrid.children).forEach(function (child) {
+              track.appendChild(child);
+            });
+
+            var newSentinel = track.querySelector('[data-hcs-sentinel]');
+            if (newSentinel && loadMoreObserver) loadMoreObserver.observe(newSentinel);
+          })
+          .catch(function () {})
+          .finally(function () {
+            isLoadingMore = false;
+          });
+      }
+
+      function setupInfiniteScroll() {
+        if (loadMoreObserver || !('IntersectionObserver' in window)) return;
+        loadMoreObserver = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) fetchNextPage(entry.target);
+            });
+          },
+          { root: track, rootMargin: '0px 500px 0px 0px' }
+        );
+
+        var sentinel = track.querySelector('[data-hcs-sentinel]');
+        if (sentinel) loadMoreObserver.observe(sentinel);
+      }
+
+      expandToggle.addEventListener('click', function () {
+        var isExpanded = expandWrapper.classList.toggle('hcs__carousel-wrapper--expanded');
+        expandToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        if (expandLabel) expandLabel.textContent = isExpanded ? 'Show less' : 'Show more';
+
+        if (isExpanded) {
+          setupInfiniteScroll();
+        } else if (loadMoreObserver) {
+          var sentinel = track.querySelector('[data-hcs-sentinel]');
+          if (sentinel) loadMoreObserver.unobserve(sentinel);
+        }
+      });
+    }
   })();
 </script>
 
@@ -528,6 +631,71 @@
     cursor: grabbing !important;
     scroll-snap-type: none;
     user-select: none;
+  }
+
+  .hcs__card--overflow {
+    display: none;
+  }
+
+  /* Expanded state: reveal the overflow cards and switch to a 2-row grid,
+     scrolling horizontally through columns of 2 stacked cards instead of
+     one long single row. */
+  .hcs__carousel-wrapper--expanded .hcs__card--overflow {
+    display: flex;
+  }
+
+  .hcs__carousel-wrapper--expanded .hcs__grid {
+    display: grid;
+    grid-template-rows: repeat(2, 1fr);
+    grid-auto-flow: column;
+    grid-auto-columns: var(--hcs-card-width-mobile);
+  }
+
+  @media screen and (min-width: 750px) {
+    .hcs__carousel-wrapper--expanded .hcs__grid {
+      grid-auto-columns: var(--hcs-card-width);
+    }
+  }
+
+  .hcs__carousel-wrapper--expanded .hcs__card {
+    flex: initial;
+  }
+
+  .hcs__load-more-sentinel {
+    flex: 0 0 1px;
+    width: 1px;
+    grid-row: 1 / span 2;
+  }
+
+  .hcs__expand-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 14px auto 0;
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: var(--hcs-heading-color, #fff);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .hcs__expand-toggle:hover {
+    background: rgba(255, 47, 177, 0.14);
+    border-color: rgba(255, 47, 177, 0.4);
+  }
+
+  .hcs__expand-toggle-icon {
+    display: flex;
+    transition: transform 0.25s ease;
+  }
+
+  .hcs__expand-toggle[aria-expanded='true'] .hcs__expand-toggle-icon {
+    transform: rotate(180deg);
   }
 
   @media screen and (min-width: 750px) {
@@ -1052,11 +1220,18 @@
     {
       "type": "range",
       "id": "max_products",
-      "label": "Number of products",
+      "label": "Number of products (collapsed)",
       "min": 2,
       "max": 12,
       "step": 1,
       "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_expand",
+      "label": "Enable \"Show more\" expand + infinite scroll",
+      "info": "Adds a toggle below the row that reveals a 2-row layout and loads more products from the collection as you scroll.",
+      "default": false
     },
     {
       "type": "select",
