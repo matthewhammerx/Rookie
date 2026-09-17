@@ -57,10 +57,7 @@
 >
   <div class="promo-card__glow-wrapper">
     {%- if section.settings.enable_section_glow -%}
-      {%- if section.settings.section_glow_style == 'orbit' -%}
-        <div class="promo-card__section-glow promo-card__section-glow--ambient" aria-hidden="true"></div>
-      {%- endif -%}
-      <div class="promo-card__section-glow promo-card__section-glow--{{ section.settings.section_glow_style }}" aria-hidden="true"></div>
+      <div class="promo-card__section-glow promo-card__section-glow--pulse" aria-hidden="true"></div>
     {%- endif -%}
     <a
       {% if section.settings.link != blank %}href="{{ section.settings.link }}"{% else %}href="javascript:void(0);"{% endif %}
@@ -184,18 +181,6 @@
     animation: promoCardSectionGlowPulse-{{ section.id }} var(--pc-section-glow-speed) ease-in-out infinite;
   }
 
-  /*
-    The orbit ring sits outside the card (so its band can peek out from
-    behind it) -- that gap means its own box-shadow starts too far out,
-    leaving a visible dark ring between the card and the glow. This
-    separate layer sits flush with the card (inset: 0, matching the
-    base rule) so its glow bleeds outward starting right at the edge.
-  */
-  .promo-card-{{ section.id }} .promo-card__section-glow--ambient {
-    box-shadow: 0 0 calc(var(--pc-section-glow-size) * 2.5) 0
-      color-mix(in srgb, var(--pc-section-glow-color) 40%, transparent);
-  }
-
   @keyframes promoCardSectionGlowPulse-{{ section.id }} {
     0%,
     100% {
@@ -204,57 +189,6 @@
     50% {
       box-shadow: 0 0 calc(var(--pc-section-glow-size) * 1.7) calc(var(--pc-section-glow-size) * 0.25)
         color-mix(in srgb, var(--pc-section-glow-color) 65%, transparent);
-    }
-  }
-
-  /*
-    A conic-gradient only varies color by angle, never by distance from
-    the card -- the visible sliver peeking out from behind the card was
-    a flat, sharp-edged line with no radial softness at all (not an
-    actual glow). Use a soft round radial-gradient "light" instead,
-    animating its position around the card's perimeter -- radial
-    gradients fade outward on their own, no filter/blur needed, so
-    there's nothing here for border-radius to clip incorrectly.
-  */
-  .promo-card-{{ section.id }} .promo-card__section-glow--orbit {
-    inset: calc(var(--pc-section-glow-size) * -1.2);
-    background-image: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--pc-section-glow-color) 85%, transparent) 0%,
-      transparent 70%
-    );
-    background-size: 55% 55%;
-    background-repeat: no-repeat;
-    animation: promoCardSectionGlowOrbit-{{ section.id }} var(--pc-section-glow-speed) linear infinite;
-  }
-
-  @keyframes promoCardSectionGlowOrbit-{{ section.id }} {
-    0% {
-      background-position: 0% 0%;
-    }
-    12.5% {
-      background-position: 50% 0%;
-    }
-    25% {
-      background-position: 100% 0%;
-    }
-    37.5% {
-      background-position: 100% 50%;
-    }
-    50% {
-      background-position: 100% 100%;
-    }
-    62.5% {
-      background-position: 50% 100%;
-    }
-    75% {
-      background-position: 0% 100%;
-    }
-    87.5% {
-      background-position: 0% 50%;
-    }
-    100% {
-      background-position: 0% 0%;
     }
   }
 
@@ -921,25 +855,8 @@
     {
       "type": "checkbox",
       "id": "enable_section_glow",
-      "label": "Enable animated glow around the section",
+      "label": "Enable pulsing glow around the section",
       "default": false
-    },
-    {
-      "type": "select",
-      "id": "section_glow_style",
-      "label": "Glow animation",
-      "options": [
-        {
-          "value": "pulse",
-          "label": "Pulse (breathes in and out)"
-        },
-        {
-          "value": "orbit",
-          "label": "Orbit (travels around the box)"
-        }
-      ],
-      "default": "pulse",
-      "visible_if": "{{ section.settings.enable_section_glow }}"
     },
     {
       "type": "color",
@@ -960,7 +877,7 @@
     {
       "type": "range",
       "id": "section_glow_speed",
-      "label": "Animation speed",
+      "label": "Pulse speed",
       "min": 1,
       "max": 6,
       "step": 0.5,
