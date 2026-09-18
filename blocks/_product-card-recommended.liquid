@@ -1,0 +1,507 @@
+{% comment %}
+  Product Card (Recommended)
+  A self-contained card used ONLY by the Product Recommendations
+  section's static product-card slot -- kept separate from the shared
+  _product-card/product-card blocks used elsewhere in the theme so this
+  can carry the site's pink/Pokeball quick-add branding without
+  affecting any other page that reuses the shared card blocks.
+{% endcomment %}
+
+{%- liquid
+  assign product = closest.product
+  assign on_sale = false
+  if product.compare_at_price > product.price
+    assign on_sale = true
+  endif
+  assign card_image_alt = product.featured_image.alt | default: product.title
+
+  assign quick_add_bg_alpha = block.settings.quick_add_bg_opacity | times: 1.0 | divided_by: 100
+  assign quick_add_bg_rgba = block.settings.quick_add_bg_color | color_modify: 'alpha', quick_add_bg_alpha
+-%}
+
+<a
+  href="{{ product.url }}"
+  class="prc-{{ block.id }} prc__card{% if block.settings.enable_pokeball_icon %} prc--pokeball{% endif %}{% if block.settings.quick_add_custom_bg %} prc--quick-add-custom-bg{% endif %}"
+  style="
+    --prc-card-title-size: {{ block.settings.card_title_size }}px;
+    --prc-card-title-size-mobile: {{ block.settings.card_title_size_mobile }}px;
+    --prc-card-price-size: {{ block.settings.card_price_size }}px;
+    --prc-card-price-size-mobile: {{ block.settings.card_price_size_mobile }}px;
+    --prc-card-bg: {% if block.settings.enable_card_background %}{{ block.settings.card_background_color }}{% else %}transparent{% endif %};
+    --prc-card-blur-amount: {{ block.settings.card_blur_amount }}px;
+    --prc-card-blur-fade: {{ block.settings.card_blur_fade_size }}%;
+    --prc-image-fit: {% if block.settings.image_fit_contain %}contain{% else %}cover{% endif %};
+    --prc-quick-add-bg: {{ quick_add_bg_rgba }};
+  "
+  {{ block.shopify_attributes }}
+>
+  {%- if block.settings.enable_card_blur -%}
+    <div class="prc__card-blur" aria-hidden="true"></div>
+  {%- endif -%}
+
+  {%- if on_sale and block.settings.show_sale_badge -%}
+    <span class="prc__card-badge">{{ block.settings.sale_badge_text }}</span>
+  {%- endif -%}
+
+  {%- if block.settings.enable_quick_add -%}
+    <div class="prc__quick-add" onclick="event.stopPropagation()">
+      {% render 'quick-add', product: product, section_id: section.id %}
+    </div>
+  {%- endif -%}
+
+  <div class="prc__card-image-wrapper prc__card-image-wrapper--{{ block.settings.image_ratio }}">
+    {%- if product.featured_image != blank -%}
+      {{
+        product.featured_image
+        | image_url: width: 1200
+        | image_tag:
+          widths: '400, 600, 900, 1200',
+          alt: card_image_alt,
+          class: 'prc__card-image',
+          sizes: '(min-width: 750px) 25vw, 50vw',
+          loading: 'lazy'
+      }}
+    {%- else -%}
+      {{ 'product-1' | placeholder_svg_tag: 'prc__card-image' }}
+    {%- endif -%}
+  </div>
+
+  <div class="prc__card-content">
+    <p class="prc__card-title">{{ product.title }}</p>
+    <p class="prc__card-price">
+      {{ product.price | money }}
+      {%- if on_sale -%}
+        <span class="prc__card-price-compare">{{ product.compare_at_price | money }}</span>
+      {%- endif -%}
+    </p>
+  </div>
+</a>
+
+{% stylesheet %}
+  .prc__card {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(to top, var(--prc-card-bg) 0%, transparent 45%);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    will-change: transform;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .prc__card:hover {
+      transform: translateY(-4px) scale(1.035);
+      z-index: 5;
+    }
+  }
+
+  .prc__card-blur {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    contain: strict;
+    -webkit-backdrop-filter: blur(var(--prc-card-blur-amount));
+    backdrop-filter: blur(var(--prc-card-blur-amount));
+    -webkit-mask-image: linear-gradient(to top, black 0%, transparent var(--prc-card-blur-fade));
+    mask-image: linear-gradient(to top, black 0%, transparent var(--prc-card-blur-fade));
+  }
+
+  .prc__card-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 3;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #ff2fb1;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .prc__quick-add {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .prc__quick-add .quick-add__button {
+    top: 12px;
+    right: 0;
+    bottom: auto;
+    left: auto;
+    opacity: 1;
+  }
+
+  .prc__quick-add .quick-add__button--choose {
+    display: none !important;
+  }
+
+  .prc__quick-add .quick-add__button--add {
+    display: flex !important;
+  }
+
+  .prc--quick-add-custom-bg .prc__quick-add .quick-add__button {
+    background: var(--prc-quick-add-bg);
+  }
+
+  .prc--quick-add-custom-bg .prc__quick-add .quick-add__button .add-to-cart-text {
+    background: transparent;
+  }
+
+  @media screen and (min-width: 750px) {
+    .prc__quick-add .quick-add__button {
+      opacity: 0;
+      transition-duration: 0.12s;
+      transition-delay: 0s;
+    }
+
+    .prc--pokeball .prc__quick-add .add-to-cart-icon::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='1.4 1.4 15.2 15.2'%3E%3Ccircle cx='9' cy='9' r='7' fill='none' stroke='%23111111' stroke-width='1.2'/%3E%3Cpath d='M2 9h5M11 9h5' stroke='%23111111' stroke-width='1.2'/%3E%3Ccircle cx='9' cy='9' r='2' fill='none' stroke='%23111111' stroke-width='1.2'/%3E%3C/svg%3E");
+    }
+
+    .prc__card:is(:hover, :focus-within) .prc__quick-add .quick-add__button {
+      opacity: 1;
+    }
+
+    .prc__quick-add .quick-add__button .add-to-cart-text__content,
+    .prc__quick-add .quick-add__button .add-to-cart-text__content span span {
+      transition-duration: 0.12s;
+      transition-delay: 0s;
+    }
+
+    .prc__quick-add .quick-add__button:is(:hover, :focus-visible) .add-to-cart-text__content,
+    .prc__quick-add .quick-add__button:is(:hover, :focus-visible) .add-to-cart-text__content span span {
+      transition-delay: 0s;
+    }
+  }
+
+  .prc--pokeball .prc__quick-add .add-to-cart-icon svg {
+    display: none;
+  }
+
+  .prc--pokeball .prc__quick-add .add-to-cart-icon {
+    position: relative;
+  }
+
+  .prc--pokeball .prc__quick-add .add-to-cart-icon::before {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='1.4 1.4 19.9 19.9'%3E%3Ccircle cx='9' cy='9' r='7' fill='none' stroke='%23111111' stroke-width='1.2'/%3E%3Cpath d='M2 9h5M11 9h5' stroke='%23111111' stroke-width='1.2'/%3E%3Ccircle cx='9' cy='9' r='2' fill='none' stroke='%23111111' stroke-width='1.2'/%3E%3Ccircle cx='16' cy='16' r='4.6' fill='%23ffffff' stroke='%23ff2fb1' stroke-width='1.4'/%3E%3Cpath d='M16 14.2v3.6M14.2 16h3.6' stroke='%23ff2fb1' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .prc--pokeball .prc__quick-add .checkmark-burst {
+    display: none;
+  }
+
+  .prc--pokeball .prc__quick-add .add-to-cart__added-icon {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    display: none;
+  }
+
+  .prc--pokeball .prc__quick-add .quick-add__button[data-added='true'] .add-to-cart__added-icon {
+    display: inline-flex;
+  }
+
+  .prc--pokeball .prc__quick-add .add-to-cart__added-icon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 12a9 9 0 0 1 18 0Z' fill='%23ee1515'/%3E%3Cpath d='M3 12a9 9 0 0 0 18 0Z' fill='%23ffffff'/%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%23111111' stroke-width='1.1'/%3E%3Cpath d='M3 12h5.2M15.8 12H21' stroke='%23111111' stroke-width='1.3'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='%23ffffff' stroke='%23111111' stroke-width='1.3'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: prc-catch-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .prc--pokeball .prc__quick-add .quick-add__button[data-added='true']::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 999px;
+    border: 2px solid #ff2fb1;
+    animation: prc-catch-ring 0.6s ease-out;
+    pointer-events: none;
+  }
+
+  @keyframes prc-catch-pop {
+    0% {
+      transform: scale(0.3);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes prc-catch-ring {
+    0% {
+      transform: scale(0.6);
+      opacity: 0.9;
+    }
+    100% {
+      transform: scale(1.8);
+      opacity: 0;
+    }
+  }
+
+  .prc__card-image-wrapper {
+    width: 100%;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  .prc__card-image-wrapper--square {
+    aspect-ratio: 1 / 1;
+  }
+
+  .prc__card-image-wrapper--portrait {
+    aspect-ratio: 3 / 4;
+  }
+
+  .prc__card-image-wrapper--landscape {
+    aspect-ratio: 4 / 3;
+  }
+
+  .prc__card-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: var(--prc-image-fit);
+    transform: scale(1);
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0, 1);
+  }
+
+  .prc__card-image-wrapper--adapt .prc__card-image {
+    height: auto;
+    object-fit: contain;
+  }
+
+  .prc__card-content {
+    padding: 14px 16px 18px;
+    text-align: center;
+  }
+
+  .prc__card-title {
+    margin: 0 0 6px;
+    color: var(--color-foreground, #fff);
+    font-size: var(--prc-card-title-size-mobile);
+    font-weight: 600;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  @media screen and (min-width: 750px) {
+    .prc__card-title {
+      font-size: var(--prc-card-title-size);
+    }
+  }
+
+  .prc__card-price {
+    margin: 0;
+    color: #ff2fb1;
+    font-size: var(--prc-card-price-size-mobile);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .prc__card-price {
+      font-size: var(--prc-card-price-size);
+    }
+  }
+
+  .prc__card-price-compare {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+    font-size: 0.8em;
+    text-decoration: line-through;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Product Card (Recommended)",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Product image ratio",
+      "options": [
+        { "value": "square", "label": "Square" },
+        { "value": "portrait", "label": "Portrait" },
+        { "value": "landscape", "label": "Landscape" },
+        { "value": "adapt", "label": "Original" }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "checkbox",
+      "id": "image_fit_contain",
+      "label": "Fit images without cropping",
+      "default": true,
+      "visible_if": "{{ block.settings.image_ratio != 'adapt' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_card_background",
+      "label": "Show card background",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "card_background_color",
+      "label": "Card background color",
+      "alpha": true,
+      "default": "#ffffff0a",
+      "visible_if": "{{ block.settings.enable_card_background }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_card_blur",
+      "label": "Blur background behind card",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "card_blur_amount",
+      "label": "Blur amount",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 8,
+      "visible_if": "{{ block.settings.enable_card_blur }}"
+    },
+    {
+      "type": "range",
+      "id": "card_blur_fade_size",
+      "label": "Blur fade size",
+      "min": 10,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 45,
+      "visible_if": "{{ block.settings.enable_card_blur }}"
+    },
+    {
+      "type": "range",
+      "id": "card_title_size",
+      "label": "Product title size (desktop)",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "card_title_size_mobile",
+      "label": "Product title size (mobile)",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "card_price_size",
+      "label": "Price size (desktop)",
+      "min": 10,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "card_price_size_mobile",
+      "label": "Price size (mobile)",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sale_badge",
+      "label": "Show badge on sale items",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "sale_badge_text",
+      "label": "Sale badge text",
+      "default": "SALE",
+      "visible_if": "{{ block.settings.show_sale_badge }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_quick_add",
+      "label": "Show quick add-to-cart button",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_pokeball_icon",
+      "label": "Use Pokéball icon for quick add",
+      "default": true,
+      "visible_if": "{{ block.settings.enable_quick_add }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "quick_add_custom_bg",
+      "label": "Customize quick add background",
+      "default": false,
+      "visible_if": "{{ block.settings.enable_quick_add }}"
+    },
+    {
+      "type": "color",
+      "id": "quick_add_bg_color",
+      "label": "Background color",
+      "default": "#000000",
+      "visible_if": "{{ block.settings.enable_quick_add and block.settings.quick_add_custom_bg }}"
+    },
+    {
+      "type": "range",
+      "id": "quick_add_bg_opacity",
+      "label": "Background opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 35,
+      "visible_if": "{{ block.settings.enable_quick_add and block.settings.quick_add_custom_bg }}"
+    }
+  ]
+}
+{% endschema %}
