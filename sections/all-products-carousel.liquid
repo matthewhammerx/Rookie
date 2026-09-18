@@ -17,32 +17,21 @@
   assign heading_glow_rgba = section.settings.heading_glow_color | color_modify: 'alpha', heading_glow_alpha
   assign heading_glow_radius_2 = section.settings.heading_glow_size | times: 2.25 | round
 
-  assign apc_products = section.settings.collection.products
-  if apc_products.size == 0
-    assign apc_products = collections.all.products
+  assign apc_collection = section.settings.collection
+  if apc_collection == blank
+    assign apc_collection = collections.all
   endif
-
-  case section.settings.sort_by
-    when 'price-ascending'
-      assign apc_products = apc_products | sort: 'price'
-    when 'price-descending'
-      assign apc_products = apc_products | sort: 'price' | reverse
-    when 'title-ascending'
-      assign apc_products = apc_products | sort: 'title'
-    when 'title-descending'
-      assign apc_products = apc_products | sort: 'title' | reverse
-    when 'created-descending'
-      assign apc_products = apc_products | sort: 'created_at' | reverse
-  endcase
-  # 'featured' and 'best-selling' are intentionally left unsorted here --
-  # Liquid has no real sales-count field to sort by, so "best selling"
-  # only works when the picked collection(s) are themselves set to sort
-  # by best-selling in Shopify admin, since collection.products then
-  # already comes back in that order.
+  # Note: the collection's product ORDER always follows whatever sort
+  # order that collection itself is set to in Shopify admin (Featured,
+  # Best selling, Price, A-Z, etc). It can't be re-sorted here in Liquid
+  # without breaking {% paginate %} below -- Shopify's pagination tag
+  # only works directly on a collection's own .products, not on a copy
+  # assigned to a variable (assigning a sorted copy is exactly what
+  # caused the "is not paginateable" error).
 
   assign max_products = section.settings.max_products
   assign has_real_products = false
-  if apc_products.size > 0
+  if apc_collection.products.size > 0
     assign has_real_products = true
   endif
 
@@ -133,8 +122,8 @@
   <div class="apc__carousel-wrapper{% if section.settings.show_arrows_mobile %} apc__carousel-wrapper--mobile-arrows{% endif %}" data-apc-expand-wrapper>
     <div class="apc__grid" id="APC-Grid-{{ section.id }}" data-testid="apc-grid">
     {%- if has_real_products -%}
-      {%- paginate apc_products by apc_page_size -%}
-      {%- for product in apc_products -%}
+      {%- paginate apc_collection.products by apc_page_size -%}
+      {%- for product in apc_collection.products -%}
         {%- liquid
           assign on_sale = false
           if product.compare_at_price > product.price
@@ -1173,23 +1162,7 @@
       "type": "collection",
       "id": "collection",
       "label": "Collection",
-      "info": "Leave blank to pull from every product in the store."
-    },
-    {
-      "type": "select",
-      "id": "sort_by",
-      "label": "Sort products by",
-      "options": [
-        { "value": "featured", "label": "Featured / collection order" },
-        { "value": "best-selling", "label": "Best selling" },
-        { "value": "created-descending", "label": "Newest" },
-        { "value": "price-ascending", "label": "Price, low to high" },
-        { "value": "price-descending", "label": "Price, high to low" },
-        { "value": "title-ascending", "label": "Alphabetically, A-Z" },
-        { "value": "title-descending", "label": "Alphabetically, Z-A" }
-      ],
-      "default": "featured",
-      "info": "\"Best selling\" only works if the collection(s) picked below are themselves set to sort by best-selling in Shopify admin -- Liquid has no direct sales-count field to sort by otherwise."
+      "info": "Leave blank to pull from every product in the store. Product order (Featured, Best selling, Price, A-Z, etc.) follows whatever sort order is set on the collection itself in Shopify admin under Collections > [collection] > Sort."
     },
     {
       "type": "range",
@@ -1446,19 +1419,6 @@
       "step": 4,
       "unit": "px",
       "default": 40
-    }
-  ],
-  "blocks": [
-    {
-      "type": "collection",
-      "name": "Collection",
-      "settings": [
-        {
-          "type": "collection",
-          "id": "collection",
-          "label": "Collection"
-        }
-      ]
     }
   ],
   "presets": [
