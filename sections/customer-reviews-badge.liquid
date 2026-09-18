@@ -35,7 +35,7 @@
   >
     <span class="tpb__stars" aria-hidden="true">
       {%- for i in (1..5) -%}
-        <svg viewBox="0 0 24 24" width="18" height="18" class="tpb__star">
+        <svg viewBox="0 0 24 24" width="15" height="15" class="tpb__star">
           <path d="M12 2.5l2.9 6 6.6.7-4.9 4.5 1.3 6.5-5.9-3.3-5.9 3.3 1.3-6.5-4.9-4.5 6.6-.7z" fill="currentColor" />
         </svg>
       {%- endfor -%}
@@ -56,8 +56,8 @@
   .tpb__badge {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 14px 24px;
+    gap: 8px;
+    padding: 9px 18px;
     border-radius: 999px;
     background: var(--tpb-bg);
     -webkit-backdrop-filter: blur(16px);
@@ -93,24 +93,24 @@
 
   .tpb__stars {
     display: flex;
-    gap: 2px;
+    gap: 1px;
     color: var(--tpb-star-color);
     flex: none;
   }
 
   .tpb__text {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 700;
     white-space: nowrap;
   }
 
   @media screen and (max-width: 480px) {
     .tpb__badge {
-      padding: 12px 18px;
+      padding: 8px 14px;
     }
 
     .tpb__text {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       white-space: normal;
     }
   }
