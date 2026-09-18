@@ -586,29 +586,35 @@
         // find the SINGLE slide whose center is closest to the track's
         // own center and only ever let that one play -- everything else
         // pauses, no matter how visible it technically is.
+        //
+        // Measuring every slide's getBoundingClientRect() on every
+        // scroll frame (a real layout read per slide, x however many
+        // copies exist for the infinite loop) was expensive enough to
+        // visibly stutter mobile's momentum scrolling. Since every slide
+        // is the same fixed width with a fixed gap, the centered index
+        // can be computed with plain arithmetic from a single
+        // measurement instead, which is effectively free.
         var focusRaf = null;
+        var lastFocusedIndex = -1;
+        var slideArray = Array.prototype.slice.call(slides);
 
         function updateFocus() {
           focusRaf = null;
-          var trackRect = track.getBoundingClientRect();
-          if (!trackRect.width) return;
-          var trackCenter = trackRect.left + trackRect.width / 2;
+          if (!slideArray.length) return;
 
-          var closestSlide = null;
-          var closestDistance = Infinity;
+          var first = slideArray[0];
+          var step = first.offsetWidth + {{ section.settings.gap }};
+          if (!step) return;
 
-          slides.forEach(function (slide) {
-            var rect = slide.getBoundingClientRect();
-            if (rect.right < trackRect.left || rect.left > trackRect.right) return;
-            var distance = Math.abs(rect.left + rect.width / 2 - trackCenter);
-            if (distance < closestDistance) {
-              closestDistance = distance;
-              closestSlide = slide;
-            }
-          });
+          var trackCenter = track.scrollLeft + track.clientWidth / 2;
+          var index = Math.round((trackCenter - first.offsetLeft - first.offsetWidth / 2) / step);
+          index = Math.max(0, Math.min(slideArray.length - 1, index));
 
-          slides.forEach(function (slide) {
-            var isFocused = slide === closestSlide;
+          if (index === lastFocusedIndex) return;
+          lastFocusedIndex = index;
+
+          slideArray.forEach(function (slide, i) {
+            var isFocused = i === index;
             slide.classList.toggle('is-focused', isFocused);
 
             if (!slide._vsIsManuallyPaused || slide._vsIsManuallyPaused()) return;
