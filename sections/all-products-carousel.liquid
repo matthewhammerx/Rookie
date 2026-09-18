@@ -7,16 +7,9 @@
 {% endcomment %}
 
 {%- liquid
-  assign apc_products = blank | split: ','
-  for block in section.blocks
-    if block.type == 'collection' and block.settings.collection != blank
-      assign apc_products = apc_products | concat: block.settings.collection.products
-    endif
-  endfor
+  assign apc_products = section.settings.collection.products
   if apc_products.size == 0
     assign apc_products = collections.all.products
-  else
-    assign apc_products = apc_products | uniq: 'id'
   endif
 
   case section.settings.sort_by
@@ -954,8 +947,10 @@
       "content": "Grid"
     },
     {
-      "type": "paragraph",
-      "content": "Add one or more \"Collection\" blocks below to pull from. Leave with no blocks to pull from every product in the store."
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Leave blank to pull from every product in the store."
     },
     {
       "type": "select",
