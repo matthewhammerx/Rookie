@@ -24,8 +24,8 @@
   # Note: the collection's product ORDER always follows whatever sort
   # order that collection itself is set to in Shopify admin (Featured,
   # Best selling, Price, A-Z, etc). It can't be re-sorted here in Liquid
-  # without breaking {% paginate %} below -- Shopify's pagination tag
-  # only works directly on a collection's own .products, not on a copy
+  # without breaking the paginate tag below -- Shopify's pagination only
+  # works directly on a collection's own .products, not on a copy
   # assigned to a variable (assigning a sorted copy is exactly what
   # caused the "is not paginateable" error).
 
