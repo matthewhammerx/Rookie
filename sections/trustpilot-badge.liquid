@@ -1,32 +1,17 @@
 {% comment %}
   Trustpilot Badge (Static)
-  A compact, square trust badge styled after Trustpilot's "Mini"
-  TrustBox widget shape. Static/manually-editable, not a live Trustpilot
-  embed -- the rating, review count, and link are theme settings you
-  control, so keep them matching your real Trustpilot profile.
+  A single horizontal pill -- gold stars + one bold line of text --
+  matching the reference "Trusted by 10,000+ customers" badge exactly,
+  just labeled for Trustpilot. Static/manually-editable, not a live
+  Trustpilot embed: keep the text matching your real Trustpilot
+  profile so it stays honest, and link it there.
 {% endcomment %}
-
-{%- liquid
-  assign rating = section.settings.rating
-  assign full_stars = rating | floor
-  assign has_half_star = false
-  assign remainder = rating | minus: full_stars
-  if remainder >= 0.25 and remainder < 0.75
-    assign has_half_star = true
-  elsif remainder >= 0.75
-    assign full_stars = full_stars | plus: 1
-  endif
-  assign empty_stars = 5 | minus: full_stars
-  if has_half_star
-    assign empty_stars = empty_stars | minus: 1
-  endif
--%}
 
 <div
   class="tpb color-{{ section.settings.color_scheme }}"
   style="
     --tpb-bg: {{ section.settings.background_color }};
-    --tpb-border-color: {{ section.settings.border_color }};
+    --tpb-star-color: {{ section.settings.star_color }};
     --tpb-text-color: {{ section.settings.text_color }};
     padding-top: {{ section.settings.padding_top }}px;
     padding-bottom: {{ section.settings.padding_bottom }}px;
@@ -47,45 +32,15 @@
       rel="noopener noreferrer"
     {% endif %}
   >
-    <div class="tpb__stars" aria-hidden="true">
-      {%- for i in (1..full_stars) -%}
-        <svg viewBox="0 0 24 24" width="18" height="18" class="tpb__star tpb__star--full">
-          <rect width="24" height="24" rx="4" fill="currentColor" />
-          <path d="M12 5.5l1.8 3.9 4.2.4-3.2 2.9.9 4.2-3.7-2.2-3.7 2.2.9-4.2-3.2-2.9 4.2-.4z" fill="#fff" />
+    <span class="tpb__stars" aria-hidden="true">
+      {%- for i in (1..5) -%}
+        <svg viewBox="0 0 24 24" width="18" height="18" class="tpb__star">
+          <path d="M12 2.5l2.9 6 6.6.7-4.9 4.5 1.3 6.5-5.9-3.3-5.9 3.3 1.3-6.5-4.9-4.5 6.6-.7z" fill="currentColor" />
         </svg>
       {%- endfor -%}
-      {%- if has_half_star -%}
-        <svg viewBox="0 0 24 24" width="18" height="18" class="tpb__star tpb__star--half">
-          <rect width="24" height="24" rx="4" fill="currentColor" />
-          <clipPath id="tpb-half-{{ section.id }}">
-            <rect x="0" y="0" width="12" height="24" />
-          </clipPath>
-          <path d="M12 5.5l1.8 3.9 4.2.4-3.2 2.9.9 4.2-3.7-2.2-3.7 2.2.9-4.2-3.2-2.9 4.2-.4z" fill="#fff" clip-path="url(#tpb-half-{{ section.id }})" />
-        </svg>
-      {%- endif -%}
-      {%- for i in (1..empty_stars) -%}
-        <svg viewBox="0 0 24 24" width="18" height="18" class="tpb__star tpb__star--empty">
-          <rect width="24" height="24" rx="4" fill="none" stroke="currentColor" stroke-width="1.5" />
-        </svg>
-      {%- endfor -%}
-    </div>
+    </span>
 
-    <p class="tpb__rating">{{ rating }}<span class="tpb__rating-max">/5</span></p>
-
-    {%- if section.settings.headline != blank -%}
-      <p class="tpb__headline">{{ section.settings.headline }}</p>
-    {%- endif -%}
-
-    {%- if section.settings.review_count_text != blank -%}
-      <p class="tpb__review-count">{{ section.settings.review_count_text }}</p>
-    {%- endif -%}
-
-    <div class="tpb__wordmark">
-      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-        <path d="M12 2l2.6 5.9 6.4.6-4.8 4.3 1.4 6.2L12 15.9 6.4 19l1.4-6.2L3 8.5l6.4-.6z" fill="currentColor" />
-      </svg>
-      <span>Trustpilot</span>
-    </div>
+    <span class="tpb__text">{{ section.settings.badge_text }}</span>
   </{{ tag }}>
 </div>
 
@@ -96,73 +51,43 @@
   }
 
   .tpb__badge {
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    width: 168px;
-    padding: 20px 16px;
-    border-radius: 16px;
+    gap: 10px;
+    padding: 14px 24px;
+    border-radius: 999px;
     background: var(--tpb-bg);
-    border: 1px solid var(--tpb-border-color);
     color: var(--tpb-text-color);
     text-decoration: none;
-    text-align: center;
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    transition: transform 0.2s ease;
   }
 
   a.tpb__badge:hover {
     transform: translateY(-2px);
-    border-color: #ff2fb1;
   }
 
   .tpb__stars {
     display: flex;
-    gap: 3px;
-    color: #00b67a;
+    gap: 2px;
+    color: var(--tpb-star-color);
+    flex: none;
   }
 
-  .tpb__star--empty {
-    color: rgba(255, 255, 255, 0.25);
-  }
-
-  .tpb__rating {
-    margin: 4px 0 0;
-    font-size: 1.5rem;
-    font-weight: 800;
-    line-height: 1;
-  }
-
-  .tpb__rating-max {
-    font-size: 0.9rem;
-    font-weight: 600;
-    opacity: 0.6;
-  }
-
-  .tpb__headline {
-    margin: 0;
-    font-size: 0.85rem;
+  .tpb__text {
+    font-size: 1rem;
     font-weight: 700;
+    white-space: nowrap;
   }
 
-  .tpb__review-count {
-    margin: 0;
-    font-size: 0.75rem;
-    opacity: 0.65;
-  }
+  @media screen and (max-width: 480px) {
+    .tpb__badge {
+      padding: 12px 18px;
+    }
 
-  .tpb__wordmark {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 6px;
-    padding-top: 10px;
-    border-top: 1px solid var(--tpb-border-color);
-    width: 100%;
-    justify-content: center;
-    color: #00b67a;
-    font-size: 0.8rem;
-    font-weight: 700;
+    .tpb__text {
+      font-size: 0.9rem;
+      white-space: normal;
+    }
   }
 {% endstylesheet %}
 
@@ -180,28 +105,13 @@
     },
     {
       "type": "paragraph",
-      "content": "Static badge, not a live Trustpilot feed -- keep the rating/review count matching your real Trustpilot profile so it stays honest, and link it to that profile."
-    },
-    {
-      "type": "range",
-      "id": "rating",
-      "label": "Star rating",
-      "min": 1,
-      "max": 5,
-      "step": 0.1,
-      "default": 4.8
+      "content": "Static badge, not a live Trustpilot feed -- keep the text matching your real Trustpilot profile so it stays honest, and link it to that profile."
     },
     {
       "type": "text",
-      "id": "headline",
-      "label": "Headline",
-      "default": "Excellent"
-    },
-    {
-      "type": "text",
-      "id": "review_count_text",
-      "label": "Review count text",
-      "default": "Based on 1,234 reviews"
+      "id": "badge_text",
+      "label": "Badge text",
+      "default": "Rated Excellent on Trustpilot"
     },
     {
       "type": "url",
@@ -214,17 +124,16 @@
     },
     {
       "type": "color",
-      "id": "background_color",
-      "label": "Background color",
-      "alpha": true,
-      "default": "#ffffff0d"
+      "id": "star_color",
+      "label": "Star color",
+      "default": "#ffb800"
     },
     {
       "type": "color",
-      "id": "border_color",
-      "label": "Border color",
+      "id": "background_color",
+      "label": "Background color",
       "alpha": true,
-      "default": "#ffffff26"
+      "default": "#1a1a1acc"
     },
     {
       "type": "color",
