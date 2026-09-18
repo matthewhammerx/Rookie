@@ -1,7 +1,7 @@
 {% comment %}
   Recently Viewed Products
   Shows the products THIS visitor personally looked at recently --
-  purely client-side (the theme already tracks up to 4 viewed product
+  purely client-side (the theme already tracks up to 12 viewed product
   IDs in localStorage via assets/recently-viewed-products.js on every
   product page view, used internally by predictive search). No app, no
   algorithm: fetches the real products back with Shopify's own search
@@ -24,16 +24,20 @@
     padding-bottom: {{ section.settings.padding_bottom }}px;
   "
 >
+  {%- assign rvp_products = blank -%}
   {%- if search.performed and search.results_count > 0 -%}
     {%- assign rvp_products = search.results | where: 'object_type', 'product' -%}
-    {%- if rvp_products.size > 0 -%}
-      <div class="rvp__head">
-        <h2 class="rvp__heading">{{ section.settings.heading_text }}</h2>
-      </div>
+  {%- endif -%}
 
+  {%- if rvp_products.size > 0 or request.design_mode -%}
+    <div class="rvp__head">
+      <h2 class="rvp__heading">{{ section.settings.heading_text }}</h2>
+    </div>
+
+    {%- if rvp_products.size > 0 -%}
       <div class="rvp__carousel-wrapper">
         <div class="rvp__grid" id="RVP-Grid-{{ section.id }}" data-testid="rvp-grid">
-          {%- for product in rvp_products -%}
+          {%- for product in rvp_products limit: section.settings.products_to_show -%}
             {% content_for 'block', type: 'product-card-recommended', id: 'static-product-card', closest.product: product %}
           {%- endfor -%}
         </div>
@@ -61,6 +65,8 @@
           </button>
         {%- endif -%}
       </div>
+    {%- elsif request.design_mode -%}
+      <p class="rvp__empty-note">No products viewed yet in this browser -- this row will fill in automatically once a visitor looks at a few products.</p>
     {%- endif -%}
   {%- endif -%}
 </recently-viewed-products>
@@ -273,7 +279,7 @@
   }
 
   .rvp__grid .prc__card {
-    flex: 0 0 170px;
+    flex: 0 0 120px;
     scroll-snap-align: start;
   }
 
@@ -284,7 +290,21 @@
     }
 
     .rvp__grid .prc__card {
-      flex-basis: 230px;
+      flex-basis: 160px;
+    }
+  }
+
+  .rvp__empty-note {
+    margin: 0;
+    padding: 0 20px;
+    color: var(--rvp-heading-color);
+    opacity: 0.6;
+    font-size: 0.85rem;
+  }
+
+  @media screen and (min-width: 750px) {
+    .rvp__empty-note {
+      padding: 0 40px;
     }
   }
 
@@ -416,6 +436,16 @@
       "step": 2,
       "unit": "px",
       "default": 18
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Number of products to show",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 8,
+      "info": "The browser only remembers a visitor's last 12 viewed products, so this can't go higher than that."
     },
     {
       "type": "checkbox",
