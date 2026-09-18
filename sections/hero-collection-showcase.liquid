@@ -769,7 +769,9 @@
 
   .hcs__carousel-wrapper:has(.hcs__grid:hover) .hcs__arrow,
   .hcs__carousel-wrapper:has(.hcs__grid:active) .hcs__arrow,
-  .hcs__carousel-wrapper:has(.hcs__grid:focus-within) .hcs__arrow {
+  .hcs__carousel-wrapper:has(.hcs__grid:focus-within) .hcs__arrow,
+  .hcs__carousel-wrapper:has(.hcs__arrow:hover) .hcs__arrow,
+  .hcs__carousel-wrapper:has(.hcs__arrow:focus-visible) .hcs__arrow {
     opacity: 1;
     pointer-events: auto;
   }
