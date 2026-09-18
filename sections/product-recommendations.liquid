@@ -1,982 +1,541 @@
-{% comment %}
-  Product Recommendations
-  Real "customers who bought this also bought" row for product pages,
-  powered by Shopify's own recommendation engine (order-history +
-  product-similarity data), not a manually picked collection. Fetched
-  client-side via the Section Rendering API so it never blocks the
-  product page's own render, and hides itself entirely if Shopify has
-  no recommendations for this product.
-{% endcomment %}
 
-{%- liquid
-  assign quick_add_bg_alpha = section.settings.quick_add_bg_opacity | times: 1.0 | divided_by: 100
-  assign quick_add_bg_rgba = section.settings.quick_add_bg_color | color_modify: 'alpha', quick_add_bg_alpha
--%}
+<script
+  src="{{ 'product-recommendations.s.min.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+{% liquid
+  case section.settings.layout_type
+    when 'grid'
+      assign classes = 'resource-list--grid'
+    when 'carousel'
+      assign classes = 'resource-list__carousel'
+  endcase
+
+  capture styles
+    echo '--column-count-mobile: ' | append: section.settings.mobile_columns | append: ';'
+    echo '--resource-list-column-gap-desktop: ' | append: section.settings.columns_gap | append: 'px;'
+    echo '--resource-list-row-gap-desktop: ' | append: section.settings.rows_gap | append: 'px;'
+    echo '--resource-list-columns: repeat(' | append: section.settings.columns | append: ', 1fr);'
+    echo '--resource-list-columns-mobile: repeat(' | append: section.settings.mobile_columns | append: ', 1fr);'
+    echo '--resource-list-column-gap-desktop: ' | append: section.settings.columns_gap | append: 'px;'
+    echo '--column-count: ' | append: section.settings.columns | append: ';'
+    echo '--column-count-mobile: ' | append: section.settings.mobile_columns | append: ';'
+  endcapture
+%}
 
 <product-recommendations
-  id="PRR-{{ section.id }}"
-  class="prr color-{{ section.settings.color_scheme }}{% if section.settings.show_full_product_name %} prr--full-title{% endif %}{% if section.settings.enable_pokeball_icon %} prr--pokeball{% endif %}{% if section.settings.quick_add_custom_bg %} prr--quick-add-custom-bg{% endif %}"
-  data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ section.settings.products_to_show }}&intent={{ section.settings.intent }}"
-  style="
-    --prr-bg: {{ section.settings.background_color }};
-    --prr-heading-color: {{ section.settings.heading_color }};
-    --prr-heading-size: {{ section.settings.heading_size }}px;
-    --prr-heading-size-mobile: {{ section.settings.heading_size_mobile }}px;
-    --prr-card-width: {{ section.settings.card_width }}px;
-    --prr-card-width-mobile: {{ section.settings.card_width_mobile }}px;
-    --prr-card-gap: {{ section.settings.card_gap }}px;
-    --prr-card-title-size: {{ section.settings.card_title_size }}px;
-    --prr-card-title-size-mobile: {{ section.settings.card_title_size_mobile }}px;
-    --prr-card-price-size: {{ section.settings.card_price_size }}px;
-    --prr-card-price-size-mobile: {{ section.settings.card_price_size_mobile }}px;
-    --prr-card-bg: {% if section.settings.enable_card_background %}{{ section.settings.card_background_color }}{% else %}transparent{% endif %};
-    --prr-card-blur-amount: {{ section.settings.card_blur_amount }}px;
-    --prr-card-blur-fade: {{ section.settings.card_blur_fade_size }}%;
-    --prr-image-fit: {% if section.settings.image_fit_contain %}contain{% else %}cover{% endif %};
-    --prr-quick-add-bg: {{ quick_add_bg_rgba }};
-    padding-top: {{ section.settings.padding_top }}px;
-    padding-bottom: {{ section.settings.padding_bottom }}px;
-  "
+  id="product-recommendations-{{ section.id }}"
+  class="product-recommendations"
+  data-url="{{ routes.product_recommendations_url }}?limit={{ section.settings.max_products }}"
+  data-section-id="{{ section.id }}"
+  data-product-id="{{ section.settings.product.id | default: product.id }}"
+  data-intent="{{ section.settings.recommendation_type }}"
+  data-testid="product-recommendations-section"
+  data-recommendations-performed="{{ recommendations.performed }}"
+  {{ section.shopify_attributes }}
 >
-  {%- if recommendations.performed and recommendations.products_count > 0 -%}
-    <div class="prr__head">
-      <h2 class="prr__heading">{{ section.settings.heading_text }}</h2>
+  <div class="section-background color-{{ section.settings.color_scheme }}"></div>
+  <div
+    class="
+      section
+      section--{{ section.settings.section_width }}
+      color-{{ section.settings.color_scheme }}
+      section-resource-list
+      spacing-style
+      gap-style
+    "
+    style="
+      {%  render 'spacing-style', settings: section.settings %}
+      {%  render 'gap-style', value: section.settings.gap %}
+      {{ styles }}
+    "
+  >
+    <div class="section-resource-list__content">
+      {% content_for 'blocks' %}
     </div>
 
-    <div class="prr__carousel-wrapper">
-      <div class="prr__grid" id="PRR-Grid-{{ section.id }}" data-testid="prr-grid">
-        {%- for product in recommendations.products -%}
-          {%- liquid
-            assign on_sale = false
-            if product.compare_at_price > product.price
-              assign on_sale = true
-            endif
+    {%- if recommendations.performed or section.settings.product == blank -%}
+      {% liquid
+        if section.settings.product == blank
+          assign products = null
+          # Onboarding mode: Show placeholder products
+          for i in (1..section.settings.max_products)
+            assign products = products | append: ', '
+            assign products = products | split: ','
+          endfor
+        elsif recommendations.performed and recommendations.products_count == 0
+          # No recommendations found, pull from catalog
+          if section.settings.recommendation_type == 'related'
+            assign products = collections.all.products | reject: 'id', section.settings.product.id
+          elsif section.settings.recommendation_type == 'complementary'
+            # Do not recommend the All collection as complementary products
+            assign products = null
+          endif
 
-            assign card_image_alt = product.featured_image.alt | default: product.title
-          -%}
-          <a
-            href="{{ product.url }}"
-            class="prr__card"
-          >
-            {%- if section.settings.enable_card_blur -%}
-              <div class="prr__card-blur" aria-hidden="true"></div>
-            {%- endif -%}
+        else
+          assign products = recommendations.products
+        endif
+      %}
+      {% capture list_items %}
+        {% for product in products limit: section.settings.max_products %}
+          <div class="resource-list__item">
+            {% content_for 'block', type: '_product-card', id: 'static-product-card', closest.product: product %}
+          </div>
+          {% unless forloop.last %}
+            <!--@list/split-->
+          {% endunless %}
+        {% endfor %}
+      {% endcapture %}
 
-            {%- if on_sale and section.settings.show_sale_badge -%}
-              <span class="prr__card-badge">{{ section.settings.sale_badge_text }}</span>
-            {%- endif -%}
+      {% liquid
+        # Create an array from the list items to be used in the carousel
+        assign slide_content = list_items | strip
+        assign slides = slide_content | split: '<!--@list/split-->'
 
-            {%- if section.settings.enable_quick_add -%}
-              <div class="prr__quick-add" onclick="event.stopPropagation()">
-                {% render 'quick-add', product: product, section_id: section.id %}
-              </div>
-            {%- endif -%}
+        if products != blank and products.size > 0
+          assign has_recommendations = 'true'
+        else
+          assign has_recommendations = 'false'
+        endif
+      %}
 
-            <div class="prr__card-image-wrapper prr__card-image-wrapper--{{ section.settings.image_ratio }}">
-              {%- if product.featured_image != blank -%}
-                {{
-                  product.featured_image
-                  | image_url: width: 1200
-                  | image_tag:
-                    widths: '400, 600, 900, 1200',
-                    alt: card_image_alt,
-                    class: 'prr__card-image',
-                    sizes: '(min-width: 750px) 25vw, 50vw',
-                    loading: 'lazy'
-                }}
-              {%- else -%}
-                {{ 'product-1' | placeholder_svg_tag: 'prr__card-image' }}
-              {%- endif -%}
-            </div>
-
-            <div class="prr__card-content">
-              <p class="prr__card-title">{{ product.title }}</p>
-              <p class="prr__card-price">
-                {{ product.price | money }}
-                {%- if on_sale -%}
-                  <span class="prr__card-price-compare">{{ product.compare_at_price | money }}</span>
-                {%- endif -%}
-              </p>
-            </div>
-          </a>
-        {%- endfor -%}
+      <div
+        class="
+          resource-list
+          {% if section.settings.layout_type == 'carousel' %}
+            force-full-width
+          {% endif %}
+          {% if section.settings.carousel_on_mobile and section.settings.layout_type != 'carousel' %}
+            hidden--mobile
+          {% endif %}
+          {{ classes }}
+        "
+        {% if section.settings.layout_type == 'grid' %}
+          data-testid="resource-list-grid"
+        {% endif %}
+        data-has-recommendations="{{ has_recommendations }}"
+      >
+        {% case section.settings.layout_type %}
+          {% when 'grid' %}
+            {{ list_items }}
+          {% when 'carousel' %}
+            {% render 'resource-list-carousel',
+              ref: 'resourceListCarousel',
+              slides: slides,
+              slide_count: recommendations.products.size,
+              settings: section.settings
+            %}
+        {% endcase %}
       </div>
 
-      {%- if section.settings.show_carousel_arrows -%}
-        <button
-          type="button"
-          class="prr__arrow prr__arrow--prev"
-          data-prr-arrow="prev"
-          aria-label="Previous products"
+      {% if section.settings.carousel_on_mobile and section.settings.layout_type != 'carousel' %}
+        {% liquid
+          assign mobile_carousel_gap = section.settings.columns_gap
+        %}
+        <div
+          class="
+            resource-list
+            hidden--desktop
+            force-full-width
+          "
+          style="
+            --resource-list-gap: {{ mobile_carousel_gap }}px;
+            --column-count: {{ section.settings.columns }};
+          "
         >
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-            <path d="M15 5L8 12L15 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          class="prr__arrow prr__arrow--next"
-          data-prr-arrow="next"
-          aria-label="Next products"
-        >
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-            <path d="M9 5L16 12L9 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
-      {%- endif -%}
-    </div>
-  {%- endif -%}
+          {% render 'resource-list-carousel',
+            ref: 'resourceListCarouselMobile',
+            slides: slides,
+            slide_count: recommendations.products.size,
+            settings: section.settings
+          %}
+        </div>
+      {% endif %}
+    {%- else -%}
+      <div
+        class="resource-list resource-list--grid"
+      >
+        {% for i in (1..section.settings.columns) %}
+          <div
+            class="product-recommendations__skeleton-item"
+            aria-label="{{ 'accessibility.loading_product_recommendations' | t }}"
+          ></div>
+        {% endfor %}
+      </div>
+    {%- endif -%}
+  </div>
 </product-recommendations>
-
-<script>
-  (function () {
-    if (customElements.get('product-recommendations')) return;
-
-    class ProductRecommendations extends HTMLElement {
-      connectedCallback() {
-        this.initRecommendations();
-      }
-
-      initRecommendations() {
-        var url = this.dataset.url;
-        if (!url) return;
-        var self = this;
-
-        fetch(url)
-          .then(function (response) {
-            return response.text();
-          })
-          .then(function (text) {
-            var wrapper = document.createElement('div');
-            wrapper.innerHTML = text;
-            var fetched = wrapper.querySelector('product-recommendations');
-
-            if (fetched && fetched.innerHTML.trim().length) {
-              self.innerHTML = fetched.innerHTML;
-              self.setupCarousel();
-            } else {
-              // Shopify had nothing to recommend for this product --
-              // remove the section entirely instead of leaving an empty
-              // heading/gap on the page.
-              self.remove();
-            }
-          })
-          .catch(function () {
-            self.remove();
-          });
-      }
-
-      setupCarousel() {
-        var track = this.querySelector('.prr__grid');
-        if (!track) return;
-
-        var prevButton = this.querySelector('[data-prr-arrow="prev"]');
-        var nextButton = this.querySelector('[data-prr-arrow="next"]');
-
-        function scrollByCard(direction) {
-          var cards = track.querySelectorAll('.prr__card');
-          var amount = track.clientWidth * 0.8;
-          if (cards.length > 1) {
-            var firstLeft = cards[0].getBoundingClientRect().left;
-            for (var i = 1; i < cards.length; i++) {
-              var delta = Math.abs(cards[i].getBoundingClientRect().left - firstLeft);
-              if (delta > 1) {
-                amount = delta;
-                break;
-              }
-            }
-          }
-          track.scrollBy({ left: amount * direction, behavior: 'smooth' });
-        }
-
-        if (prevButton) {
-          prevButton.addEventListener('click', function () {
-            scrollByCard(-1);
-          });
-        }
-        if (nextButton) {
-          nextButton.addEventListener('click', function () {
-            scrollByCard(1);
-          });
-        }
-
-        var isDragging = false;
-        var hasDragged = false;
-        var startX = 0;
-        var startScrollLeft = 0;
-
-        track.addEventListener('mousedown', function (e) {
-          if (e.button !== 0) return;
-          if (e.target.closest('.prr__quick-add')) return;
-          isDragging = true;
-          hasDragged = false;
-          startX = e.pageX;
-          startScrollLeft = track.scrollLeft;
-          track.classList.add('prr__grid--dragging');
-          e.preventDefault();
-        });
-
-        window.addEventListener('mousemove', function (e) {
-          if (!isDragging) return;
-          var delta = e.pageX - startX;
-          if (Math.abs(delta) > 5) hasDragged = true;
-          track.scrollLeft = startScrollLeft - delta;
-        });
-
-        window.addEventListener('mouseup', function () {
-          isDragging = false;
-          track.classList.remove('prr__grid--dragging');
-        });
-
-        track.addEventListener(
-          'click',
-          function (e) {
-            if (hasDragged) {
-              e.preventDefault();
-              e.stopPropagation();
-            }
-          },
-          true
-        );
-
-        document.addEventListener(
-          'submit',
-          function (e) {
-            if (e.target && e.target.closest && e.target.closest('.prr__quick-add')) {
-              e.preventDefault();
-            }
-          },
-          true
-        );
-      }
-    }
-
-    customElements.define('product-recommendations', ProductRecommendations);
-  })();
-</script>
-
-{% stylesheet %}
-  .prr {
-    display: block;
-    position: relative;
-    background: var(--prr-bg);
-  }
-
-  .prr__head {
-    padding: 0 20px;
-    margin-bottom: 16px;
-  }
-
-  @media screen and (min-width: 750px) {
-    .prr__head {
-      padding: 0 40px;
-    }
-  }
-
-  .prr__heading {
-    margin: 0;
-    color: var(--prr-heading-color);
-    font-size: var(--prr-heading-size-mobile);
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
-
-  @media screen and (min-width: 750px) {
-    .prr__heading {
-      font-size: var(--prr-heading-size);
-    }
-  }
-
-  .prr__carousel-wrapper {
-    position: relative;
-  }
-
-  .prr__grid {
-    display: flex;
-    gap: var(--prr-card-gap);
-    padding: 0 20px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-left: 20px;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .prr__grid::-webkit-scrollbar {
-    display: none;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .prr__grid {
-      cursor: grab;
-    }
-  }
-
-  .prr__grid--dragging {
-    cursor: grabbing !important;
-    scroll-snap-type: none;
-    user-select: none;
-  }
-
-  @media screen and (min-width: 750px) {
-    .prr__grid {
-      padding: 0 40px;
-      scroll-padding-left: 40px;
-    }
-  }
-
-  .prr__card {
-    position: relative;
-    isolation: isolate;
-    display: flex;
-    flex-direction: column;
-    flex: 0 0 var(--prr-card-width-mobile);
-    scroll-snap-align: start;
-    text-decoration: none;
-    border-radius: 14px;
-    overflow: hidden;
-    background: linear-gradient(to top, var(--prr-card-bg) 0%, transparent 45%);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    will-change: transform;
-  }
-
-  @media screen and (min-width: 750px) {
-    .prr__card {
-      flex-basis: var(--prr-card-width);
-    }
-  }
-
-  .prr__card-blur {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    contain: strict;
-    -webkit-backdrop-filter: blur(var(--prr-card-blur-amount));
-    backdrop-filter: blur(var(--prr-card-blur-amount));
-    -webkit-mask-image: linear-gradient(to top, black 0%, transparent var(--prr-card-blur-fade));
-    mask-image: linear-gradient(to top, black 0%, transparent var(--prr-card-blur-fade));
-  }
-
-  .prr__arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: 40%;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(0, 0, 0, 0.55);
-    color: #fff;
-    cursor: pointer;
-    z-index: 3;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease, background-color 0.2s ease, transform 0.2s ease;
-  }
-
-  .prr__carousel-wrapper:has(.prr__grid:hover) .prr__arrow,
-  .prr__carousel-wrapper:has(.prr__grid:active) .prr__arrow,
-  .prr__carousel-wrapper:has(.prr__grid:focus-within) .prr__arrow,
-  .prr__carousel-wrapper:has(.prr__arrow:hover) .prr__arrow,
-  .prr__carousel-wrapper:has(.prr__arrow:focus-visible) .prr__arrow {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .prr__arrow:hover {
-    background: #ff2fb1;
-    transform: translateY(-50%) scale(1.05);
-  }
-
-  .prr__arrow--prev {
-    left: 8px;
-    transform: translateY(-50%);
-  }
-
-  .prr__arrow--next {
-    right: 8px;
-    transform: translateY(-50%);
-  }
-
-  @media screen and (min-width: 750px) {
-    .prr__arrow {
-      width: 48px;
-      height: 48px;
-    }
-
-    .prr__arrow--prev {
-      left: 16px;
-    }
-
-    .prr__arrow--next {
-      right: 16px;
-    }
-  }
-
-  @media screen and (max-width: 749px) {
-    .prr__arrow {
-      display: none !important;
-    }
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .prr__grid:not(.prr__grid--dragging) .prr__card:hover {
-      transform: translateY(-4px) scale(1.035);
-      z-index: 5;
-    }
-  }
-
-  .prr__card-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 3;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: #ff2fb1;
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .prr__quick-add {
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    pointer-events: none;
-  }
-
-  .prr__quick-add .quick-add__button {
-    top: 12px;
-    right: 0;
-    bottom: auto;
-    left: auto;
-    opacity: 1;
-  }
-
-  .prr__quick-add .quick-add__button--choose {
-    display: none !important;
-  }
-
-  .prr__quick-add .quick-add__button--add {
-    display: flex !important;
-  }
-
-  .prr--quick-add-custom-bg .prr__quick-add .quick-add__button {
-    background: var(--prr-quick-add-bg);
-  }
-
-  .prr--quick-add-custom-bg .prr__quick-add .quick-add__button .add-to-cart-text {
-    background: transparent;
-  }
-
-  @media screen and (min-width: 750px) {
-    .prr__quick-add .quick-add__button {
-      opacity: 0;
-      transition-duration: 0.12s;
-      transition-delay: 0s;
-    }
-
-    .prr--pokeball .prr__quick-add .add-to-cart-icon::before {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='1.4 1.4 15.2 15.2'%3E%3Ccircle cx='9' cy='9' r='7' fill='none' stroke='%23111111' stroke-width='1.2'/%3E%3Cpath d='M2 9h5M11 9h5' stroke='%23111111' stroke-width='1.2'/%3E%3Ccircle cx='9' cy='9' r='2' fill='none' stroke='%23111111' stroke-width='1.2'/%3E%3C/svg%3E");
-    }
-
-    .prr__card:is(:hover, :focus-within) .prr__quick-add .quick-add__button {
-      opacity: 1;
-    }
-
-    .prr__quick-add .quick-add__button .add-to-cart-text__content,
-    .prr__quick-add .quick-add__button .add-to-cart-text__content span span {
-      transition-duration: 0.12s;
-      transition-delay: 0s;
-    }
-
-    .prr__quick-add .quick-add__button:is(:hover, :focus-visible) .add-to-cart-text__content,
-    .prr__quick-add .quick-add__button:is(:hover, :focus-visible) .add-to-cart-text__content span span {
-      transition-delay: 0s;
-    }
-  }
-
-  .prr--pokeball .prr__quick-add .add-to-cart-icon svg {
-    display: none;
-  }
-
-  .prr--pokeball .prr__quick-add .add-to-cart-icon {
-    position: relative;
-  }
-
-  .prr--pokeball .prr__quick-add .add-to-cart-icon::before {
-    content: '';
-    position: absolute;
-    inset: 5px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='1.4 1.4 19.9 19.9'%3E%3Ccircle cx='9' cy='9' r='7' fill='none' stroke='%23111111' stroke-width='1.2'/%3E%3Cpath d='M2 9h5M11 9h5' stroke='%23111111' stroke-width='1.2'/%3E%3Ccircle cx='9' cy='9' r='2' fill='none' stroke='%23111111' stroke-width='1.2'/%3E%3Ccircle cx='16' cy='16' r='4.6' fill='%23ffffff' stroke='%23ff2fb1' stroke-width='1.4'/%3E%3Cpath d='M16 14.2v3.6M14.2 16h3.6' stroke='%23ff2fb1' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-  }
-
-  .prr--pokeball .prr__quick-add .checkmark-burst {
-    display: none;
-  }
-
-  .prr--pokeball .prr__quick-add .add-to-cart__added-icon {
-    position: relative;
-    width: 22px;
-    height: 22px;
-    display: none;
-  }
-
-  .prr--pokeball .prr__quick-add .quick-add__button[data-added='true'] .add-to-cart__added-icon {
-    display: inline-flex;
-  }
-
-  .prr--pokeball .prr__quick-add .add-to-cart__added-icon::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 12a9 9 0 0 1 18 0Z' fill='%23ee1515'/%3E%3Cpath d='M3 12a9 9 0 0 0 18 0Z' fill='%23ffffff'/%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%23111111' stroke-width='1.1'/%3E%3Cpath d='M3 12h5.2M15.8 12H21' stroke='%23111111' stroke-width='1.3'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='%23ffffff' stroke='%23111111' stroke-width='1.3'/%3E%3C/svg%3E");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    animation: prr-catch-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .prr--pokeball .prr__quick-add .quick-add__button[data-added='true']::after {
-    content: '';
-    position: absolute;
-    inset: -6px;
-    border-radius: 999px;
-    border: 2px solid #ff2fb1;
-    animation: prr-catch-ring 0.6s ease-out;
-    pointer-events: none;
-  }
-
-  @keyframes prr-catch-pop {
-    0% {
-      transform: scale(0.3);
-      opacity: 0;
-    }
-    60% {
-      transform: scale(1.2);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  @keyframes prr-catch-ring {
-    0% {
-      transform: scale(0.6);
-      opacity: 0.9;
-    }
-    100% {
-      transform: scale(1.8);
-      opacity: 0;
-    }
-  }
-
-  .prr__card-image-wrapper {
-    width: 100%;
-    overflow: hidden;
-    background: transparent;
-  }
-
-  .prr__card-image-wrapper--square {
-    aspect-ratio: 1 / 1;
-  }
-
-  .prr__card-image-wrapper--portrait {
-    aspect-ratio: 3 / 4;
-  }
-
-  .prr__card-image-wrapper--landscape {
-    aspect-ratio: 4 / 3;
-  }
-
-  .prr__card-image {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: var(--prr-image-fit);
-    transform: scale(1);
-    transition: transform 0.6s cubic-bezier(0.4, 0, 0, 1);
-  }
-
-  .prr__card-image-wrapper--adapt .prr__card-image {
-    height: auto;
-    object-fit: contain;
-  }
-
-  .prr__card-content {
-    padding: 14px 16px 18px;
-    text-align: center;
-  }
-
-  .prr__card-title {
-    margin: 0 0 6px;
-    color: var(--prr-heading-color);
-    font-size: var(--prr-card-title-size-mobile);
-    font-weight: 600;
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-  }
-
-  @media screen and (min-width: 750px) {
-    .prr__card-title {
-      font-size: var(--prr-card-title-size);
-    }
-  }
-
-  .prr--full-title .prr__card-title {
-    display: block;
-    -webkit-line-clamp: unset;
-    overflow: visible;
-  }
-
-  .prr__card-price {
-    margin: 0;
-    color: #ff2fb1;
-    font-size: var(--prr-card-price-size-mobile);
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  @media screen and (min-width: 750px) {
-    .prr__card-price {
-      font-size: var(--prr-card-price-size);
-    }
-  }
-
-  .prr__card-price-compare {
-    color: rgba(255, 255, 255, 0.5);
-    font-weight: 500;
-    font-size: 0.8em;
-    text-decoration: line-through;
-  }
-{% endstylesheet %}
 
 {% schema %}
 {
-  "name": "Product Recommendations",
-  "tag": "section",
-  "class": "prr-wrapper section-wrapper",
+  "name": "t:names.product_recommendations",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "blocks": [
+    {
+      "type": "@theme"
+    },
+    {
+      "type": "@app"
+    },
+    {
+      "type": "text"
+    },
+    {
+      "type": "icon"
+    },
+    {
+      "type": "image"
+    },
+    {
+      "type": "button"
+    },
+    {
+      "type": "video"
+    },
+    {
+      "type": "group"
+    },
+    {
+      "type": "spacer"
+    },
+    {
+      "type": "_divider"
+    }
+  ],
   "settings": [
     {
-      "type": "color_scheme",
-      "id": "color_scheme",
-      "label": "Color scheme",
-      "default": "scheme-1"
+      "type": "product",
+      "id": "product",
+      "label": "t:settings.product"
+    },
+    {
+      "type": "select",
+      "id": "recommendation_type",
+      "label": "t:settings.type",
+      "options": [
+        {
+          "value": "related",
+          "label": "t:options.related"
+        },
+        {
+          "value": "complementary",
+          "label": "t:options.complementary"
+        }
+      ],
+      "default": "related"
     },
     {
       "type": "paragraph",
-      "content": "Pulls real recommendations from Shopify's own engine based on order history and product similarity -- not a manually picked collection. Only works on product pages, and hides itself automatically if Shopify has no recommendations for a given product."
+      "content": "t:content.complementary_products"
     },
     {
       "type": "header",
-      "content": "Heading"
-    },
-    {
-      "type": "text",
-      "id": "heading_text",
-      "label": "Heading",
-      "default": "Customers who bought this also bought"
-    },
-    {
-      "type": "color",
-      "id": "heading_color",
-      "label": "Heading & text color",
-      "default": "#ffffff"
-    },
-    {
-      "type": "range",
-      "id": "heading_size",
-      "label": "Heading size (desktop)",
-      "min": 16,
-      "max": 72,
-      "step": 2,
-      "unit": "px",
-      "default": 24
-    },
-    {
-      "type": "range",
-      "id": "heading_size_mobile",
-      "label": "Heading size (mobile)",
-      "min": 14,
-      "max": 48,
-      "step": 2,
-      "unit": "px",
-      "default": 18
-    },
-    {
-      "type": "header",
-      "content": "Recommendations"
+      "content": "t:content.cards_layout"
     },
     {
       "type": "select",
-      "id": "intent",
-      "label": "Recommendation type",
+      "id": "layout_type",
+      "label": "t:settings.layout_style",
       "options": [
-        { "value": "related", "label": "Related (similar products)" },
-        { "value": "complementary", "label": "Complementary (frequently bought together)" }
+        {
+          "value": "grid",
+          "label": "t:options.grid"
+        },
+        {
+          "value": "carousel",
+          "label": "t:options.carousel"
+        }
       ],
-      "default": "related",
-      "info": "\"Complementary\" needs Shopify's Search & Discovery recommendations data for this product -- falls back to no results if that isn't available."
-    },
-    {
-      "type": "range",
-      "id": "products_to_show",
-      "label": "Number of products",
-      "min": 2,
-      "max": 12,
-      "step": 1,
-      "default": 8
-    },
-    {
-      "type": "header",
-      "content": "Cards"
-    },
-    {
-      "type": "select",
-      "id": "image_ratio",
-      "label": "Product image ratio",
-      "options": [
-        { "value": "square", "label": "Square" },
-        { "value": "portrait", "label": "Portrait" },
-        { "value": "landscape", "label": "Landscape" },
-        { "value": "adapt", "label": "Original" }
-      ],
-      "default": "square"
+      "default": "grid"
     },
     {
       "type": "checkbox",
-      "id": "image_fit_contain",
-      "label": "Fit images without cropping",
-      "default": true,
-      "visible_if": "{{ section.settings.image_ratio != 'adapt' }}"
-    },
-    {
-      "type": "range",
-      "id": "card_width",
-      "label": "Card width (desktop)",
-      "min": 180,
-      "max": 480,
-      "step": 10,
-      "unit": "px",
-      "default": 230
-    },
-    {
-      "type": "range",
-      "id": "card_width_mobile",
-      "label": "Card width (mobile)",
-      "min": 140,
-      "max": 360,
-      "step": 10,
-      "unit": "px",
-      "default": 170
-    },
-    {
-      "type": "range",
-      "id": "card_gap",
-      "label": "Card gap",
-      "min": 0,
-      "max": 60,
-      "step": 2,
-      "unit": "px",
-      "default": 16
-    },
-    {
-      "type": "checkbox",
-      "id": "enable_card_background",
-      "label": "Show card background",
-      "default": true
-    },
-    {
-      "type": "color",
-      "id": "card_background_color",
-      "label": "Card background color",
-      "alpha": true,
-      "default": "#ffffff0a",
-      "visible_if": "{{ section.settings.enable_card_background }}"
-    },
-    {
-      "type": "checkbox",
-      "id": "enable_card_blur",
-      "label": "Blur background behind card",
-      "default": false
-    },
-    {
-      "type": "range",
-      "id": "card_blur_amount",
-      "label": "Blur amount",
-      "min": 0,
-      "max": 20,
-      "step": 1,
-      "unit": "px",
-      "default": 8,
-      "visible_if": "{{ section.settings.enable_card_blur }}"
-    },
-    {
-      "type": "range",
-      "id": "card_blur_fade_size",
-      "label": "Blur fade size",
-      "min": 10,
-      "max": 90,
-      "step": 5,
-      "unit": "%",
-      "default": 45,
-      "visible_if": "{{ section.settings.enable_card_blur }}"
-    },
-    {
-      "type": "range",
-      "id": "card_title_size",
-      "label": "Product title size (desktop)",
-      "min": 10,
-      "max": 24,
-      "step": 1,
-      "unit": "px",
-      "default": 14
-    },
-    {
-      "type": "range",
-      "id": "card_title_size_mobile",
-      "label": "Product title size (mobile)",
-      "min": 10,
-      "max": 20,
-      "step": 1,
-      "unit": "px",
-      "default": 13
-    },
-    {
-      "type": "range",
-      "id": "card_price_size",
-      "label": "Price size (desktop)",
-      "min": 10,
-      "max": 28,
-      "step": 1,
-      "unit": "px",
-      "default": 16
-    },
-    {
-      "type": "range",
-      "id": "card_price_size_mobile",
-      "label": "Price size (mobile)",
-      "min": 10,
-      "max": 24,
-      "step": 1,
-      "unit": "px",
-      "default": 15
-    },
-    {
-      "type": "checkbox",
-      "id": "show_full_product_name",
-      "label": "Show full product name",
-      "default": false
-    },
-    {
-      "type": "checkbox",
-      "id": "show_carousel_arrows",
-      "label": "Show carousel arrows (desktop)",
-      "default": true
-    },
-    {
-      "type": "checkbox",
-      "id": "show_sale_badge",
-      "label": "Show badge on sale items",
-      "default": true
-    },
-    {
-      "type": "text",
-      "id": "sale_badge_text",
-      "label": "Sale badge text",
-      "default": "SALE",
-      "visible_if": "{{ section.settings.show_sale_badge }}"
-    },
-    {
-      "type": "checkbox",
-      "id": "enable_quick_add",
-      "label": "Show quick add-to-cart button",
-      "default": true
-    },
-    {
-      "type": "checkbox",
-      "id": "enable_pokeball_icon",
-      "label": "Use Pokéball icon for quick add",
-      "default": true,
-      "visible_if": "{{ section.settings.enable_quick_add }}"
-    },
-    {
-      "type": "checkbox",
-      "id": "quick_add_custom_bg",
-      "label": "Customize quick add background",
+      "id": "carousel_on_mobile",
+      "label": "t:settings.carousel_on_mobile",
       "default": false,
-      "visible_if": "{{ section.settings.enable_quick_add }}"
-    },
-    {
-      "type": "color",
-      "id": "quick_add_bg_color",
-      "label": "Background color",
-      "default": "#000000",
-      "visible_if": "{{ section.settings.enable_quick_add and section.settings.quick_add_custom_bg }}"
+      "visible_if": "{{ section.settings.layout_type == 'grid' }}"
     },
     {
       "type": "range",
-      "id": "quick_add_bg_opacity",
-      "label": "Background opacity",
+      "id": "max_products",
+      "label": "t:settings.product_count",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "t:settings.columns",
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "mobile_columns",
+      "label": "t:settings.mobile_columns",
+      "options": [
+        {
+          "value": "1",
+          "label": "t:options.one_number"
+        },
+        {
+          "value": "2",
+          "label": "t:options.two_number"
+        }
+      ],
+      "default": "2",
+      "visible_if": "{{ section.settings.layout_type == 'grid' and section.settings.carousel_on_mobile == false }}"
+    },
+    {
+      "type": "range",
+      "id": "columns_gap",
+      "label": "t:settings.horizontal_gap",
       "min": 0,
       "max": 100,
-      "step": 5,
-      "unit": "%",
-      "default": 35,
-      "visible_if": "{{ section.settings.enable_quick_add and section.settings.quick_add_custom_bg }}"
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ section.settings.layout_type == 'grid' or section.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "range",
+      "id": "rows_gap",
+      "label": "t:settings.vertical_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ section.settings.layout_type == 'grid' }}"
     },
     {
       "type": "header",
-      "content": "Background & padding"
+      "content": "t:content.carousel_navigation",
+      "visible_if": "{{ section.settings.layout_type == 'carousel' or section.settings.carousel_on_mobile == true }}"
     },
     {
-      "type": "color",
-      "id": "background_color",
-      "label": "Section background color",
-      "default": "#0b0b0f"
+      "type": "select",
+      "id": "icons_style",
+      "label": "t:settings.icon",
+      "options": [
+        {
+          "value": "arrow",
+          "label": "t:options.arrows"
+        },
+        {
+          "value": "chevron",
+          "label": "t:options.chevrons"
+        },
+        {
+          "value": "arrows_large",
+          "label": "t:options.arrows_large"
+        },
+        {
+          "value": "chevron_large",
+          "label": "t:options.chevron_large"
+        },
+        {
+          "value": "none",
+          "label": "t:options.none"
+        }
+      ],
+      "default": "arrow",
+      "visible_if": "{{ section.settings.layout_type == 'carousel' or section.settings.carousel_on_mobile == true }}"
+    },
+    {
+      "type": "select",
+      "id": "icons_shape",
+      "label": "t:settings.icon_background",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.none"
+        },
+        {
+          "value": "circle",
+          "label": "t:options.circle"
+        },
+        {
+          "value": "square",
+          "label": "t:options.square"
+        }
+      ],
+      "default": "none",
+      "visible_if": "{{ section.settings.icons_style != 'none' and section.settings.layout_type == 'carousel' or section.settings.carousel_on_mobile == true }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "page-width"
     },
     {
       "type": "range",
-      "id": "padding_top",
-      "label": "Top padding",
+      "id": "gap",
+      "label": "t:settings.gap",
       "min": 0,
       "max": 100,
-      "step": 4,
+      "step": 1,
       "unit": "px",
-      "default": 40
+      "default": 12
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
     },
     {
       "type": "range",
-      "id": "padding_bottom",
-      "label": "Bottom padding",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
       "min": 0,
       "max": 100,
-      "step": 4,
+      "step": 1,
       "unit": "px",
-      "default": 40
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
     }
   ],
   "presets": [
     {
-      "name": "Product Recommendations"
+      "name": "t:names.product_recommendations",
+      "category": "t:categories.products",
+      "settings": {
+        "product": "{{ closest.product }}",
+        "recommendation_type": "related",
+        "layout_type": "grid",
+        "carousel_on_mobile": false,
+        "max_products": 4,
+        "columns": 4,
+        "mobile_columns": "2",
+        "columns_gap": 12,
+        "rows_gap": 24,
+        "icons_style": "arrow",
+        "icons_shape": "none",
+        "section_width": "page-width",
+        "gap": 28,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      },
+      "blocks": {
+        "header": {
+          "type": "text",
+          "name": "t:names.header",
+          "settings": {
+            "text": "t:html_defaults.related_product"
+          }
+        },
+        "static-product-card": {
+          "type": "_product-card",
+          "name": "t:names.product_card",
+          "static": true,
+          "settings": {
+            "product_card_gap": 4
+          },
+          "blocks": {
+            "product-card-gallery": {
+              "type": "_product-card-gallery",
+              "name": "t:names.product_card_media",
+              "settings": {
+                "image_ratio": "adapt",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              }
+            },
+            "product_title": {
+              "type": "product-title",
+              "name": "t:names.product_title",
+              "settings": {
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 4,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              }
+            },
+            "price": {
+              "type": "price",
+              "name": "t:names.product_price",
+              "settings": {
+                "show_sale_price_first": true,
+                "show_installments": false,
+                "show_tax_info": false,
+                "type_preset": "h6",
+                "width": "100%",
+                "alignment": "left",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "color": "var(--color-foreground)",
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              }
+            }
+          },
+          "block_order": ["product-card-gallery", "product_title", "price"]
+        }
+      },
+      "block_order": ["header"]
     }
   ]
 }
