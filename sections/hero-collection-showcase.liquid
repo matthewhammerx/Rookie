@@ -497,22 +497,61 @@
 
       expandToggle.addEventListener('click', function () {
         // Flex-row and grid-2-row are fundamentally different layout
-        // models, so the browser can't smoothly animate between them --
-        // fade out, swap the layout while invisible, then fade back in
-        // reads as a clean transition instead of a hard snap.
-        track.classList.add('hcs__grid--transitioning');
+        // models, so the browser can't natively transition between them.
+        // Use FLIP: measure every card's First position, apply the new
+        // layout (Last), invert each card back to its old spot with an
+        // untransitioned transform, then play the animation to its real
+        // new spot -- plus animate the track's own height -- so it reads
+        // as cards sliding/growing into place instead of a hard swap.
+        if (expandToggle.dataset.animating === 'true') return;
+        expandToggle.dataset.animating = 'true';
+
+        var cards = Array.prototype.slice.call(track.querySelectorAll('.hcs__card'));
+        var firstRects = cards.map(function (card) {
+          return card.getBoundingClientRect();
+        });
+        var firstHeight = track.getBoundingClientRect().height;
+
+        var isExpanded = expandWrapper.classList.toggle('hcs__carousel-wrapper--expanded');
+        expandToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        if (expandLabel) expandLabel.textContent = isExpanded ? 'Show less' : 'Show more';
+        track.scrollLeft = 0;
+
+        var lastHeight = track.getBoundingClientRect().height;
+        var duration = 380;
+        var easing = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+        track.style.height = firstHeight + 'px';
+        cards.forEach(function (card, i) {
+          var last = card.getBoundingClientRect();
+          var dx = firstRects[i].left - last.left;
+          var dy = firstRects[i].top - last.top;
+          card.style.transition = 'none';
+          card.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
+        });
+
+        // Force a reflow so the browser commits the "First" positions
+        // above before we animate to the real values below.
+        track.getBoundingClientRect();
+
+        requestAnimationFrame(function () {
+          track.style.transition = 'height ' + duration + 'ms ' + easing;
+          track.style.height = lastHeight + 'px';
+          cards.forEach(function (card) {
+            card.style.transition = 'transform ' + duration + 'ms ' + easing;
+            card.style.transform = '';
+          });
+        });
 
         window.setTimeout(function () {
-          track.scrollLeft = 0;
-
-          var isExpanded = expandWrapper.classList.toggle('hcs__carousel-wrapper--expanded');
-          expandToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
-          if (expandLabel) expandLabel.textContent = isExpanded ? 'Show less' : 'Show more';
-
-          requestAnimationFrame(function () {
-            track.classList.remove('hcs__grid--transitioning');
+          track.style.transition = '';
+          track.style.height = '';
+          cards.forEach(function (card) {
+            card.style.transition = '';
+            card.style.transform = '';
           });
-        }, 180);
+          expandToggle.dataset.animating = 'false';
+        }, duration + 30);
       });
     }
   })();
@@ -638,11 +677,6 @@
     scroll-padding-left: 20px;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    transition: opacity 0.18s ease;
-  }
-
-  .hcs__grid--transitioning {
-    opacity: 0;
   }
 
   .hcs__grid::-webkit-scrollbar {
