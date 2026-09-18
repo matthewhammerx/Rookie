@@ -81,7 +81,7 @@
       {% capture list_items %}
         {% for product in products limit: section.settings.max_products %}
           <div class="resource-list__item">
-            {% content_for 'block', type: '_product-card-recommended', id: 'static-product-card', closest.product: product %}
+            {% content_for 'block', type: 'product-card-recommended', id: 'static-product-card', closest.product: product %}
           </div>
           {% unless forloop.last %}
             <!--@list/split-->
@@ -463,7 +463,7 @@
           }
         },
         "static-product-card": {
-          "type": "_product-card-recommended",
+          "type": "product-card-recommended",
           "name": "t:names.product_card",
           "static": true,
           "settings": {}
