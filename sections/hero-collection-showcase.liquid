@@ -355,9 +355,18 @@
     var nextButton = root ? root.querySelector('[data-hcs-arrow="next"]') : null;
 
     function scrollByCard(direction) {
-      var card = track.querySelector('.hcs__card');
-      var gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap || 0);
-      var amount = card ? card.getBoundingClientRect().width + gap : 300;
+      var cards = track.querySelectorAll('.hcs__card');
+      var amount = track.clientWidth * 0.8;
+      if (cards.length > 1) {
+        var firstLeft = cards[0].getBoundingClientRect().left;
+        for (var i = 1; i < cards.length; i++) {
+          var delta = Math.abs(cards[i].getBoundingClientRect().left - firstLeft);
+          if (delta > 1) {
+            amount = delta;
+            break;
+          }
+        }
+      }
       track.scrollBy({ left: amount * direction, behavior: 'smooth' });
     }
 
