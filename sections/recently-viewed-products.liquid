@@ -1,0 +1,463 @@
+{% comment %}
+  Recently Viewed Products
+  Shows the products THIS visitor personally looked at recently --
+  purely client-side (the theme already tracks up to 4 viewed product
+  IDs in localStorage via assets/recently-viewed-products.js on every
+  product page view, used internally by predictive search). No app, no
+  algorithm: fetches the real products back with Shopify's own search
+  endpoint using a "q=id:X OR id:Y" query -- the exact same technique
+  predictive-search.js already uses for its own recently-viewed panel
+  -- then renders them with the same Recommended Product Card block
+  used by the Product Recommendations section.
+{% endcomment %}
+
+<recently-viewed-products
+  id="RVP-{{ section.id }}"
+  class="rvp color-{{ section.settings.color_scheme }}"
+  data-section-id="{{ section.id }}"
+  style="
+    --rvp-bg: {{ section.settings.background_color }};
+    --rvp-heading-color: {{ section.settings.heading_color }};
+    --rvp-heading-size: {{ section.settings.heading_size }}px;
+    --rvp-heading-size-mobile: {{ section.settings.heading_size_mobile }}px;
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  "
+>
+  {%- if search.performed and search.results_count > 0 -%}
+    {%- assign rvp_products = search.results | where: 'object_type', 'product' -%}
+    {%- if rvp_products.size > 0 -%}
+      <div class="rvp__head">
+        <h2 class="rvp__heading">{{ section.settings.heading_text }}</h2>
+      </div>
+
+      <div class="rvp__carousel-wrapper">
+        <div class="rvp__grid" id="RVP-Grid-{{ section.id }}" data-testid="rvp-grid">
+          {%- for product in rvp_products -%}
+            {% content_for 'block', type: 'product-card-recommended', id: 'static-product-card', closest.product: product %}
+          {%- endfor -%}
+        </div>
+
+        {%- if section.settings.show_carousel_arrows -%}
+          <button
+            type="button"
+            class="rvp__arrow rvp__arrow--prev"
+            data-rvp-arrow="prev"
+            aria-label="Previous products"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+              <path d="M15 5L8 12L15 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="rvp__arrow rvp__arrow--next"
+            data-rvp-arrow="next"
+            aria-label="Next products"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+              <path d="M9 5L16 12L9 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+</recently-viewed-products>
+
+<script>
+  (function () {
+    if (customElements.get('recently-viewed-products')) return;
+
+    class RecentlyViewedProducts extends HTMLElement {
+      connectedCallback() {
+        this.initRecentlyViewed();
+      }
+
+      async initRecentlyViewed() {
+        var sectionId = this.dataset.sectionId;
+        if (!sectionId) return;
+        var self = this;
+
+        var ids = [];
+        try {
+          var mod = await import('{{ "recently-viewed-products.js" | asset_url }}');
+          ids = mod.RecentlyViewed.getProducts() || [];
+        } catch (e) {
+          ids = [];
+        }
+
+        if (!ids.length) {
+          this.remove();
+          return;
+        }
+
+        var searchUrl = (window.Theme && window.Theme.routes && window.Theme.routes.search_url) || '/search';
+        var url = new URL(searchUrl, window.location.origin);
+        url.searchParams.set('q', ids.map(function (id) { return 'id:' + id; }).join(' OR '));
+        url.searchParams.set('resources[type]', 'product');
+        url.searchParams.set('section_id', sectionId);
+
+        fetch(url.toString())
+          .then(function (response) {
+            return response.text();
+          })
+          .then(function (text) {
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML = text;
+            var fetched = wrapper.querySelector('recently-viewed-products');
+
+            if (fetched && fetched.querySelector('.rvp__grid') && fetched.querySelector('.rvp__grid').children.length) {
+              self.innerHTML = fetched.innerHTML;
+              self.setupCarousel();
+            } else {
+              // Nothing came back (e.g. the only viewed product is this
+              // one, or it's no longer available) -- don't leave an
+              // empty heading/gap on the page.
+              self.remove();
+            }
+          })
+          .catch(function () {
+            self.remove();
+          });
+      }
+
+      setupCarousel() {
+        var track = this.querySelector('.rvp__grid');
+        if (!track) return;
+
+        var prevButton = this.querySelector('[data-rvp-arrow="prev"]');
+        var nextButton = this.querySelector('[data-rvp-arrow="next"]');
+
+        function scrollByCard(direction) {
+          var cards = track.querySelectorAll('.prc__card');
+          var amount = track.clientWidth * 0.8;
+          if (cards.length > 1) {
+            var firstLeft = cards[0].getBoundingClientRect().left;
+            for (var i = 1; i < cards.length; i++) {
+              var delta = Math.abs(cards[i].getBoundingClientRect().left - firstLeft);
+              if (delta > 1) {
+                amount = delta;
+                break;
+              }
+            }
+          }
+          track.scrollBy({ left: amount * direction, behavior: 'smooth' });
+        }
+
+        if (prevButton) {
+          prevButton.addEventListener('click', function () {
+            scrollByCard(-1);
+          });
+        }
+        if (nextButton) {
+          nextButton.addEventListener('click', function () {
+            scrollByCard(1);
+          });
+        }
+
+        var isDragging = false;
+        var hasDragged = false;
+        var startX = 0;
+        var startScrollLeft = 0;
+
+        track.addEventListener('mousedown', function (e) {
+          if (e.button !== 0) return;
+          if (e.target.closest('.prc__quick-add')) return;
+          isDragging = true;
+          hasDragged = false;
+          startX = e.pageX;
+          startScrollLeft = track.scrollLeft;
+          track.classList.add('rvp__grid--dragging');
+          e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', function (e) {
+          if (!isDragging) return;
+          var delta = e.pageX - startX;
+          if (Math.abs(delta) > 5) hasDragged = true;
+          track.scrollLeft = startScrollLeft - delta;
+        });
+
+        window.addEventListener('mouseup', function () {
+          isDragging = false;
+          track.classList.remove('rvp__grid--dragging');
+        });
+
+        track.addEventListener(
+          'click',
+          function (e) {
+            if (hasDragged) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          },
+          true
+        );
+
+        document.addEventListener(
+          'submit',
+          function (e) {
+            if (e.target && e.target.closest && e.target.closest('.prc__quick-add')) {
+              e.preventDefault();
+            }
+          },
+          true
+        );
+      }
+    }
+
+    customElements.define('recently-viewed-products', RecentlyViewedProducts);
+  })();
+</script>
+
+{% stylesheet %}
+  .rvp {
+    display: block;
+    position: relative;
+    background: var(--rvp-bg);
+  }
+
+  .rvp__head {
+    padding: 0 20px;
+    margin-bottom: 16px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .rvp__head {
+      padding: 0 40px;
+    }
+  }
+
+  .rvp__heading {
+    margin: 0;
+    color: var(--rvp-heading-color);
+    font-size: var(--rvp-heading-size-mobile);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  @media screen and (min-width: 750px) {
+    .rvp__heading {
+      font-size: var(--rvp-heading-size);
+    }
+  }
+
+  .rvp__carousel-wrapper {
+    position: relative;
+  }
+
+  .rvp__grid {
+    display: flex;
+    gap: 16px;
+    padding: 0 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 20px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .rvp__grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* The Recommended Product Card block renders with an auto-generated
+     wrapper div (its schema declares "tag": "div"). display: contents
+     makes that wrapper transparent to layout so .prc__card itself
+     becomes the real flex item, instead of an unsized div breaking the
+     row's card widths. */
+  .rvp__grid > div {
+    display: contents;
+  }
+
+  .rvp__grid .prc__card {
+    flex: 0 0 170px;
+    scroll-snap-align: start;
+  }
+
+  @media screen and (min-width: 750px) {
+    .rvp__grid {
+      padding: 0 40px;
+      scroll-padding-left: 40px;
+    }
+
+    .rvp__grid .prc__card {
+      flex-basis: 230px;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .rvp__grid {
+      cursor: grab;
+    }
+  }
+
+  .rvp__grid--dragging {
+    cursor: grabbing !important;
+    scroll-snap-type: none;
+    user-select: none;
+  }
+
+  .rvp__arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 40%;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    cursor: pointer;
+    z-index: 3;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, background-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .rvp__carousel-wrapper:has(.rvp__grid:hover) .rvp__arrow,
+  .rvp__carousel-wrapper:has(.rvp__grid:active) .rvp__arrow,
+  .rvp__carousel-wrapper:has(.rvp__grid:focus-within) .rvp__arrow,
+  .rvp__carousel-wrapper:has(.rvp__arrow:hover) .rvp__arrow,
+  .rvp__carousel-wrapper:has(.rvp__arrow:focus-visible) .rvp__arrow {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .rvp__arrow:hover {
+    background: #ff2fb1;
+    transform: translateY(-50%) scale(1.05);
+  }
+
+  .rvp__arrow--prev {
+    left: 8px;
+    transform: translateY(-50%);
+  }
+
+  .rvp__arrow--next {
+    right: 8px;
+    transform: translateY(-50%);
+  }
+
+  @media screen and (min-width: 750px) {
+    .rvp__arrow {
+      width: 48px;
+      height: 48px;
+    }
+
+    .rvp__arrow--prev {
+      left: 16px;
+    }
+
+    .rvp__arrow--next {
+      right: 16px;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .rvp__arrow {
+      display: none !important;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Recently Viewed",
+  "tag": "section",
+  "class": "rvp-wrapper section-wrapper",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "paragraph",
+      "content": "Shows products this visitor personally viewed recently, tracked locally in their browser (no app, no algorithm). Automatically hides itself if they haven't viewed anything yet, or only viewed the page it's shown on."
+    },
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading_text",
+      "label": "Heading",
+      "default": "Recently viewed"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading & text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size (desktop)",
+      "min": 16,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "heading_size_mobile",
+      "label": "Heading size (mobile)",
+      "min": 14,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "checkbox",
+      "id": "show_carousel_arrows",
+      "label": "Show carousel arrows (desktop)",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Background & padding"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Section background color",
+      "default": "#0b0b0f"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "Recently Viewed"
+    }
+  ]
+}
+{% endschema %}
