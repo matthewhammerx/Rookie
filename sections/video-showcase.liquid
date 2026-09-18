@@ -556,11 +556,12 @@
         });
       }
 
-      if ('IntersectionObserver' in window && !root.dataset.vsObserverBound) {
-        root.dataset.vsObserverBound = 'true';
+      if ('IntersectionObserver' in window && !root.dataset.vsPreloadBound) {
+        root.dataset.vsPreloadBound = 'true';
 
         // Preload observer: generous rootMargin so nearby (offscreen)
-        // slides fetch their video ahead of time.
+        // slides fetch their video ahead of time. Loading only, never
+        // decides play/pause.
         var preloadObserver = new IntersectionObserver(
           function (entries) {
             entries.forEach(function (entry) {
@@ -571,36 +572,62 @@
           },
           { root: track, rootMargin: '0px 400px', threshold: 0 }
         );
-
-        // Focus/play observer: NO rootMargin -- a wide rootMargin would
-        // inflate intersectionRatio for slides that are mostly outside
-        // the real viewport (their intersection is measured against the
-        // expanded root, not what's actually visible), which is why
-        // every slide was reading as "focused" and playing at once.
-        // With the true viewport as the root, only the slide(s) actually
-        // >60% visible on screen count as focused and get to play.
-        var focusObserver = new IntersectionObserver(
-          function (entries) {
-            entries.forEach(function (entry) {
-              var slide = entry.target;
-              var isFocused = entry.isIntersecting && entry.intersectionRatio > 0.6;
-              slide.classList.toggle('is-focused', isFocused);
-
-              if (!slide._vsIsManuallyPaused || slide._vsIsManuallyPaused()) return;
-              if (isFocused) {
-                slide._vsPlay && slide._vsPlay();
-              } else {
-                slide._vsPause && slide._vsPause();
-              }
-            });
-          },
-          { root: track, rootMargin: '0px', threshold: [0, 0.6, 1] }
-        );
-
         slides.forEach(function (slide) {
           preloadObserver.observe(slide);
-          focusObserver.observe(slide);
         });
+      }
+
+      if (track && !track.dataset.vsFocusBound) {
+        track.dataset.vsFocusBound = 'true';
+
+        // Deciding play/pause purely from "is this slide >60% visible"
+        // still lets several slides play at once on a wide screen, since
+        // more than one card can individually clear that bar. Instead,
+        // find the SINGLE slide whose center is closest to the track's
+        // own center and only ever let that one play -- everything else
+        // pauses, no matter how visible it technically is.
+        var focusRaf = null;
+
+        function updateFocus() {
+          focusRaf = null;
+          var trackRect = track.getBoundingClientRect();
+          if (!trackRect.width) return;
+          var trackCenter = trackRect.left + trackRect.width / 2;
+
+          var closestSlide = null;
+          var closestDistance = Infinity;
+
+          slides.forEach(function (slide) {
+            var rect = slide.getBoundingClientRect();
+            if (rect.right < trackRect.left || rect.left > trackRect.right) return;
+            var distance = Math.abs(rect.left + rect.width / 2 - trackCenter);
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestSlide = slide;
+            }
+          });
+
+          slides.forEach(function (slide) {
+            var isFocused = slide === closestSlide;
+            slide.classList.toggle('is-focused', isFocused);
+
+            if (!slide._vsIsManuallyPaused || slide._vsIsManuallyPaused()) return;
+            if (isFocused) {
+              slide._vsPlay && slide._vsPlay();
+            } else {
+              slide._vsPause && slide._vsPause();
+            }
+          });
+        }
+
+        function scheduleUpdateFocus() {
+          if (focusRaf) return;
+          focusRaf = requestAnimationFrame(updateFocus);
+        }
+
+        track.addEventListener('scroll', scheduleUpdateFocus, { passive: true });
+        window.addEventListener('resize', scheduleUpdateFocus);
+        scheduleUpdateFocus();
       }
     }
 
