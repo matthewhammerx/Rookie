@@ -7,6 +7,16 @@
 {% endcomment %}
 
 {%- liquid
+  assign media_type = section.settings.media_type
+  assign fetch_priority = 'auto'
+  if section.index == 1
+    assign fetch_priority = 'high'
+  endif
+
+  assign heading_glow_alpha = section.settings.heading_glow_strength | times: 1.0 | divided_by: 100
+  assign heading_glow_rgba = section.settings.heading_glow_color | color_modify: 'alpha', heading_glow_alpha
+  assign heading_glow_radius_2 = section.settings.heading_glow_size | times: 2.25 | round
+
   assign apc_products = section.settings.collection.products
   if apc_products.size == 0
     assign apc_products = collections.all.products
@@ -47,9 +57,14 @@
   class="apc color-{{ section.settings.color_scheme }}{% if section.settings.show_full_product_name %} apc--full-title{% endif %}{% if section.settings.enable_pokeball_icon %} apc--pokeball{% endif %}{% if section.settings.quick_add_custom_bg %} apc--quick-add-custom-bg{% endif %}"
   style="
     --apc-bg: {{ section.settings.background_color }};
+    --apc-fade-size: {{ section.settings.fade_size }}%;
     --apc-heading-color: {{ section.settings.heading_color }};
+    --apc-accent-color: {{ section.settings.accent_color }};
     --apc-heading-size: {{ section.settings.heading_size }}px;
     --apc-heading-size-mobile: {{ section.settings.heading_size_mobile }}px;
+    --apc-heading-glow-color: {{ heading_glow_rgba }};
+    --apc-heading-glow-radius-1: {{ section.settings.heading_glow_size }}px;
+    --apc-heading-glow-radius-2: {{ heading_glow_radius_2 }}px;
     --apc-card-width: {{ section.settings.card_width }}px;
     --apc-card-width-mobile: {{ section.settings.card_width_mobile }}px;
     --apc-card-gap: {{ section.settings.card_gap }}px;
@@ -66,9 +81,52 @@
     padding-bottom: {{ section.settings.padding_bottom }}px;
   "
 >
-  {%- if section.settings.heading_text != blank -%}
+  {%- if media_type == 'video' and section.settings.background_video != blank -%}
+    <div class="apc__media-wrapper" data-testid="apc-media-wrapper">
+      {{
+        section.settings.background_video
+        | video_tag:
+          poster: nil,
+          autoplay: false,
+          loop: true,
+          controls: false,
+          muted: true,
+          playsinline: true,
+          preload: 'none',
+          class: 'apc__media',
+          data-testid: 'apc-video',
+          data-lazy-video: true
+      }}
+    </div>
+    <div class="apc__fade" aria-hidden="true"></div>
+  {%- elsif media_type == 'image' and section.settings.background_image != blank -%}
+    <div class="apc__media-wrapper" data-testid="apc-media-wrapper">
+      {{
+        section.settings.background_image
+        | image_url: width: 3840
+        | image_tag:
+          widths: '750, 1100, 1500, 2000, 3000, 3840',
+          alt: section.settings.background_image.alt,
+          class: 'apc__media',
+          sizes: '100vw',
+          fetchpriority: fetch_priority,
+          data-testid: 'apc-image'
+      }}
+    </div>
+    <div class="apc__fade" aria-hidden="true"></div>
+  {%- endif -%}
+
+  <div class="apc__content">
+  {%- if section.settings.heading_text != blank or section.settings.subheading_text != blank -%}
     <div class="apc__head">
-      <h2 class="apc__heading">{{ section.settings.heading_text }}</h2>
+      {%- if section.settings.heading_text != blank -%}
+        <h2 class="apc__heading{% if section.settings.heading_glow %} apc__heading--glow{% endif %}">
+          {{ section.settings.heading_text }}
+        </h2>
+      {%- endif -%}
+      {%- if section.settings.subheading_text != blank -%}
+        <p class="apc__subheading">{{ section.settings.subheading_text }}</p>
+      {%- endif -%}
     </div>
   {%- endif -%}
 
@@ -195,10 +253,39 @@
       </button>
     {%- endif -%}
   </div>
+  </div>
 </div>
 
 <script>
   (function () {
+    var apcRoot = document.getElementById('APC-{{ section.id }}');
+    var lazyVideo = apcRoot ? apcRoot.querySelector('[data-lazy-video]') : null;
+
+    if (lazyVideo && !lazyVideo.dataset.lazyBound) {
+      lazyVideo.dataset.lazyBound = 'true';
+
+      var playVideo = function () {
+        lazyVideo.play().catch(function () {});
+      };
+
+      if ('IntersectionObserver' in window) {
+        var videoObserver = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                playVideo();
+                videoObserver.unobserve(lazyVideo);
+              }
+            });
+          },
+          { rootMargin: '600px 0px' }
+        );
+        videoObserver.observe(lazyVideo);
+      } else {
+        playVideo();
+      }
+    }
+
     var track = document.getElementById('APC-Grid-{{ section.id }}');
     if (!track) return;
     var root = track.closest('#APC-{{ section.id }}');
@@ -426,22 +513,60 @@
     overflow: hidden;
   }
 
+  .apc__media-wrapper {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .apc__media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+  }
+
+  .apc__fade {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      var(--apc-bg) 0%,
+      transparent var(--apc-fade-size),
+      transparent calc(100% - var(--apc-fade-size)),
+      var(--apc-bg) 100%
+    );
+  }
+
+  .apc__content {
+    position: relative;
+    z-index: 2;
+  }
+
   .apc__head {
-    padding: 0 20px;
-    margin-bottom: 16px;
+    padding: 40px 20px 0;
   }
 
   @media screen and (min-width: 750px) {
     .apc__head {
-      padding: 0 40px;
+      padding: 64px 40px 0;
     }
   }
 
   .apc__heading {
-    margin: 0;
-    color: var(--apc-heading-color);
+    margin: 0 0 16px;
+    background: linear-gradient(160deg, var(--apc-heading-color) 10%, var(--apc-accent-color) 120%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
     font-size: var(--apc-heading-size-mobile);
-    font-weight: 800;
+    line-height: 1;
     letter-spacing: 0.02em;
     text-transform: uppercase;
   }
@@ -452,8 +577,21 @@
     }
   }
 
+  .apc__heading--glow {
+    filter:
+      drop-shadow(0 0 var(--apc-heading-glow-radius-1) var(--apc-heading-glow-color))
+      drop-shadow(0 0 var(--apc-heading-glow-radius-2) var(--apc-heading-glow-color));
+  }
+
+  .apc__subheading {
+    margin: 0 0 16px;
+    color: var(--apc-heading-color);
+    opacity: 0.85;
+  }
+
   .apc__carousel-wrapper {
     position: relative;
+    padding-top: 8px;
   }
 
   .apc__grid {
@@ -908,6 +1046,45 @@
     },
     {
       "type": "header",
+      "content": "Background media"
+    },
+    {
+      "type": "select",
+      "id": "media_type",
+      "label": "Media type",
+      "options": [
+        { "value": "none", "label": "None (plain color)" },
+        { "value": "video", "label": "Video" },
+        { "value": "image", "label": "Image" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "video",
+      "id": "background_video",
+      "label": "Background video",
+      "visible_if": "{{ section.settings.media_type == 'video' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image",
+      "visible_if": "{{ section.settings.media_type == 'image' }}"
+    },
+    {
+      "type": "range",
+      "id": "fade_size",
+      "label": "Fade size",
+      "info": "The media fills the whole section and fades to the background color at the very top and bottom edges. Larger values fade in sooner from each edge.",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 20,
+      "visible_if": "{{ section.settings.media_type != 'none' }}"
+    },
+    {
+      "type": "header",
       "content": "Heading"
     },
     {
@@ -917,10 +1094,21 @@
       "default": "Shop All Products"
     },
     {
+      "type": "text",
+      "id": "subheading_text",
+      "label": "Subheading"
+    },
+    {
       "type": "color",
       "id": "heading_color",
       "label": "Heading & text color",
       "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Heading gradient accent color",
+      "default": "#eb00ca"
     },
     {
       "type": "range",
@@ -941,6 +1129,41 @@
       "step": 2,
       "unit": "px",
       "default": 20
+    },
+    {
+      "type": "checkbox",
+      "id": "heading_glow",
+      "label": "Enable heading glow",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "heading_glow_color",
+      "label": "Glow color",
+      "default": "#ffffff",
+      "visible_if": "{{ section.settings.heading_glow }}"
+    },
+    {
+      "type": "range",
+      "id": "heading_glow_size",
+      "label": "Glow size",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ section.settings.heading_glow }}"
+    },
+    {
+      "type": "range",
+      "id": "heading_glow_strength",
+      "label": "Glow strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 55,
+      "visible_if": "{{ section.settings.heading_glow }}"
     },
     {
       "type": "header",
