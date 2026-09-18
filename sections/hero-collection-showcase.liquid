@@ -505,8 +505,17 @@
         // as cards sliding/growing into place instead of a hard swap.
         if (expandToggle.dataset.animating === 'true') return;
         expandToggle.dataset.animating = 'true';
+        track.classList.add('hcs__grid--expand-animating');
 
-        var cards = Array.prototype.slice.call(track.querySelectorAll('.hcs__card'));
+        // Infinite scroll can leave dozens of cards in the DOM -- only
+        // measure/animate the ones actually near the viewport so the
+        // click doesn't stall on a big batch of offscreen layout reads.
+        var trackRect = track.getBoundingClientRect();
+        var buffer = trackRect.width;
+        var cards = Array.prototype.slice.call(track.querySelectorAll('.hcs__card')).filter(function (card) {
+          var rect = card.getBoundingClientRect();
+          return rect.right > trackRect.left - buffer && rect.left < trackRect.right + buffer;
+        });
         var firstRects = cards.map(function (card) {
           return card.getBoundingClientRect();
         });
@@ -550,6 +559,7 @@
             card.style.transition = '';
             card.style.transform = '';
           });
+          track.classList.remove('hcs__grid--expand-animating');
           expandToggle.dataset.animating = 'false';
         }, duration + 30);
       });
@@ -789,6 +799,11 @@
     backdrop-filter: blur(var(--hcs-card-blur-amount));
     -webkit-mask-image: linear-gradient(to top, black 0%, transparent var(--hcs-card-blur-fade));
     mask-image: linear-gradient(to top, black 0%, transparent var(--hcs-card-blur-fade));
+  }
+
+  .hcs__grid--expand-animating .hcs__card-blur {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .hcs__arrow {
