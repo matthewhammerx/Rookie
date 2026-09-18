@@ -7,14 +7,39 @@
 {% endcomment %}
 
 {%- liquid
-  assign product_collection = section.settings.collection
-  if product_collection == blank
-    assign product_collection = collections.all
+  assign apc_products = blank | split: ','
+  for block in section.blocks
+    if block.type == 'collection' and block.settings.collection != blank
+      assign apc_products = apc_products | concat: block.settings.collection.products
+    endif
+  endfor
+  if apc_products.size == 0
+    assign apc_products = collections.all.products
+  else
+    assign apc_products = apc_products | uniq: 'id'
   endif
+
+  case section.settings.sort_by
+    when 'price-ascending'
+      assign apc_products = apc_products | sort: 'price'
+    when 'price-descending'
+      assign apc_products = apc_products | sort: 'price' | reverse
+    when 'title-ascending'
+      assign apc_products = apc_products | sort: 'title'
+    when 'title-descending'
+      assign apc_products = apc_products | sort: 'title' | reverse
+    when 'created-descending'
+      assign apc_products = apc_products | sort: 'created_at' | reverse
+  endcase
+  # 'featured' and 'best-selling' are intentionally left unsorted here --
+  # Liquid has no real sales-count field to sort by, so "best selling"
+  # only works when the picked collection(s) are themselves set to sort
+  # by best-selling in Shopify admin, since collection.products then
+  # already comes back in that order.
 
   assign max_products = section.settings.max_products
   assign has_real_products = false
-  if product_collection.products.size > 0
+  if apc_products.size > 0
     assign has_real_products = true
   endif
 
@@ -57,8 +82,8 @@
   <div class="apc__carousel-wrapper{% if section.settings.show_arrows_mobile %} apc__carousel-wrapper--mobile-arrows{% endif %}" data-apc-expand-wrapper>
     <div class="apc__grid" id="APC-Grid-{{ section.id }}" data-testid="apc-grid">
     {%- if has_real_products -%}
-      {%- paginate product_collection.products by apc_page_size -%}
-      {%- for product in product_collection.products -%}
+      {%- paginate apc_products by apc_page_size -%}
+      {%- for product in apc_products -%}
         {%- liquid
           assign on_sale = false
           if product.compare_at_price > product.price
@@ -929,10 +954,24 @@
       "content": "Grid"
     },
     {
-      "type": "collection",
-      "id": "collection",
-      "label": "Collection",
-      "info": "Leave blank to pull from every product in the store."
+      "type": "paragraph",
+      "content": "Add one or more \"Collection\" blocks below to pull from. Leave with no blocks to pull from every product in the store."
+    },
+    {
+      "type": "select",
+      "id": "sort_by",
+      "label": "Sort products by",
+      "options": [
+        { "value": "featured", "label": "Featured / collection order" },
+        { "value": "best-selling", "label": "Best selling" },
+        { "value": "created-descending", "label": "Newest" },
+        { "value": "price-ascending", "label": "Price, low to high" },
+        { "value": "price-descending", "label": "Price, high to low" },
+        { "value": "title-ascending", "label": "Alphabetically, A-Z" },
+        { "value": "title-descending", "label": "Alphabetically, Z-A" }
+      ],
+      "default": "featured",
+      "info": "\"Best selling\" only works if the collection(s) picked below are themselves set to sort by best-selling in Shopify admin -- Liquid has no direct sales-count field to sort by otherwise."
     },
     {
       "type": "range",
@@ -1005,7 +1044,7 @@
       "id": "enable_card_background",
       "label": "Show card background",
       "info": "Fades from this color at the bottom of the card up to fully transparent behind the image. Turn off for fully transparent cards.",
-      "default": false
+      "default": true
     },
     {
       "type": "color",
@@ -1189,6 +1228,19 @@
       "step": 4,
       "unit": "px",
       "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        }
+      ]
     }
   ],
   "presets": [
