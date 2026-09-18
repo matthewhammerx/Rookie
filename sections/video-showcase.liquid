@@ -219,6 +219,19 @@
     display: none;
   }
 
+  @media (hover: hover) and (pointer: fine) {
+    .video-showcase-{{ section.id }} .video-showcase__track {
+      cursor: grab;
+    }
+  }
+
+  .video-showcase-{{ section.id }} .video-showcase__track.is-dragging {
+    cursor: grabbing !important;
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+    user-select: none;
+  }
+
   .video-showcase-{{ section.id }} .video-showcase__slide {
     flex: none;
     scroll-snap-align: center;
@@ -487,6 +500,48 @@
 
       if (track) setupInfiniteLoop(track);
 
+      if (track && !track.dataset.vsDragBound) {
+        track.dataset.vsDragBound = 'true';
+        var isDragging = false;
+        var hasDragged = false;
+        var startX = 0;
+        var startScrollLeft = 0;
+
+        track.addEventListener('mousedown', function (e) {
+          if (e.button !== 0) return;
+          if (e.target.closest('button')) return;
+          isDragging = true;
+          hasDragged = false;
+          startX = e.pageX;
+          startScrollLeft = track.scrollLeft;
+          track.classList.add('is-dragging');
+          e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', function (e) {
+          if (!isDragging) return;
+          var delta = e.pageX - startX;
+          if (Math.abs(delta) > 5) hasDragged = true;
+          track.scrollLeft = startScrollLeft - delta;
+        });
+
+        window.addEventListener('mouseup', function () {
+          isDragging = false;
+          track.classList.remove('is-dragging');
+        });
+
+        track.addEventListener(
+          'click',
+          function (e) {
+            if (hasDragged) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          },
+          true
+        );
+      }
+
       if (track && prevBtn && nextBtn && !track.dataset.vsNavBound) {
         track.dataset.vsNavBound = 'true';
         function step() {
@@ -503,15 +558,31 @@
 
       if ('IntersectionObserver' in window && !root.dataset.vsObserverBound) {
         root.dataset.vsObserverBound = 'true';
-        var observer = new IntersectionObserver(
+
+        // Preload observer: generous rootMargin so nearby (offscreen)
+        // slides fetch their video ahead of time.
+        var preloadObserver = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                entry.target._vsEnsureLoaded && entry.target._vsEnsureLoaded();
+              }
+            });
+          },
+          { root: track, rootMargin: '0px 400px', threshold: 0 }
+        );
+
+        // Focus/play observer: NO rootMargin -- a wide rootMargin would
+        // inflate intersectionRatio for slides that are mostly outside
+        // the real viewport (their intersection is measured against the
+        // expanded root, not what's actually visible), which is why
+        // every slide was reading as "focused" and playing at once.
+        // With the true viewport as the root, only the slide(s) actually
+        // >60% visible on screen count as focused and get to play.
+        var focusObserver = new IntersectionObserver(
           function (entries) {
             entries.forEach(function (entry) {
               var slide = entry.target;
-
-              if (entry.isIntersecting) {
-                slide._vsEnsureLoaded && slide._vsEnsureLoaded();
-              }
-
               var isFocused = entry.isIntersecting && entry.intersectionRatio > 0.6;
               slide.classList.toggle('is-focused', isFocused);
 
@@ -523,10 +594,12 @@
               }
             });
           },
-          { root: track, rootMargin: '0px 400px', threshold: [0, 0.6, 1] }
+          { root: track, rootMargin: '0px', threshold: [0, 0.6, 1] }
         );
+
         slides.forEach(function (slide) {
-          observer.observe(slide);
+          preloadObserver.observe(slide);
+          focusObserver.observe(slide);
         });
       }
     }
