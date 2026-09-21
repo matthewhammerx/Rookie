@@ -9,6 +9,18 @@
   else
     assign actual_count = 0
   endif
+
+  assign overlay_alpha = section.settings.overlay_opacity | times: 1.0 | divided_by: 100
+  assign overlay_rgba = section.settings.overlay_color | color_modify: 'alpha', overlay_alpha
+
+  assign card_bg_alpha = section.settings.card_bg_opacity | times: 1.0 | divided_by: 100
+  assign card_bg_rgba = section.settings.card_bg_color | color_modify: 'alpha', card_bg_alpha
+
+  assign arrow_bg_alpha = section.settings.arrow_bg_opacity | times: 1.0 | divided_by: 100
+  assign arrow_bg_rgba = section.settings.arrow_bg_color | color_modify: 'alpha', arrow_bg_alpha
+
+  assign glow_alpha = section.settings.glow_strength | times: 1.0 | divided_by: 100
+  assign glow_rgba = section.settings.glow_color | color_modify: 'alpha', glow_alpha
 %}
 
 <div id="PopupCollection-{{ section.id }}" class="pcoll-root">
@@ -102,7 +114,7 @@
   #PopupCollection-{{ section.id }} {
     --pcoll-bg: {{ section.settings.modal_bg }};
     --pcoll-text: {{ section.settings.text_color }};
-    --pcoll-overlay: rgba(0, 0, 0, {{ section.settings.overlay_opacity | divided_by: 100.0 }});
+    --pcoll-overlay: {{ overlay_rgba }};
     --pcoll-btn-bg: {{ section.settings.button_bg }};
     --pcoll-btn-text: {{ section.settings.button_text_color }};
     --pcoll-trigger-bg: {{ section.settings.trigger_bg }};
@@ -111,8 +123,35 @@
     --pcoll-badge-text: {{ section.settings.badge_text_color }};
     --pcoll-radius: {{ section.settings.modal_radius }}px;
     --pcoll-card-radius: {{ section.settings.card_radius }}px;
-    --pcoll-card-bg: #f3f3f3;
+    --pcoll-card-bg: {{ card_bg_rgba }};
+    --pcoll-arrow-bg: {{ arrow_bg_rgba }};
+    --pcoll-arrow-icon: {{ section.settings.arrow_icon_color }};
+    --pcoll-empty-bg: {{ section.settings.empty_state_bg_color }};
+    --pcoll-scrollbar: {{ section.settings.scrollbar_color }};
+    --pcoll-glow-color: {{ glow_rgba }};
   }
+
+  {% if section.settings.trigger_glow %}
+    #PopupCollection-{{ section.id }} .pcoll-trigger {
+      animation: pcoll-glow-pulse-{{ section.id }} 2.6s ease-in-out infinite;
+    }
+
+    @keyframes pcoll-glow-pulse-{{ section.id }} {
+      0%, 100% {
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 0 16px 0 var(--pcoll-glow-color);
+      }
+      50% {
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 0 30px 4px var(--pcoll-glow-color);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #PopupCollection-{{ section.id }} .pcoll-trigger {
+        animation: none;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 0 18px 0 var(--pcoll-glow-color);
+      }
+    }
+  {% endif %}
 
   #PopupCollection-{{ section.id }} .pcoll-trigger {
     position: fixed;
@@ -175,7 +214,7 @@
  #PopupCollection-{{ section.id }} .pcoll-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--pcoll-overlay);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   opacity: 0;
@@ -244,7 +283,7 @@
     justify-content: flex-start;
     padding-bottom: 8px;
     scrollbar-width: thin;
-    scrollbar-color: #bfbfbf transparent;
+    scrollbar-color: var(--pcoll-scrollbar) transparent;
   }
 
   #PopupCollection-{{ section.id }} .pcoll-slider::-webkit-scrollbar {
@@ -252,7 +291,7 @@
   }
 
   #PopupCollection-{{ section.id }} .pcoll-slider::-webkit-scrollbar-thumb {
-    background: #bfbfbf;
+    background: var(--pcoll-scrollbar);
     border-radius: 999px;
   }
 
@@ -274,12 +313,12 @@
     height: 34px;
     border: none;
     border-radius: 999px;
-    background: rgba(255,255,255,0.95);
+    background: var(--pcoll-arrow-bg);
     box-shadow: 0 8px 18px rgba(0,0,0,0.12);
     font-size: 28px;
     line-height: 1;
     cursor: pointer;
-    color: #777;
+    color: var(--pcoll-arrow-icon);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -378,7 +417,7 @@
     width: 100%;
     text-align: center;
     padding: 40px 20px;
-    background: #fafafa;
+    background: var(--pcoll-empty-bg);
     border-radius: 16px;
   }
 
@@ -580,6 +619,10 @@
   "name": "Popup Collection",
   "settings": [
     {
+      "type": "header",
+      "content": "Content"
+    },
+    {
       "type": "text",
       "id": "heading",
       "label": "Popup heading",
@@ -601,9 +644,10 @@
       "id": "products_to_show",
       "label": "Products to show",
       "min": 2,
-      "max": 35,
+      "max": 60,
       "step": 1,
-      "default": 8
+      "default": 8,
+      "info": "No artificial cap beyond this -- raise it as high as the collection needs, the row just keeps scrolling."
     },
     {
       "type": "checkbox",
@@ -640,22 +684,45 @@
       "default": true
     },
     {
+      "type": "header",
+      "content": "Modal colors"
+    },
+    {
       "type": "color",
       "id": "modal_bg",
       "label": "Modal background",
-      "default": "#ffffff"
+      "default": "#0b0b0f"
     },
     {
       "type": "color",
       "id": "text_color",
       "label": "Text color",
-      "default": "#111111"
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 10,
+      "max": 90,
+      "step": 5,
+      "default": 55
+    },
+    {
+      "type": "header",
+      "content": "Button & trigger colors"
     },
     {
       "type": "color",
       "id": "button_bg",
       "label": "Button background",
-      "default": "#ff00cc"
+      "default": "#ff2fb1"
     },
     {
       "type": "color",
@@ -667,19 +734,47 @@
       "type": "color",
       "id": "trigger_bg",
       "label": "Trigger background",
-      "default": "#ffffff"
+      "default": "#ff2fb1"
     },
     {
       "type": "color",
       "id": "trigger_text_color",
       "label": "Trigger text color",
-      "default": "#111111"
+      "default": "#ffffff"
+    },
+    {
+      "type": "checkbox",
+      "id": "trigger_glow",
+      "label": "Pulsing neon glow on trigger tab",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "glow_color",
+      "label": "Glow color",
+      "default": "#ff2fb1",
+      "visible_if": "{{ section.settings.trigger_glow }}"
+    },
+    {
+      "type": "range",
+      "id": "glow_strength",
+      "label": "Glow strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 65,
+      "visible_if": "{{ section.settings.trigger_glow }}"
+    },
+    {
+      "type": "header",
+      "content": "Badge colors"
     },
     {
       "type": "color",
       "id": "badge_bg",
       "label": "Badge background",
-      "default": "#ff2a2a"
+      "default": "#ff2fb1"
     },
     {
       "type": "color",
@@ -688,13 +783,63 @@
       "default": "#ffffff"
     },
     {
+      "type": "header",
+      "content": "Card & arrow colors"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "Card background color",
+      "default": "#ffffff"
+    },
+    {
       "type": "range",
-      "id": "overlay_opacity",
-      "label": "Overlay opacity",
-      "min": 10,
-      "max": 90,
+      "id": "card_bg_opacity",
+      "label": "Card background opacity",
+      "min": 0,
+      "max": 100,
       "step": 5,
-      "default": 50
+      "unit": "%",
+      "default": 8,
+      "info": "Low opacity gives a glassy card over the dark modal background."
+    },
+    {
+      "type": "color",
+      "id": "arrow_bg_color",
+      "label": "Arrow background",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "arrow_bg_opacity",
+      "label": "Arrow background opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 55
+    },
+    {
+      "type": "color",
+      "id": "arrow_icon_color",
+      "label": "Arrow icon color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "scrollbar_color",
+      "label": "Scrollbar color",
+      "default": "#ff2fb1"
+    },
+    {
+      "type": "color",
+      "id": "empty_state_bg_color",
+      "label": "Empty state background",
+      "default": "#16161c"
+    },
+    {
+      "type": "header",
+      "content": "Corners"
     },
     {
       "type": "range",
