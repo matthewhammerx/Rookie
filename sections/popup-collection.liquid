@@ -4,11 +4,26 @@
   assign trigger_text = section.settings.trigger_text
   assign display_count = section.settings.products_to_show
 
+  assign popup_products = blank
   if popup_collection != blank
-    assign actual_count = popup_collection.products_count
-  else
-    assign actual_count = 0
+    assign popup_products = popup_collection.products
   endif
+
+  for block in section.blocks
+    if block.type == 'collection' and block.settings.collection != blank
+      if popup_products == blank
+        assign popup_products = block.settings.collection.products
+      else
+        assign popup_products = popup_products | concat: block.settings.collection.products
+      endif
+    endif
+  endfor
+
+  if popup_products != blank
+    assign popup_products = popup_products | uniq
+  endif
+
+  assign actual_count = popup_products.size | default: 0
 
   assign overlay_alpha = section.settings.overlay_opacity | times: 1.0 | divided_by: 100
   assign overlay_rgba = section.settings.overlay_color | color_modify: 'alpha', overlay_alpha
@@ -52,8 +67,8 @@
         {% endif %}
 
         <div class="pcoll-slider{% if actual_count <= 2 %} is-two-products{% endif %}" data-slider>
-          {% if popup_collection != blank %}
-            {% for product in popup_collection.products limit: display_count %}
+          {% if popup_products != blank %}
+            {% for product in popup_products limit: display_count %}
               {% assign first_variant = product.selected_or_first_available_variant %}
               <div class="pcoll-card">
                 {% if first_variant.compare_at_price > first_variant.price %}
@@ -637,7 +652,8 @@
     {
       "type": "collection",
       "id": "collection",
-      "label": "Collection"
+      "label": "Collection",
+      "info": "Add \"Collection\" blocks below to pull in products from more than one collection. Duplicates (a product in more than one collection) only show once."
     },
     {
       "type": "range",
@@ -858,6 +874,19 @@
       "max": 30,
       "step": 2,
       "default": 18
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        }
+      ]
     }
   ],
   "presets": [
