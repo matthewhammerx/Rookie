@@ -51,7 +51,8 @@
     .collection-tile-grid-{{ section.id }} .collection-tile-grid__inner {
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      padding-inline: 28px;
+      max-width: {{ section.settings.desktop_max_width }}px;
+      padding-inline: {{ section.settings.desktop_side_padding }}px;
     }
   }
 
@@ -275,6 +276,31 @@
       "step": 5,
       "unit": "px",
       "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Desktop layout"
+    },
+    {
+      "type": "range",
+      "id": "desktop_max_width",
+      "label": "Max width",
+      "min": 800,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "default": 1200,
+      "info": "Keeps the grid from stretching edge-to-edge on wide screens."
+    },
+    {
+      "type": "range",
+      "id": "desktop_side_padding",
+      "label": "Side padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 60
     },
     {
       "type": "range",
