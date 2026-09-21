@@ -69,6 +69,8 @@
     padding-top: {{ section.settings.padding_top }}px;
     padding-bottom: {{ section.settings.padding_bottom }}px;
   "
+  data-shuffle-first-page="{{ section.settings.shuffle_first_page }}"
+  data-shuffle-pool-size="{{ section.settings.shuffle_pool_size }}"
 >
   {%- if media_type == 'video' and section.settings.background_video != blank -%}
     <div class="apc__media-wrapper" data-testid="apc-media-wrapper">
@@ -278,6 +280,34 @@
     var track = document.getElementById('APC-Grid-{{ section.id }}');
     if (!track) return;
     var root = track.closest('#APC-{{ section.id }}');
+
+    // Optional: shuffle order within just the first page of results (the
+    // best sellers, per the collection's own Sort setting in admin) so
+    // repeat visitors don't see the exact same first row every time,
+    // without ever surfacing anything outside that already-curated pool.
+    // Only runs once, before any infinite-scroll fetches bring in more
+    // pages -- those stay in the collection's real order.
+    if (apcRoot && apcRoot.dataset.shuffleFirstPage === 'true') {
+      var shufflePoolSize = parseInt(apcRoot.dataset.shufflePoolSize, 10) || 12;
+      var shuffleCards = Array.prototype.slice.call(
+        track.querySelectorAll('.apc__card:not(.apc__card--placeholder)')
+      );
+      var pool = shuffleCards.slice(0, shufflePoolSize);
+
+      if (pool.length > 1) {
+        for (var shuffleI = pool.length - 1; shuffleI > 0; shuffleI--) {
+          var shuffleJ = Math.floor(Math.random() * (shuffleI + 1));
+          var shuffleTmp = pool[shuffleI];
+          pool[shuffleI] = pool[shuffleJ];
+          pool[shuffleJ] = shuffleTmp;
+        }
+
+        var afterPool = shuffleCards[shufflePoolSize] || null;
+        pool.forEach(function (card) {
+          track.insertBefore(card, afterPool);
+        });
+      }
+    }
 
     var prevButton = root ? root.querySelector('[data-apc-arrow="prev"]') : null;
     var nextButton = root ? root.querySelector('[data-apc-arrow="next"]') : null;
@@ -1172,6 +1202,24 @@
       "max": 12,
       "step": 1,
       "default": 6
+    },
+    {
+      "type": "checkbox",
+      "id": "shuffle_first_page",
+      "label": "Shuffle order of first products shown",
+      "info": "Randomizes the order of the first batch of products on each page load, so it's not the exact same row every visit. Only reshuffles within that already-loaded pool -- it never pulls in anything outside it, so set the collection's Sort to Best selling in Shopify admin first so that pool is all good products.",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "shuffle_pool_size",
+      "label": "Shuffle pool size",
+      "min": 4,
+      "max": 24,
+      "step": 2,
+      "default": 12,
+      "info": "How many of the first products to shuffle among.",
+      "visible_if": "{{ section.settings.shuffle_first_page }}"
     },
     {
       "type": "checkbox",
