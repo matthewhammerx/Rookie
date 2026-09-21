@@ -5,25 +5,46 @@
   theme blocks (e.g. the generic Section block, a Group block, product
   page additional blocks) instead of only living as its own section.
   Shows the products THIS visitor personally looked at recently --
-  purely client-side (the theme already tracks up to 12 viewed product
-  IDs in localStorage via assets/recently-viewed-products.js on every
-  product page view, used internally by predictive search). No app, no
-  algorithm: fetches the real products back with Shopify's own search
-  endpoint using a "q=id:X OR id:Y" query -- the exact same technique
-  predictive-search.js already uses for its own recently-viewed panel
-  -- then renders them with the same Recommended Product Card block
-  used by the Product Recommendations section.
+  purely client-side (the theme tracks a visitor's full recently-viewed
+  history in localStorage via assets/recently-viewed-products.js on
+  every product page view, used internally by predictive search too,
+  with no cap). No app, no algorithm: fetches the real products back
+  with Shopify's own search endpoint using a "q=id:X OR id:Y" query --
+  the exact same technique predictive-search.js already uses for its
+  own recently-viewed panel -- then renders them with the same
+  Recommended Product Card block used by the Product Recommendations
+  section. Rookie Legends branded: every color is editable, with a
+  neon-pink glow accent on by default.
 {% endcomment %}
+
+{%- liquid
+  assign bg_alpha = block.settings.background_opacity | times: 1.0 | divided_by: 100
+  assign bg_rgba = block.settings.background_color | color_modify: 'alpha', bg_alpha
+
+  assign heading_glow_alpha = block.settings.heading_glow_strength | times: 1.0 | divided_by: 100
+  assign heading_glow_rgba = block.settings.heading_glow_color | color_modify: 'alpha', heading_glow_alpha
+  assign heading_glow_radius_2 = block.settings.heading_glow_size | times: 2.25 | round
+
+  assign arrow_bg_alpha = block.settings.arrow_bg_opacity | times: 1.0 | divided_by: 100
+  assign arrow_bg_rgba = block.settings.arrow_bg_color | color_modify: 'alpha', arrow_bg_alpha
+-%}
 
 <recently-viewed-products
   id="RVP-{{ block.id }}"
   class="rvp color-{{ block.settings.color_scheme }}"
   data-section-id="{{ section.id }}"
+  data-max-products="{{ block.settings.products_to_show }}"
   style="
-    --rvp-bg: {{ block.settings.background_color }};
+    --rvp-bg: {{ bg_rgba }};
     --rvp-heading-color: {{ block.settings.heading_color }};
     --rvp-heading-size: {{ block.settings.heading_size }}px;
     --rvp-heading-size-mobile: {{ block.settings.heading_size_mobile }}px;
+    --rvp-heading-glow-color: {{ heading_glow_rgba }};
+    --rvp-heading-glow-radius-1: {{ block.settings.heading_glow_size }}px;
+    --rvp-heading-glow-radius-2: {{ heading_glow_radius_2 }}px;
+    --rvp-arrow-bg: {{ arrow_bg_rgba }};
+    --rvp-arrow-icon-color: {{ block.settings.arrow_icon_color }};
+    --rvp-arrow-accent-color: {{ block.settings.arrow_accent_color }};
     padding-top: {{ block.settings.padding_top }}px;
     padding-bottom: {{ block.settings.padding_bottom }}px;
   "
@@ -36,7 +57,9 @@
 
   {%- if rvp_products.size > 0 or request.design_mode -%}
     <div class="rvp__head">
-      <h2 class="rvp__heading">{{ block.settings.heading_text }}</h2>
+      <h2 class="rvp__heading{% if block.settings.heading_glow %} rvp__heading--glow{% endif %}">
+        {{ block.settings.heading_text }}
+      </h2>
     </div>
 
     {%- if rvp_products.size > 0 -%}
@@ -102,6 +125,14 @@
           this.remove();
           return;
         }
+
+        // Browsing history itself is unlimited, but a search query needs a
+        // sane URL length -- fetch comfortably more than will ever be
+        // shown so the "closest to center" style display always has a
+        // full pool to pick from.
+        var maxProducts = parseInt(this.dataset.maxProducts, 10) || 8;
+        var fetchLimit = Math.max(maxProducts, 60);
+        ids = ids.slice(0, fetchLimit);
 
         var searchUrl = (window.Theme && window.Theme.routes && window.Theme.routes.search_url) || '/search';
         var url = new URL(searchUrl, window.location.origin);
@@ -255,6 +286,12 @@
     }
   }
 
+  .rvp__heading--glow {
+    filter:
+      drop-shadow(0 0 var(--rvp-heading-glow-radius-1) var(--rvp-heading-glow-color))
+      drop-shadow(0 0 var(--rvp-heading-glow-radius-2) var(--rvp-heading-glow-color));
+  }
+
   .rvp__carousel-wrapper {
     position: relative;
   }
@@ -335,8 +372,8 @@
     height: 40px;
     border-radius: 50%;
     border: none;
-    background: rgba(0, 0, 0, 0.55);
-    color: #fff;
+    background: var(--rvp-arrow-bg);
+    color: var(--rvp-arrow-icon-color);
     cursor: pointer;
     z-index: 3;
     opacity: 0;
@@ -354,7 +391,7 @@
   }
 
   .rvp__arrow:hover {
-    background: #ff2fb1;
+    background: var(--rvp-arrow-accent-color);
     transform: translateY(-50%) scale(1.05);
   }
 
@@ -403,7 +440,7 @@
     },
     {
       "type": "paragraph",
-      "content": "Shows products this visitor personally viewed recently, tracked locally in their browser (no app, no algorithm). Automatically hides itself if they haven't viewed anything yet, or only viewed the page it's shown on."
+      "content": "Shows products this visitor personally viewed recently, tracked locally in their browser (no app, no algorithm, no cap on history). Automatically hides itself if they haven't viewed anything yet, or only viewed the page it's shown on."
     },
     {
       "type": "header",
@@ -442,20 +479,96 @@
       "default": 18
     },
     {
+      "type": "checkbox",
+      "id": "heading_glow",
+      "label": "Enable neon heading glow",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "heading_glow_color",
+      "label": "Glow color",
+      "default": "#ff2fb1",
+      "visible_if": "{{ block.settings.heading_glow }}"
+    },
+    {
+      "type": "range",
+      "id": "heading_glow_size",
+      "label": "Glow size",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ block.settings.heading_glow }}"
+    },
+    {
+      "type": "range",
+      "id": "heading_glow_strength",
+      "label": "Glow strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 55,
+      "visible_if": "{{ block.settings.heading_glow }}"
+    },
+    {
+      "type": "header",
+      "content": "Products"
+    },
+    {
       "type": "range",
       "id": "products_to_show",
       "label": "Number of products to show",
       "min": 2,
-      "max": 12,
+      "max": 60,
       "step": 1,
       "default": 8,
-      "info": "The browser only remembers a visitor's last 12 viewed products, so this can't go higher than that."
+      "info": "Browsing history is no longer capped, so this can go as high as you want -- the row just keeps scrolling."
     },
     {
       "type": "checkbox",
       "id": "show_carousel_arrows",
       "label": "Show carousel arrows (desktop)",
       "default": true
+    },
+    {
+      "type": "header",
+      "content": "Carousel arrows",
+      "visible_if": "{{ block.settings.show_carousel_arrows }}"
+    },
+    {
+      "type": "color",
+      "id": "arrow_bg_color",
+      "label": "Arrow background color",
+      "default": "#000000",
+      "visible_if": "{{ block.settings.show_carousel_arrows }}"
+    },
+    {
+      "type": "range",
+      "id": "arrow_bg_opacity",
+      "label": "Arrow background opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 55,
+      "visible_if": "{{ block.settings.show_carousel_arrows }}"
+    },
+    {
+      "type": "color",
+      "id": "arrow_icon_color",
+      "label": "Arrow icon color",
+      "default": "#ffffff",
+      "visible_if": "{{ block.settings.show_carousel_arrows }}"
+    },
+    {
+      "type": "color",
+      "id": "arrow_accent_color",
+      "label": "Arrow hover color",
+      "default": "#ff2fb1",
+      "visible_if": "{{ block.settings.show_carousel_arrows }}"
     },
     {
       "type": "header",
@@ -466,6 +579,16 @@
       "id": "background_color",
       "label": "Background color",
       "default": "#0b0b0f"
+    },
+    {
+      "type": "range",
+      "id": "background_opacity",
+      "label": "Background opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
     },
     {
       "type": "range",

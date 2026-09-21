@@ -4,11 +4,10 @@
 export class RecentlyViewed {
   /** @static @constant {string} The key used to store the viewed products in session storage */
   static #STORAGE_KEY = 'viewedProducts';
-  /** @static @constant {number} The maximum number of products to store */
-  static #MAX_PRODUCTS = 12;
 
   /**
    * Adds a product to the recently viewed products list.
+   * No cap on how many are stored -- the full browsing history is kept.
    * @param {string} productId - The ID of the product to add.
    */
   static addProduct(productId) {
@@ -16,7 +15,6 @@ export class RecentlyViewed {
 
     viewedProducts = viewedProducts.filter((/** @type {string} */ id) => id !== productId);
     viewedProducts.unshift(productId);
-    viewedProducts = viewedProducts.slice(0, this.#MAX_PRODUCTS);
 
     localStorage.setItem(this.#STORAGE_KEY, JSON.stringify(viewedProducts));
   }
