@@ -3,20 +3,22 @@
   assign trigger_text = section.settings.trigger_text
   assign display_count = section.settings.products_to_show
 
-  assign popup_products = blank
+  # Combine every selected collection's products, counting only unique
+  # ones (a product picked via more than one collection shouldn't be
+  # counted/shown twice). Tracked with a plain string of IDs rather
+  # than concat + uniq on arrays of product objects, which is not
+  # reliable for de-duplication across multiple Shopify collections.
+  assign seen_ids = ''
+  assign actual_count = 0
   for col in section.settings.collections
-    if popup_products == blank
-      assign popup_products = col.products
-    else
-      assign popup_products = popup_products | concat: col.products
-    endif
+    for product in col.products
+      assign id_marker = product.id | append: '|'
+      unless seen_ids contains id_marker
+        assign seen_ids = seen_ids | append: id_marker
+        assign actual_count = actual_count | plus: 1
+      endunless
+    endfor
   endfor
-
-  if popup_products != blank
-    assign popup_products = popup_products | uniq
-  endif
-
-  assign actual_count = popup_products.size | default: 0
 
   assign overlay_alpha = section.settings.overlay_opacity | times: 1.0 | divided_by: 100
   assign overlay_rgba = section.settings.overlay_color | color_modify: 'alpha', overlay_alpha
@@ -60,46 +62,61 @@
         {% endif %}
 
         <div class="pcoll-slider{% if actual_count <= 2 %} is-two-products{% endif %}" data-slider>
-          {% if popup_products != blank %}
-            {% for product in popup_products limit: display_count %}
-              {% assign first_variant = product.selected_or_first_available_variant %}
-              <div class="pcoll-card">
-                {% if first_variant.compare_at_price > first_variant.price %}
-                  <div class="pcoll-badge">{{ section.settings.sale_badge_text }}</div>
-                {% endif %}
-
-                <div class="pcoll-image">
-                  <a href="{{ product.url }}">
-                    {% if product.featured_image %}
-                      <img
-                        src="{{ product.featured_image | image_url: width: 700 }}"
-                        alt="{{ product.featured_image.alt | escape }}"
-                        loading="lazy"
-                        width="{{ product.featured_image.width }}"
-                        height="{{ product.featured_image.height }}"
-                      >
+          {% if actual_count > 0 %}
+            {% assign pcoll_rendered_ids = '' %}
+            {% assign pcoll_rendered_count = 0 %}
+            {% for col in section.settings.collections %}
+              {% for product in col.products %}
+                {% assign pcoll_id_marker = product.id | append: '|' %}
+                {% unless pcoll_rendered_ids contains pcoll_id_marker %}
+                  {% assign pcoll_rendered_ids = pcoll_rendered_ids | append: pcoll_id_marker %}
+                  {% assign pcoll_rendered_count = pcoll_rendered_count | plus: 1 %}
+                  {% assign first_variant = product.selected_or_first_available_variant %}
+                  <div class="pcoll-card">
+                    {% if first_variant.compare_at_price > first_variant.price %}
+                      <div class="pcoll-badge">{{ section.settings.sale_badge_text }}</div>
                     {% endif %}
-                  </a>
-                </div>
 
-                <p class="pcoll-name">
-                  <a href="{{ product.url }}">{{ product.title }}</a>
-                </p>
+                    <div class="pcoll-image">
+                      <a href="{{ product.url }}">
+                        {% if product.featured_image %}
+                          <img
+                            src="{{ product.featured_image | image_url: width: 700 }}"
+                            alt="{{ product.featured_image.alt | escape }}"
+                            loading="lazy"
+                            width="{{ product.featured_image.width }}"
+                            height="{{ product.featured_image.height }}"
+                          >
+                        {% endif %}
+                      </a>
+                    </div>
 
-                <p class="pcoll-price">
-                  {% if section.settings.show_from_text and product.price_varies %}From {% endif %}
-                  {{ first_variant.price | money }}
-                </p>
+                    <p class="pcoll-name">
+                      <a href="{{ product.url }}">{{ product.title }}</a>
+                    </p>
 
-                <a
-                  href="{{ product.url }}"
-                  class="pcoll-btn"
-                  data-variant-id="{{ first_variant.id }}"
-                  data-has-only-default-variant="{{ product.has_only_default_variant }}"
-                >
-                  {{ section.settings.button_text }}
-                </a>
-              </div>
+                    <p class="pcoll-price">
+                      {% if section.settings.show_from_text and product.price_varies %}From {% endif %}
+                      {{ first_variant.price | money }}
+                    </p>
+
+                    <a
+                      href="{{ product.url }}"
+                      class="pcoll-btn"
+                      data-variant-id="{{ first_variant.id }}"
+                      data-has-only-default-variant="{{ product.has_only_default_variant }}"
+                    >
+                      {{ section.settings.button_text }}
+                    </a>
+                  </div>
+                  {% if pcoll_rendered_count >= display_count %}
+                    {% break %}
+                  {% endif %}
+                {% endunless %}
+              {% endfor %}
+              {% if pcoll_rendered_count >= display_count %}
+                {% break %}
+              {% endif %}
             {% endfor %}
           {% else %}
             <div class="pcoll-empty">
