@@ -1,21 +1,14 @@
 {% liquid
-  assign popup_collection = section.settings.collection
   assign popup_title = section.settings.heading
   assign trigger_text = section.settings.trigger_text
   assign display_count = section.settings.products_to_show
 
   assign popup_products = blank
-  if popup_collection != blank
-    assign popup_products = popup_collection.products
-  endif
-
-  for block in section.blocks
-    if block.type == 'collection' and block.settings.collection != blank
-      if popup_products == blank
-        assign popup_products = block.settings.collection.products
-      else
-        assign popup_products = popup_products | concat: block.settings.collection.products
-      endif
+  for col in section.settings.collections
+    if popup_products == blank
+      assign popup_products = col.products
+    else
+      assign popup_products = popup_products | concat: col.products
     endif
   endfor
 
@@ -650,10 +643,10 @@
       "default": "Today's Deals"
     },
     {
-      "type": "collection",
-      "id": "collection",
-      "label": "Collection",
-      "info": "Add \"Collection\" blocks below to pull in products from more than one collection. Duplicates (a product in more than one collection) only show once."
+      "type": "collection_list",
+      "id": "collections",
+      "label": "Collections",
+      "info": "Pick one or more collections right here -- products from all of them are combined into this same popup. Duplicates (a product in more than one collection) only show once."
     },
     {
       "type": "range",
@@ -874,19 +867,6 @@
       "max": 30,
       "step": 2,
       "default": 18
-    }
-  ],
-  "blocks": [
-    {
-      "type": "collection",
-      "name": "Collection",
-      "settings": [
-        {
-          "type": "collection",
-          "id": "collection",
-          "label": "Collection"
-        }
-      ]
     }
   ],
   "presets": [
