@@ -61,7 +61,7 @@
           </button>
         {% endif %}
 
-        <div class="pcoll-slider{% if actual_count <= 2 %} is-two-products{% endif %}" data-slider>
+        <div class="pcoll-slider{% if actual_count <= 2 %} is-two-products{% endif %}{% if section.settings.two_row_layout %} pcoll-slider--2rows{% endif %}" data-slider>
           {% if actual_count > 0 %}
             {% assign pcoll_rendered_ids = '' %}
             {% assign pcoll_rendered_count = 0 %}
@@ -329,6 +329,22 @@
     overflow-x: hidden;
   }
 
+  #PopupCollection-{{ section.id }} .pcoll-slider--2rows {
+    display: grid;
+    grid-template-rows: repeat(2, auto);
+    grid-auto-flow: column;
+    grid-auto-columns: 220px;
+    align-items: start;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  #PopupCollection-{{ section.id }} .pcoll-slider--2rows.is-two-products {
+    justify-content: flex-start;
+    overflow-x: auto;
+    grid-auto-columns: 250px;
+  }
+
   #PopupCollection-{{ section.id }} .pcoll-arrow {
     position: absolute;
     top: 42%;
@@ -489,6 +505,10 @@
       max-width: 145px;
       padding: 10px;
       scroll-snap-align: start;
+    }
+
+    #PopupCollection-{{ section.id }} .pcoll-slider--2rows {
+      grid-auto-columns: 145px;
     }
 
     #PopupCollection-{{ section.id }} .pcoll-image {
@@ -674,6 +694,13 @@
       "step": 1,
       "default": 8,
       "info": "No artificial cap beyond this -- raise it as high as the collection needs, the row just keeps scrolling."
+    },
+    {
+      "type": "checkbox",
+      "id": "two_row_layout",
+      "label": "Display in 2 rows",
+      "info": "Arranges the products into 2 rows instead of a single scrolling row.",
+      "default": false
     },
     {
       "type": "checkbox",
