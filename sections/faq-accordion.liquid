@@ -37,7 +37,7 @@
   </div>
 </div>
 
-<style>
+{% stylesheet %}
   .faq-accordion-{{ section.id }} {
     position: relative;
     z-index: 1;
@@ -204,7 +204,7 @@
   .faq-accordion-{{ section.id }} .faq-accordion__answer a {
     color: {{ accent }};
   }
-</style>
+{% endstylesheet %}
 
 <script>
   (function () {

@@ -135,7 +135,7 @@
   </div>
 </div>
 
-<style>
+{% stylesheet %}
   #PopupCollection-{{ section.id }} {
     --pcoll-bg: {{ section.settings.modal_bg }};
     --pcoll-text: {{ section.settings.text_color }};
@@ -540,7 +540,7 @@
       padding: 16px 8px;
     }
   }
-</style>
+{% endstylesheet %}
 
 <script>
   (function() {

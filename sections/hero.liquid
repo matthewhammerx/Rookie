@@ -461,49 +461,6 @@
   endif
 -%}
 
-{% if section.settings.enable_media_blur or section.settings.enable_edge_fade or hero_text_shadow_kind != 'none' %}
-  <style>
-    {% if section.settings.enable_media_blur %}
-      #Hero-{{ section.id }} .hero__media-grid .hero__media {
-        filter: blur({{ section.settings.media_blur_amount }}px);
-        transform: scale(1.15);
-      }
-    {% endif %}
-
-    {% if section.settings.enable_edge_fade %}
-      #Hero-{{ section.id }} .hero__edge-fade {
-        position: absolute;
-        inset: 0;
-        z-index: var(--layer-base);
-        pointer-events: none;
-        background: linear-gradient(
-          to bottom,
-          rgba(0, 0, 0, {{ section.settings.edge_fade_opacity | divided_by: 100.0 }}) 0%,
-          rgba(0, 0, 0, 0) {{ section.settings.edge_fade_size }}%,
-          rgba(0, 0, 0, 0) {{ 100 | minus: section.settings.edge_fade_size }}%,
-          rgba(0, 0, 0, {{ section.settings.edge_fade_opacity | divided_by: 100.0 }}) 100%
-        );
-      }
-    {% endif %}
-
-    {% if hero_text_shadow_kind == 'both' %}
-      #Hero-{{ section.id }} .hero__content-wrapper .text {
-        text-shadow:
-          0 0 {{ section.settings.text_glow_size }}px {{ section.settings.text_glow_color }},
-          {{ section.settings.text_shadow_offset_x }}px {{ section.settings.text_shadow_offset_y }}px {{ section.settings.text_shadow_blur }}px {{ section.settings.text_shadow_color }};
-      }
-    {% elsif hero_text_shadow_kind == 'glow' %}
-      #Hero-{{ section.id }} .hero__content-wrapper .text {
-        text-shadow: 0 0 {{ section.settings.text_glow_size }}px {{ section.settings.text_glow_color }};
-      }
-    {% elsif hero_text_shadow_kind == 'shadow' %}
-      #Hero-{{ section.id }} .hero__content-wrapper .text {
-        text-shadow: {{ section.settings.text_shadow_offset_x }}px {{ section.settings.text_shadow_offset_y }}px {{ section.settings.text_shadow_blur }}px {{ section.settings.text_shadow_color }};
-      }
-    {% endif %}
-  </style>
-{% endif %}
-
 <div
   id="Hero-{{ section.id }}"
   class="hero color-{{ section.settings.color_scheme }}{% if section.blocks.size == 0 and section.settings.section_height == 'auto' %} hero--no-blocks-auto-height{% endif %}{% if section.settings.stack_media_on_mobile %} hero--stack-mobile{% endif %}"
@@ -597,6 +554,45 @@
 </div>
 
 {% stylesheet %}
+  {% if section.settings.enable_media_blur %}
+    #Hero-{{ section.id }} .hero__media-grid .hero__media {
+      filter: blur({{ section.settings.media_blur_amount }}px);
+      transform: scale(1.15);
+    }
+  {% endif %}
+
+  {% if section.settings.enable_edge_fade %}
+    #Hero-{{ section.id }} .hero__edge-fade {
+      position: absolute;
+      inset: 0;
+      z-index: var(--layer-base);
+      pointer-events: none;
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, {{ section.settings.edge_fade_opacity | divided_by: 100.0 }}) 0%,
+        rgba(0, 0, 0, 0) {{ section.settings.edge_fade_size }}%,
+        rgba(0, 0, 0, 0) {{ 100 | minus: section.settings.edge_fade_size }}%,
+        rgba(0, 0, 0, {{ section.settings.edge_fade_opacity | divided_by: 100.0 }}) 100%
+      );
+    }
+  {% endif %}
+
+  {% if hero_text_shadow_kind == 'both' %}
+    #Hero-{{ section.id }} .hero__content-wrapper .text {
+      text-shadow:
+        0 0 {{ section.settings.text_glow_size }}px {{ section.settings.text_glow_color }},
+        {{ section.settings.text_shadow_offset_x }}px {{ section.settings.text_shadow_offset_y }}px {{ section.settings.text_shadow_blur }}px {{ section.settings.text_shadow_color }};
+    }
+  {% elsif hero_text_shadow_kind == 'glow' %}
+    #Hero-{{ section.id }} .hero__content-wrapper .text {
+      text-shadow: 0 0 {{ section.settings.text_glow_size }}px {{ section.settings.text_glow_color }};
+    }
+  {% elsif hero_text_shadow_kind == 'shadow' %}
+    #Hero-{{ section.id }} .hero__content-wrapper .text {
+      text-shadow: {{ section.settings.text_shadow_offset_x }}px {{ section.settings.text_shadow_offset_y }}px {{ section.settings.text_shadow_blur }}px {{ section.settings.text_shadow_color }};
+    }
+  {% endif %}
+
   .hero-wrapper {
     --hero-height-offset: 0px;
   }
