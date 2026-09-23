@@ -568,6 +568,13 @@
     mask-image: linear-gradient(to top, black 0%, transparent var(--hcf-card-blur-fade));
   }
 
+  @media (max-width: 749px) {
+    .hcf__card-blur {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
   .hcf__card:hover {
     transform: translateY(-4px) scale(1.035);
     z-index: 5;

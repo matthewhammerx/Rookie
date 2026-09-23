@@ -126,6 +126,13 @@
     transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
 
+  @media (max-width: 749px) {
+    .social-proof-stats-{{ section.id }} .social-proof-stats__card {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
   .social-proof-stats-{{ section.id }} .social-proof-stats__glow {
     position: absolute;
     top: -40%;

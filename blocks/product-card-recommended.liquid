@@ -112,6 +112,13 @@
     mask-image: linear-gradient(to top, black 0%, transparent var(--prc-card-blur-fade));
   }
 
+  @media (max-width: 749px) {
+    .prc__card-blur {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
   .prc__card-badge {
     position: absolute;
     top: 10px;

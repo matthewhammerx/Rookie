@@ -70,6 +70,13 @@
     animation: tpb-glow-pulse 2.6s ease-in-out infinite;
   }
 
+  @media (max-width: 749px) {
+    .tpb__badge {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
   a.tpb__badge:hover {
     transform: translateY(-2px);
     border-color: rgba(255, 47, 177, 0.6);
