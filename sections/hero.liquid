@@ -168,13 +168,15 @@
         section.settings.video_1
         | video_tag:
           poster: nil,
-          preload: 'metadata',
-          data-lazy-video: true,
+          autoplay: false,
           loop: true,
           controls: false,
           muted: true,
+          playsinline: true,
+          preload: 'none',
           class: 'hero__media',
-          data-testid: 'hero-desktop-video-1'
+          data-testid: 'hero-desktop-video-1',
+          data-lazy-video: true
       }}
     </div>
   {%- endif -%}
@@ -205,13 +207,15 @@
           section.settings.video_1_mobile
           | video_tag:
             poster: nil,
-            preload: 'metadata',
-            data-lazy-video: true,
+            autoplay: false,
             loop: true,
             controls: false,
             muted: true,
+            playsinline: true,
+            preload: 'none',
             class: 'hero__media',
-            data-testid: 'hero-mobile-video-1'
+            data-testid: 'hero-mobile-video-1',
+            data-lazy-video: true
         }}
       </div>
     {%- endif -%}
@@ -274,13 +278,15 @@
         section.settings.video_2
         | video_tag:
           poster: nil,
-          preload: 'metadata',
-          data-lazy-video: true,
+          autoplay: false,
           loop: true,
           controls: false,
           muted: true,
+          playsinline: true,
+          preload: 'none',
           class: 'hero__media',
-          data-testid: 'hero-desktop-video-2'
+          data-testid: 'hero-desktop-video-2',
+          data-lazy-video: true
       }}
     </div>
   {%- endif -%}
@@ -311,13 +317,15 @@
           section.settings.video_2_mobile
           | video_tag:
             poster: nil,
-            preload: 'metadata',
-            data-lazy-video: true,
+            autoplay: false,
             loop: true,
             controls: false,
             muted: true,
+            playsinline: true,
+            preload: 'none',
             class: 'hero__media',
-            data-testid: 'hero-mobile-video-2'
+            data-testid: 'hero-mobile-video-2',
+            data-lazy-video: true
         }}
       </div>
     {%- endif -%}
@@ -556,34 +564,6 @@
     </div>
   </div>
 </div>
-
-<script>
-  (function () {
-    var heroRoot = document.getElementById('Hero-{{ section.id }}');
-    if (!heroRoot) return;
-
-    var lazyVideos = heroRoot.querySelectorAll('[data-lazy-video]');
-    if (!lazyVideos.length || !('IntersectionObserver' in window)) return;
-
-    var videoObserver = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.play().catch(function () {});
-            videoObserver.unobserve(entry.target);
-          }
-        });
-      },
-      { rootMargin: '400px 0px' }
-    );
-
-    lazyVideos.forEach(function (video) {
-      if (video.dataset.lazyBound) return;
-      video.dataset.lazyBound = 'true';
-      videoObserver.observe(video);
-    });
-  })();
-</script>
 
 {% stylesheet %}
   {% if section.settings.enable_media_blur %}
@@ -845,6 +825,41 @@
 }
 
 {% endstylesheet %}
+
+<script>
+  (function () {
+    var root = document.getElementById('Hero-{{ section.id }}');
+    if (!root) return;
+
+    var videos = root.querySelectorAll('[data-lazy-video]');
+    if (!videos.length) return;
+
+    var playVideo = function (video) {
+      if (video.dataset.lazyBound) return;
+      video.dataset.lazyBound = 'true';
+      video.play().catch(function () {});
+    };
+
+    if ('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              playVideo(entry.target);
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { rootMargin: '600px 0px' }
+      );
+      videos.forEach(function (video) {
+        observer.observe(video);
+      });
+    } else {
+      videos.forEach(playVideo);
+    }
+  })();
+</script>
 
 {% schema %}
 {
