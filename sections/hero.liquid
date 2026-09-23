@@ -168,7 +168,8 @@
         section.settings.video_1
         | video_tag:
           poster: nil,
-          autoplay: true,
+          preload: 'metadata',
+          data-lazy-video: true,
           loop: true,
           controls: false,
           muted: true,
@@ -204,7 +205,8 @@
           section.settings.video_1_mobile
           | video_tag:
             poster: nil,
-            autoplay: true,
+            preload: 'metadata',
+            data-lazy-video: true,
             loop: true,
             controls: false,
             muted: true,
@@ -272,7 +274,8 @@
         section.settings.video_2
         | video_tag:
           poster: nil,
-          autoplay: true,
+          preload: 'metadata',
+          data-lazy-video: true,
           loop: true,
           controls: false,
           muted: true,
@@ -308,7 +311,8 @@
           section.settings.video_2_mobile
           | video_tag:
             poster: nil,
-            autoplay: true,
+            preload: 'metadata',
+            data-lazy-video: true,
             loop: true,
             controls: false,
             muted: true,
@@ -552,6 +556,34 @@
     </div>
   </div>
 </div>
+
+<script>
+  (function () {
+    var heroRoot = document.getElementById('Hero-{{ section.id }}');
+    if (!heroRoot) return;
+
+    var lazyVideos = heroRoot.querySelectorAll('[data-lazy-video]');
+    if (!lazyVideos.length || !('IntersectionObserver' in window)) return;
+
+    var videoObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.play().catch(function () {});
+            videoObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: '400px 0px' }
+    );
+
+    lazyVideos.forEach(function (video) {
+      if (video.dataset.lazyBound) return;
+      video.dataset.lazyBound = 'true';
+      videoObserver.observe(video);
+    });
+  })();
+</script>
 
 {% stylesheet %}
   {% if section.settings.enable_media_blur %}

@@ -57,7 +57,7 @@
 >
   <div class="promo-card__glow-wrapper">
     {%- if section.settings.enable_section_glow -%}
-      <div class="promo-card__section-glow promo-card__section-glow--{{ section.settings.section_glow_style }}" aria-hidden="true"></div>
+      <div class="promo-card__section-glow promo-card__section-glow--{{ section.settings.section_glow_style }}" data-pause-offscreen aria-hidden="true"></div>
     {%- endif -%}
     <a
       {% if section.settings.link != blank %}href="{{ section.settings.link }}"{% else %}href="javascript:void(0);"{% endif %}
