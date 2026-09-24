@@ -361,6 +361,9 @@
             #HBImage-{{ block.id }} {
               width: {{ block.settings.width_mobile }}px;
               margin-top: {{ block.settings.margin_top }}px;
+              position: relative;
+              z-index: 3;
+              transform: translate({{ block.settings.offset_x_mobile }}px, {{ block.settings.offset_y_mobile }}px);
             }
 
             #HBImage-{{ block.id }} .hero-banner__image-block-img {
@@ -370,6 +373,7 @@
             @media screen and (min-width: 750px) {
               #HBImage-{{ block.id }} {
                 width: {{ block.settings.width_desktop }}px;
+                transform: translate({{ block.settings.offset_x_desktop }}px, {{ block.settings.offset_y_desktop }}px);
               }
             }
           </style>
@@ -1688,6 +1692,54 @@
           "step": 4,
           "unit": "px",
           "default": 16
+        },
+        {
+          "type": "header",
+          "content": "Position"
+        },
+        {
+          "type": "paragraph",
+          "content": "Freely nudge the image away from its normal spot in the stack, without changing the space it takes up (so the headline/button don't shift)."
+        },
+        {
+          "type": "range",
+          "id": "offset_x_desktop",
+          "label": "Horizontal nudge (desktop)",
+          "min": -300,
+          "max": 300,
+          "step": 10,
+          "unit": "px",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "offset_y_desktop",
+          "label": "Vertical nudge (desktop)",
+          "min": -300,
+          "max": 300,
+          "step": 10,
+          "unit": "px",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "offset_x_mobile",
+          "label": "Horizontal nudge (mobile)",
+          "min": -200,
+          "max": 200,
+          "step": 10,
+          "unit": "px",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "offset_y_mobile",
+          "label": "Vertical nudge (mobile)",
+          "min": -200,
+          "max": 200,
+          "step": 10,
+          "unit": "px",
+          "default": 0
         }
       ]
     },
