@@ -1,0 +1,162 @@
+{% comment %}
+  Trust Badge (block)
+  Same glassy pill as the Trust Badge section, minus the stars -- just
+  the rounded pill with bold text. A theme block so it can be dropped
+  into Product Information (or any other block-accepting section)
+  instead of only living as its own full-width section.
+{% endcomment %}
+
+{%- liquid
+  assign bg_alpha = block.settings.background_opacity | times: 1.0 | divided_by: 100
+  assign bg_rgba = block.settings.background_color | color_modify: 'alpha', bg_alpha
+  assign accent_rgba = block.settings.accent_color | color_modify: 'alpha', 0.35
+  assign accent_hover_rgba = block.settings.accent_color | color_modify: 'alpha', 0.6
+
+  assign tag = 'div'
+  if block.settings.link_url != blank
+    assign tag = 'a'
+  endif
+-%}
+
+<{{ tag }}
+  id="TrustBadge-{{ block.id }}"
+  class="tb__badge"
+  data-pause-offscreen
+  style="
+    --tb-bg: {{ bg_rgba }};
+    --tb-text-color: {{ block.settings.text_color }};
+    --tb-accent: {{ accent_rgba }};
+    --tb-accent-hover: {{ accent_hover_rgba }};
+    --tb-glow: {{ block.settings.accent_color | color_modify: 'alpha', 0.45 }};
+  "
+  {% if block.settings.link_url != blank %}
+    href="{{ block.settings.link_url }}"
+    target="_blank"
+    rel="noopener noreferrer"
+  {% endif %}
+  {{ block.shopify_attributes }}
+>
+  <span class="tb__text">{{ block.settings.badge_text }}</span>
+</{{ tag }}>
+
+{% stylesheet %}
+  .tb__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 18px;
+    border-radius: 999px;
+    background: var(--tb-bg);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--tb-accent);
+    color: var(--tb-text-color);
+    text-decoration: none;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    animation: tb-glow-pulse 2.6s ease-in-out infinite;
+  }
+
+  @media (max-width: 749px) {
+    .tb__badge {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  a.tb__badge:hover {
+    transform: translateY(-2px);
+    border-color: var(--tb-accent-hover);
+  }
+
+  @keyframes tb-glow-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 16px 0 var(--tb-glow);
+    }
+    50% {
+      box-shadow: 0 0 34px 2px var(--tb-glow);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tb__badge {
+      animation: none;
+      box-shadow: 0 0 20px var(--tb-glow);
+    }
+  }
+
+  .tb__text {
+    font-size: 0.875rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  @media screen and (max-width: 480px) {
+    .tb__badge {
+      padding: 8px 14px;
+    }
+
+    .tb__text {
+      font-size: 0.8rem;
+      white-space: normal;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Trust Badge",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "text",
+      "id": "badge_text",
+      "label": "Badge text",
+      "default": "Trusted Worldwide by 7,000+"
+    },
+    {
+      "type": "url",
+      "id": "link_url",
+      "label": "Link (optional)"
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent / glow color",
+      "default": "#ff2fb1"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "background_opacity",
+      "label": "Background opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 40,
+      "info": "Low opacity gives a glassy, see-through look over photos/video behind it."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Trust Badge"
+    }
+  ]
+}
+{% endschema %}
