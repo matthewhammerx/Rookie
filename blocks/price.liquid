@@ -4,6 +4,14 @@
   assign block_settings = block.settings
   assign product_resource = closest.product
   assign selected_variant = product_resource.selected_or_first_available_variant
+
+  assign price_shadow_alpha = block_settings.shadow_strength | times: 1.0 | divided_by: 100
+  assign price_shadow_rgba = block_settings.shadow_color | color_modify: 'alpha', price_shadow_alpha
+
+  assign price_text_shadow = 'none'
+  if block_settings.enable_shadow
+    assign price_text_shadow = '0 ' | append: block_settings.shadow_offset_y | append: 'px ' | append: block_settings.shadow_blur | append: 'px ' | append: price_shadow_rgba
+  endif
 -%}
 
 {% liquid
@@ -112,6 +120,10 @@
     letter-spacing: normal;
     text-transform: none;
     color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text));
+  }
+
+  product-price[data-block-id="{{ block.id }}"] {
+    text-shadow: {{ price_text_shadow }};
   }
 {% endstylesheet %}
 
@@ -398,6 +410,57 @@
       ],
       "default": "var(--color-foreground)",
       "visible_if": "{{ block.settings.type_preset != 'rte' }}"
+    },
+    {
+      "type": "header",
+      "content": "Shadow"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_shadow",
+      "label": "Add shadow behind text",
+      "info": "Helps the price stay readable over busy backgrounds/videos.",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "shadow_color",
+      "label": "Shadow color",
+      "default": "#000000",
+      "visible_if": "{{ block.settings.enable_shadow }}"
+    },
+    {
+      "type": "range",
+      "id": "shadow_strength",
+      "label": "Shadow strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 70,
+      "visible_if": "{{ block.settings.enable_shadow }}"
+    },
+    {
+      "type": "range",
+      "id": "shadow_blur",
+      "label": "Shadow blur",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 10,
+      "visible_if": "{{ block.settings.enable_shadow }}"
+    },
+    {
+      "type": "range",
+      "id": "shadow_offset_y",
+      "label": "Shadow vertical offset",
+      "min": -20,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 2,
+      "visible_if": "{{ block.settings.enable_shadow }}"
     },
     {
       "type": "header",
