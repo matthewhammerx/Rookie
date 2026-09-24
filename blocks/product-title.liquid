@@ -1,4 +1,12 @@
+{%- liquid
+  assign pt_shadow_alpha = block.settings.shadow_strength | times: 1.0 | divided_by: 100
+  assign pt_shadow_rgba = block.settings.shadow_color | color_modify: 'alpha', pt_shadow_alpha
 
+  assign pt_text_shadow = 'none'
+  if block.settings.enable_shadow
+    assign pt_text_shadow = '0 ' | append: block.settings.shadow_offset_y | append: 'px ' | append: block.settings.shadow_blur | append: 'px ' | append: pt_shadow_rgba
+  endif
+-%}
 
 {% if closest.product == blank %}
   {% assign text = 'placeholders.product_title' | t %}
@@ -14,6 +22,12 @@
     {% render 'text', fallback_text: product_title, block: block %}
   </a>
 {% endif %}
+
+{% stylesheet %}
+  .text-block--{{ block.id }} {
+    text-shadow: {{ pt_text_shadow }};
+  }
+{% endstylesheet %}
 
 {% schema %}
 {
@@ -349,6 +363,57 @@
       "max": 50,
       "step": 1,
       "visible_if": "{{ block.settings.background }}"
+    },
+    {
+      "type": "header",
+      "content": "Shadow"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_shadow",
+      "label": "Add shadow behind text",
+      "info": "Helps the title stay readable over busy backgrounds/videos.",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "shadow_color",
+      "label": "Shadow color",
+      "default": "#000000",
+      "visible_if": "{{ block.settings.enable_shadow }}"
+    },
+    {
+      "type": "range",
+      "id": "shadow_strength",
+      "label": "Shadow strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 70,
+      "visible_if": "{{ block.settings.enable_shadow }}"
+    },
+    {
+      "type": "range",
+      "id": "shadow_blur",
+      "label": "Shadow blur",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 10,
+      "visible_if": "{{ block.settings.enable_shadow }}"
+    },
+    {
+      "type": "range",
+      "id": "shadow_offset_y",
+      "label": "Shadow vertical offset",
+      "min": -20,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 2,
+      "visible_if": "{{ block.settings.enable_shadow }}"
     },
     {
       "type": "header",
