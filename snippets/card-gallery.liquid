@@ -13,6 +13,9 @@
   assign block_settings = block.settings
   assign image_sizes = '(min-width: 750px) 50vw, 100vw'
 
+  assign qa_bg_alpha = block_settings.quick_add_bg_opacity | times: 1.0 | divided_by: 100
+  assign qa_bg_rgba = block_settings.quick_add_bg_color | color_modify: 'alpha', qa_bg_alpha
+
   # Check if product has badges and determine position
   assign has_badges = false
   assign badge_position = null
@@ -65,11 +68,12 @@
 
 <div
   ref="cardGallery"
-  class="card-gallery card-gallery-{{ block.id }} spacing-style border-style{% if has_badges %} card-gallery--badge-{{ badge_position }}{% endif %}"
+  class="card-gallery card-gallery-{{ block.id }} spacing-style border-style{% if has_badges %} card-gallery--badge-{{ badge_position }}{% endif %}{% if block_settings.quick_add_custom_bg %} card-gallery--quick-add-custom-bg{% endif %}"
   style="
     {% render 'border-override', settings: block_settings %}
     {% render 'spacing-style', settings: block_settings %}
     --gallery-aspect-ratio: {{ ratio }};
+    --card-gallery-quick-add-bg: {{ qa_bg_rgba }};
   "
   data-product-id="{{ product.id }}"
   {% if settings.show_second_image_on_hover %}
@@ -795,6 +799,14 @@
 
   product-card .quick-add__button--add {
     display: flex !important;
+  }
+
+  .card-gallery--quick-add-custom-bg .quick-add__button {
+    background: var(--card-gallery-quick-add-bg);
+  }
+
+  .card-gallery--quick-add-custom-bg .quick-add__button .add-to-cart-text {
+    background: transparent;
   }
 
   @media screen and (min-width: 750px) {

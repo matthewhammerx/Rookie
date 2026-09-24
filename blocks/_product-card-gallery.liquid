@@ -176,6 +176,35 @@
     },
     {
       "type": "header",
+      "content": "Quick add"
+    },
+    {
+      "type": "checkbox",
+      "id": "quick_add_custom_bg",
+      "label": "Customize quick add background",
+      "info": "Gives the Pokeball corner button a colored glass background instead of the plain white circle, matching the other homepage sections.",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "quick_add_bg_color",
+      "label": "Background color",
+      "default": "#000000",
+      "visible_if": "{{ block.settings.quick_add_custom_bg }}"
+    },
+    {
+      "type": "range",
+      "id": "quick_add_bg_opacity",
+      "label": "Background opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 35,
+      "visible_if": "{{ block.settings.quick_add_custom_bg }}"
+    },
+    {
+      "type": "header",
       "content": "t:content.padding"
     },
     {
