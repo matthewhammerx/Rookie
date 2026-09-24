@@ -181,6 +181,10 @@
 {%- endif -%}
 
 {% style %}
+  media-gallery slideshow-container {
+    background-color: transparent;
+  }
+
   {% unless block_settings.aspect_ratio == 'adapt' %}
     .product-media-container {
       --media-preview-ratio: {{ block_settings.aspect_ratio }};
