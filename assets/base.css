@@ -4944,16 +4944,6 @@ product-recommendations:has([data-has-recommendations='false']) {
     translate: 0px var(--atc-destination, 0px);
   }
 }
-/* Savor: force price color by overriding the component variable */
-product-price{
-  --color: #ff4fa3 !important;
-}
-
-/* backup in case the theme colors the inner elements directly */
-product-price .price,
-product-price .money{
-  color: #ff4fa3 !important;
-}
 /* Bigger + bold product price */
 product-price .price,
 product-price .money{

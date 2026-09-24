@@ -52,6 +52,9 @@
     {% render 'typography-style', settings: block_settings %}
     {% render 'spacing-style', settings: block_settings %}
     --width: {{ block_settings.width }};
+    {% if block_settings.color == 'custom' %}
+      --color: {{ block_settings.custom_color }};
+    {% endif %}
   "
   {{ block.shopify_attributes }}
 >
@@ -406,10 +409,21 @@
         {
           "value": "var(--color-primary)",
           "label": "t:options.link"
+        },
+        {
+          "value": "custom",
+          "label": "Custom color"
         }
       ],
       "default": "var(--color-foreground)",
       "visible_if": "{{ block.settings.type_preset != 'rte' }}"
+    },
+    {
+      "type": "color",
+      "id": "custom_color",
+      "label": "Custom price color",
+      "default": "#ff2fb1",
+      "visible_if": "{{ block.settings.color == 'custom' and block.settings.type_preset != 'rte' }}"
     },
     {
       "type": "header",
