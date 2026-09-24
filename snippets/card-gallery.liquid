@@ -16,9 +16,6 @@
   assign qa_bg_alpha = block_settings.quick_add_bg_opacity | times: 1.0 | divided_by: 100
   assign qa_bg_rgba = block_settings.quick_add_bg_color | color_modify: 'alpha', qa_bg_alpha
 
-  assign pb_fill = block_settings.pokeball_fill_color | default: '#ffffff' | replace: '#', '%23'
-  assign pb_line = block_settings.pokeball_line_color | default: '#111111' | replace: '#', '%23'
-
   # Check if product has badges and determine position
   assign has_badges = false
   assign badge_position = null
@@ -848,7 +845,7 @@
       content: '';
       position: absolute;
       inset: 4px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='{{ pb_fill }}' stroke='{{ pb_line }}' stroke-width='1.3'/%3E%3Cpath d='M3 12h5.2M15.8 12H21' stroke='{{ pb_line }}' stroke-width='1.3'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='{{ pb_fill }}' stroke='{{ pb_line }}' stroke-width='1.3'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='%23ffffff' stroke='%23111111' stroke-width='1.3'/%3E%3Cpath d='M3 12h5.2M15.8 12H21' stroke='%23111111' stroke-width='1.3'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='%23ffffff' stroke='%23111111' stroke-width='1.3'/%3E%3C/svg%3E");
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
